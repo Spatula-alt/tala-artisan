@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Blue acrylic shield with a navy printed sticker">
+  <rect width="800" height="1000" fill="#F3F1EB"/>
+  <ellipse cx="400" cy="858" rx="200" ry="14" fill="#15140F" opacity=".09"/>
+  <path d="M284 740 C200 622 200 421 200 268 Q200 150 260 150 L540 150 Q600 150 600 268 C600 421 600 622 516 740 Z" fill="#1B49A8"/>
+  <path d="M284 740 C200 622 200 421 200 268 Q200 150 260 150 L540 150 Q600 150 600 268 C600 421 600 622 516 740 Z" fill="none" stroke="#123172" stroke-width="3" opacity=".5"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="#C9A14A"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="none" stroke="#8E6C22" stroke-width="2.5" opacity=".6"/>
+  <g>
+    <rect x="285" y="387" width="230" height="140" rx="18" fill="#17305A"/>
+    <rect x="292" y="394" width="216" height="126" rx="13" fill="none" stroke="#E8C25A" stroke-width="2.5"/>
+    <rect x="336" y="420" width="129" height="10" rx="3" fill="#E8C25A"/>
+    <rect x="317" y="441" width="166" height="24" rx="4" fill="#FFFFFF"/>
+    <rect x="345" y="476" width="110" height="7" rx="2" fill="#E8C25A" opacity=".75"/>
+  </g>
+</svg>

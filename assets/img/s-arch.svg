@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="White acrylic arch with a white printed sticker">
+  <rect width="800" height="1000" fill="#F3F1EB"/>
+  <ellipse cx="400" cy="858" rx="200" ry="14" fill="#15140F" opacity=".09"/>
+  <path d="M200 740 L200 350 A200 200 0 0 1 600 350 L600 740 Z" fill="#F2F0EA"/>
+  <path d="M200 740 L200 350 A200 200 0 0 1 600 350 L600 740 Z" fill="none" stroke="#CFCCC2" stroke-width="3" opacity=".5"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="#1A1917"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="none" stroke="#000000" stroke-width="2.5" opacity=".6"/>
+  <g>
+    <rect x="285" y="410" width="230" height="140" rx="18" fill="#FFFFFF"/>
+    <rect x="292" y="417" width="216" height="126" rx="13" fill="none" stroke="#A67C2E" stroke-width="2.5"/>
+    <rect x="336" y="444" width="129" height="10" rx="3" fill="#A67C2E"/>
+    <rect x="317" y="465" width="166" height="24" rx="4" fill="#141310"/>
+    <rect x="345" y="500" width="110" height="7" rx="2" fill="#A67C2E" opacity=".75"/>
+  </g>
+</svg>

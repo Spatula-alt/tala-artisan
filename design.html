@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design your own trophy — Tala Artisan</title>
+<meta name="description" content="Build your trophy in 3D: shape, colour, printed sticker, font and wording. Live price, delivery date and payment options. Free proof, no minimum order.">
+<meta name="theme-color" content="#15140F">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap"></noscript>
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/designer.css">
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+
+<body>
+<a class="skip" href="#designer">Skip to the designer</a>
+
+<header class="nav" id="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg>
+      <b>Tala<i>Artisan</i></b>
+    </a>
+    <nav class="nav__links" id="menu" aria-label="Primary">
+      <a href="./#shop">Shop</a>
+      <a href="design.html" aria-current="page">Design yours</a>
+      <a href="#guide">Guide</a>
+      <a href="./#studio">Studio</a>
+    </nav>
+    <div class="nav__act">
+      <a class="btn btn--line btn--sm" href="./#quote">Get a quote</a>
+      <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="dz" id="designer">
+  <div class="wrap">
+    <div class="dz__head">
+      <h1 class="d1" style="font-size:clamp(2.2rem,4.4vw,3.5rem)">Design your own trophy.</h1>
+      <p class="lede">
+        Change any option and the model updates immediately — the cut shape, the sheet colour, the
+        base and the printed sticker. The price moves with it, and so does the date it lands.
+      </p>
+    </div>
+
+    <div class="dz__grid">
+
+      <!-- ─── stage ─── -->
+      <div class="stage">
+        <div class="viz" id="dzViz">
+          <span class="badge" id="dzBadge">White · Lady · Large</span>
+          <img class="viz__poster" src="assets/img/poster-hero.svg" alt="Preview of the trophy you are designing.">
+          <canvas class="viz__canvas" id="dzCanvas" tabindex="0" role="img"
+                  aria-label="Interactive 3D preview of your trophy. Drag to turn it, scroll to zoom, arrow keys also work."></canvas>
+          <div class="viz__hint">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9 5 12l3 3M16 9l3 3-3 3"/></svg>
+            Drag to turn<span class="hint-zoom"> · scroll to zoom</span>
+          </div>
+        </div>
+        <div class="stage__bar">
+          <button class="btn btn--line btn--sm" id="dzTour" type="button">Show me how</button>
+          <button class="btn btn--line btn--sm" id="dzReset" type="button">Reset view</button>
+          <button class="btn btn--line btn--sm" id="dzSave" type="button">Save image</button>
+          <span class="stage__spacer"></span>
+          <span class="stage__size" id="dzDims">28 × 16.4 cm · 8 mm sheet</span>
+        </div>
+      </div>
+
+      <!-- ─── controls ─── -->
+      <div>
+        <div class="panel" id="dzPanel">
+
+          <details class="step" id="stepOccasion" open>
+            <summary class="step__btn">
+              <span class="step__n">1</span><span class="step__t">Occasion</span>
+              <span class="step__v" id="vOccasion">Pageant</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note">A starting point, not a template &mdash; every option below stays editable.</p>
+              <div class="opts opts--3" id="optOccasion" role="group" aria-label="Occasion"></div>
+            </div>
+          </details>
+
+          <details class="step" id="stepShape">
+            <summary class="step__btn">
+              <span class="step__n">2</span><span class="step__t">Cut shape</span>
+              <span class="step__v" id="vShape">Lady</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note" id="noteShape">Gown figure for pageants.</p>
+              <div class="opts opts--5" id="optShape" role="group" aria-label="Cut shape"></div>
+
+              <div class="cut" id="cutBlock">
+                <p class="sub" style="margin-top:16px">Or cut a shape from your own picture</p>
+                <p class="step__note">A mascot, a logo, a person. We remove the background and the rest becomes the cut shape.</p>
+                <div class="cut__drop" id="cutDrop" tabindex="0" role="button" aria-label="Choose a picture to cut a shape from">
+                  <input type="file" id="cutInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+                  <canvas id="cutPrev" width="480" height="480" hidden></canvas>
+                  <span class="cut__hint" id="cutHint">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <b>Drop a picture here</b>
+                    <span>or click to browse &middot; JPG, PNG or SVG &middot; up to 8 MB</span>
+                  </span>
+                </div>
+                <p class="drop__msg" id="cutMsg" role="status"></p>
+                <div id="cutOpts" hidden>
+                  <p class="sub">Background</p>
+                  <div class="opts opts--2" id="optCutMode" role="group" aria-label="Background removal">
+                    <button type="button" class="opt" data-key="auto"><b>Automatic</b><span>We remove the background for you</span></button>
+                    <button type="button" class="opt" data-key="hand"><b>Edit by hand</b><span>Paint out what we missed, paint back what we took</span></button>
+                  </div>
+                  <div class="cut__tools" id="cutTools" hidden>
+                    <div class="opts opts--2" id="optBrush" role="group" aria-label="Brush">
+                      <button type="button" class="opt" data-key="erase" aria-pressed="true"><b>Erase</b><span>Cut away background</span></button>
+                      <button type="button" class="opt" data-key="keep"><b>Keep</b><span>Bring a part back</span></button>
+                    </div>
+                    <label class="place__row" style="margin-top:10px"><span>Brush</span>
+                      <input type="range" id="cutBrush" min="4" max="60" value="18" aria-label="Brush size">
+                      <output id="cutBrushOut">18</output></label>
+                    <div class="place__btns" style="margin-top:8px">
+                      <button type="button" class="btn btn--line btn--sm" id="cutUndo" disabled>Undo</button>
+                      <button type="button" class="btn btn--line btn--sm" id="cutRedo" disabled>Redo</button>
+                      <button type="button" class="btn btn--line btn--sm" id="cutRestart">Start over</button>
+                    </div>
+                    <p class="step__note" style="margin-top:8px">Paint on the picture above. Faded areas will be cut away.</p>
+                  </div>
+                  <label class="cut__check"><input type="checkbox" id="cutPrint" checked> Print the picture on the cut piece</label>
+                </div>
+              </div>
+
+              <div id="versionRow" hidden>
+                <p class="sub" style="margin-top:16px">Version</p>
+                <div class="opts opts--2" id="optVersion" role="group" aria-label="Version"></div>
+              </div>
+
+              <div id="poseRow" hidden>
+                <p class="sub" style="margin-top:16px" id="poseHead">Pose</p>
+                <p class="step__note" id="notePose">Same cut, different stance.</p>
+                <div class="opts opts--4" id="optVariant" role="group" aria-label="Pose"></div>
+              </div>
+
+              <p class="step__note" style="margin:14px 0 0">Everything here is cut flat from sheet. We do not mould cups or
+                 thin protruding shapes &mdash; they crack at the narrow points.</p>
+            </div>
+          </details>
+
+          <details class="step" id="stepMaterial">
+            <summary class="step__btn">
+              <span class="step__n">3</span><span class="step__t">Sheet colour</span>
+              <span class="step__v" id="vMaterial">White acrylic</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note" id="noteMaterial">Clean ground for any sticker.</p>
+              <div class="opts opts--6" id="optMaterial" role="group" aria-label="Sheet colour"></div>
+            </div>
+          </details>
+
+          <details class="step" id="stepSize">
+            <summary class="step__btn">
+              <span class="step__n">4</span><span class="step__t">Size</span>
+              <span class="step__v" id="vSize">Large &middot; 28 cm</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note">Height includes the base. Bigger sizes use thicker sheet, so they do not flex.</p>
+              <div class="opts opts--3" id="optSize" role="group" aria-label="Size"></div>
+            </div>
+          </details>
+
+          <details class="step" id="stepBase">
+            <summary class="step__btn">
+              <span class="step__n">5</span><span class="step__t">Base</span>
+              <span class="step__v" id="vBase">Gold bar &middot; Gold</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="sub" style="margin-top:0">What it is made from</p>
+              <div class="opts opts--4" id="optBaseKind" role="group" aria-label="Base type"></div>
+              <p class="step__note" id="noteBase" style="margin-top:10px">Our most ordered base.</p>
+
+              <p class="sub">Finish</p>
+              <div class="opts opts--6" id="optBaseFinish" role="group" aria-label="Base finish"></div>
+              <p class="step__note" style="margin-top:10px">The PVC boxes are sprayed, so any finish works on them.
+                 Natural is only worth picking on the wooden bases.</p>
+            </div>
+          </details>
+
+          <details class="step" id="stepSticker">
+            <summary class="step__btn">
+              <span class="step__n">6</span><span class="step__t">Sticker</span>
+              <span class="step__v" id="vSticker">Rounded &middot; Black &middot; Script</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note" id="stickerWhere">The sticker is applied to the front face of the acrylic.</p>
+
+              <div id="placeBlock" hidden>
+                <p class="sub">Placement</p>
+                <p class="step__note">Drag the sticker on the trophy to move it. Scroll over it, or use the sliders, to size and turn it.</p>
+                <div class="place">
+                  <label class="place__row"><span>Size</span>
+                    <input type="range" id="placeSize" min="50" max="160" step="1" value="100" aria-label="Sticker size">
+                    <output id="placeSizeOut">100%</output></label>
+                  <label class="place__row"><span>Rotate</span>
+                    <input type="range" id="placeRot" min="-45" max="45" step="1" value="0" aria-label="Sticker rotation">
+                    <output id="placeRotOut">0°</output></label>
+                  <div class="place__btns">
+                    <button type="button" class="btn btn--line btn--sm" id="placeCentre">Centre it</button>
+                    <button type="button" class="btn btn--line btn--sm" id="placeReset">Reset</button>
+                  </div>
+                </div>
+              </div>
+
+              <p class="sub">Cut shape</p>
+              <div class="opts opts--4" id="optDecal" role="group" aria-label="Sticker shape"></div>
+
+              <p class="sub">Print colours</p>
+              <div class="opts opts--6" id="optScheme" role="group" aria-label="Sticker colours"></div>
+
+              <p class="sub">Font</p>
+              <div class="opts opts--5" id="optFont" role="group" aria-label="Font"></div>
+              <p class="step__note" id="noteFont" style="margin-top:10px">Flowing name line.</p>
+
+              <p class="sub">Your photo or logo</p>
+              <div class="drop" id="dropZone" tabindex="0" role="button"
+                   aria-label="Add a photo or logo. Drop a file here, or press Enter to browse.">
+                <input type="file" id="photoInput" accept="image/*" hidden>
+                <img id="photoPrev" class="drop__prev" alt="" hidden>
+                <div class="drop__hint">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                  <b>Drop an image here</b>
+                  <span>or click to browse &middot; JPG, PNG or SVG &middot; up to 8 MB</span>
+                </div>
+                <button type="button" class="drop__clear" id="photoClear" data-act="clear" aria-label="Remove image">&times;</button>
+              </div>
+              <p class="drop__msg" id="photoMsg"></p>
+              <div id="photoOpts" hidden>
+                <div id="photoTargetBlock" hidden>
+                  <p class="sub">Where it goes</p>
+                  <div class="opts opts--2" id="optPhotoTarget" role="group" aria-label="Where the image goes"></div>
+                </div>
+                <div id="photoFitBlock">
+                  <p class="sub">How to place it</p>
+                  <div class="opts opts--2" id="optPhotoFit" role="group" aria-label="Photo placement"></div>
+                </div>
+              </div>
+              <p class="step__note" style="margin-top:10px">Your file is read on this device only &mdash; it is not uploaded
+                 anywhere. Send us the original after you order and we print from that.</p>
+
+              <p class="sub">Laminate</p>
+              <div class="opts opts--2" id="optLaminate" role="group" aria-label="Laminate"></div>
+              <p class="step__note" id="noteLaminate" style="margin-top:10px">Wet-look finish.</p>
+            </div>
+          </details>
+
+          <details class="step" id="stepWording">
+            <summary class="step__btn">
+              <span class="step__n">7</span><span class="step__t">Wording</span>
+              <span class="step__v" id="vWording">4 lines</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note">Leave a line blank to drop it. Long text shrinks to fit, so watch the counters.</p>
+              <div class="eng">
+                <div class="eng__f">
+                  <label for="fOrg">Organisation or event <small data-count="fOrg">0/34</small></label>
+                  <input id="fOrg" maxlength="34" value="Mutya ng Calapan" autocomplete="off">
+                </div>
+                <div class="eng__f">
+                  <label for="fTitle">Award title <small data-count="fTitle">0/26</small></label>
+                  <input id="fTitle" maxlength="26" value="1st Runner-Up" autocomplete="off">
+                </div>
+                <div class="eng__f">
+                  <label for="fName">Recipient or category <small data-count="fName">0/30</small></label>
+                  <input id="fName" maxlength="30" value="Maria C. Lualhati" autocomplete="off">
+                </div>
+                <div class="eng__f">
+                  <label for="fDate">Date or place <small data-count="fDate">0/30</small></label>
+                  <input id="fDate" maxlength="30" value="2026" autocomplete="off">
+                </div>
+              </div>
+
+              <p class="sub">Motif</p>
+              <div class="opts opts--4" id="optMotif" role="group" aria-label="Motif"></div>
+              <p class="step__note" style="margin-top:10px">Lady, Gentleman and Couple are our pageant set &mdash; they print
+                 as clean silhouettes rather than clip art.</p>
+
+              <label class="check">
+                <input type="checkbox" id="fExtraSticker">
+                <span>Second sticker <em>+&#8369;40 each &middot; a sponsor strip, or wording on the back</em></span>
+              </label>
+              <label class="check">
+                <input type="checkbox" id="fLogo">
+                <span>Set up our supplied logo <em>+&#8369;150 one-off &middot; send SVG, PDF or 300 dpi PNG after you order</em></span>
+              </label>
+            </div>
+          </details>
+
+          <details class="step" id="stepQty">
+            <summary class="step__btn">
+              <span class="step__n">8</span><span class="step__t">Quantity</span>
+              <span class="step__v" id="vQty">6 pieces</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="step__note">All pieces share the title and layout; the recipient line can differ at no extra cost.</p>
+              <div class="qty">
+                <button type="button" id="qtyDown" aria-label="Fewer">&minus;</button>
+                <input id="fQty" type="number" min="1" max="2000" step="1" value="6" aria-label="Quantity">
+                <button type="button" id="qtyUp" aria-label="More">+</button>
+              </div>
+              <div class="tiers" id="tiers"></div>
+            </div>
+          </details>
+
+          <details class="step" id="stepDelivery">
+            <summary class="step__btn">
+              <span class="step__n">9</span><span class="step__t">Delivery &amp; payment</span>
+              <span class="step__v" id="vDelivery">Standard &middot; Oriental Mindoro</span>
+              <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="step__body">
+              <p class="sub" style="margin-top:0">Turnaround</p>
+              <div class="opts opts--3" id="optSpeed" role="group" aria-label="Turnaround"></div>
+              <p class="step__note" id="noteSpeed" style="margin-top:10px">Our normal run.</p>
+
+              <p class="sub">Where it goes</p>
+              <div class="opts opts--4" id="optZone" role="group" aria-label="Delivery area"></div>
+
+              <p class="sub">Payment</p>
+              <div class="opts opts--4" id="optPayment" role="group" aria-label="Payment method"></div>
+              <p class="step__note" style="margin-top:10px">Half on approval of the proof, half before we despatch or hand over.</p>
+
+              <div class="need">
+                <label for="fNeed">Needed by <small>optional</small></label>
+                <input id="fNeed" type="date">
+                <p class="need__msg" id="needMsg" role="status"></p>
+              </div>
+            </div>
+          </details>
+
+        </div>
+
+        <div class="total">
+          <div class="total__r"><span id="tMakeLbl">Trophies</span><span id="tMake">—</span></div>
+          <div class="total__r" id="tRushRow" hidden><span id="tRushLbl">Rush</span><span id="tRush">—</span></div>
+          <div class="total__r" id="tSetupRow" hidden><span>Artwork setup</span><span id="tSetup">—</span></div>
+          <div class="total__r" id="tShipRow" hidden><span id="tShipLbl">Shipping</span><span id="tShip">—</span></div>
+          <div class="total__r" id="tFeeRow" hidden><span>Payment processing</span><span id="tFee">—</span></div>
+          <div class="total__big"><span>Estimated total</span><b id="tTotal">—</b></div>
+
+          <div class="total__eta">
+            <span>Estimated arrival</span>
+            <b id="tArrive">—</b>
+            <em id="tDays">—</em>
+          </div>
+
+          <p class="total__note">Indicative only. VAT and any special packing are confirmed on your
+             written quote, and the courier may vary by a day. The proof is free either way.</p>
+          <button class="btn btn--solid" id="dzSend" type="button">Send this design to the studio</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── tutorial ───────────── -->
+<section class="guide" id="guide">
+  <div class="wrap">
+    <header class="sec-head" data-rev>
+      <div>
+        <h2 class="d2">How to design a trophy<br>that actually works.</h2>
+      </div>
+      <p>Most awards go wrong in the sticker, not the body. This is the order we walk customers
+         through, and the mistakes we see most often.</p>
+    </header>
+
+    <div class="guide__grid">
+      <article class="guide__c" data-rev>
+        <b>STEP 01</b>
+        <h3>Start from the occasion, not the shape</h3>
+        <p>Decide what the award is <em>for</em> before you pick anything. A pageant centrepiece and
+           forty participation awards are different objects with different budgets.</p>
+        <ul>
+          <li>A pageant → the Lady or Gentleman figure, large, on a gold bar base.</li>
+          <li>A whole division → plaque or arch, small, one colour, identical. The set matters more than the piece.</li>
+          <li>A thank-you → a small acrylic blade on a sprayed box base still looks generous.</li>
+        </ul>
+      </article>
+
+      <article class="guide__c" data-rev>
+        <b>STEP 02</b>
+        <h3>Build the tiers together</h3>
+        <p>If there are places, design all of them at once or they will not look like a family.</p>
+        <ul>
+          <li>Keep one shape and one base, and change only the height: 28 cm, 22 cm, 17 cm.</li>
+          <li>Or keep one height and step the sheet: gold mirror, silver mirror, then a solid colour.</li>
+          <li>Do not change both at once. It stops reading as a ranking and starts looking random.</li>
+        </ul>
+      </article>
+
+      <article class="guide__c" data-rev>
+        <b>STEP 03</b>
+        <h3>Use the colour — it is free</h3>
+        <p>We print, not engrave, so full colour costs the same as black — and you can put a photo
+           in it. This is the one real advantage over an engraved award, and most people forget it.</p>
+        <ul>
+          <li>Put the school, barangay or team colours in the sticker background.</li>
+          <li>Sponsor logos print in their proper colours, which sponsors notice.</li>
+          <li>Drop a photo into the designer to see it in place. Badge puts a portrait at the top; Background fills the sticker.</li>
+          <li>Check contrast: light text on a light sheet disappears under hall lighting.</li>
+        </ul>
+      </article>
+
+      <article class="guide__c" data-rev>
+        <b>STEP 04</b>
+        <h3>Get the four lines in the right order</h3>
+        <p>Trophy wording reads top to bottom in a fixed order. Changing it confuses people.</p>
+        <ul>
+          <li><b>Line 1</b> — who is giving it: the league, school, LGU or company.</li>
+          <li><b>Line 2</b> — the award itself, the largest line on the sticker.</li>
+          <li><b>Line 3</b> — who or what it is for. Full name, or the category.</li>
+          <li><b>Line 4</b> — when or where. Write the month out: <em>12 April 2026</em>, not 04/12/26.</li>
+        </ul>
+      </article>
+
+      <article class="guide__c" data-rev>
+        <b>STEP 05</b>
+        <h3>Pick the font for the room</h3>
+        <p>The font does more work than the shape. Match it to the event, not to your taste.</p>
+        <ul>
+          <li><b>Sport</b> — condensed and loud. Liga, palaro, intramurals.</li>
+          <li><b>Formal</b> — service awards, academic honours, civic recognition.</li>
+          <li><b>Script</b> — pageants and coronation nights. Keep the name short; script needs room.</li>
+          <li>On the figure shapes the sticker sits on the base, which is wide and short. Three lines read better there than four.</li>
+          <li><b>Matte laminate</b> if there will be a photographer. Gloss throws flash straight back.</li>
+        </ul>
+      </article>
+
+      <article class="guide__c" data-rev>
+        <b>STEP 06</b>
+        <h3>Read the proof like a stranger</h3>
+        <p>This is the last moment anything is free. We reprint our own errors at no charge, but an
+           approved spelling becomes a new order.</p>
+        <ul>
+          <li>Check names against a registration or payroll list, not from memory.</li>
+          <li>Read the date out loud — wrong years are the commonest error we catch.</li>
+          <li>Watch middle initials, suffixes (Jr., III) and Ñ / ñ.</li>
+          <li>Have someone who was not involved read it once.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── reference ───────────── -->
+<section class="ref" id="ref">
+  <div class="wrap ref__grid">
+    <div data-rev>
+      <h2 class="d2">Limits, artwork<br>&amp; schedule</h2>
+      <dl class="spec">
+        <div><dt>Line 1 · organisation</dt><dd>34 characters</dd></div>
+        <div><dt>Line 2 · award title</dt><dd>26 characters</dd></div>
+        <div><dt>Line 3 · recipient</dt><dd>30 characters</dd></div>
+        <div><dt>Line 4 · date or place</dt><dd>30 characters</dd></div>
+        <div><dt>Sheet</dt><dd>Cast acrylic — 5 mm small, 6 mm medium, 8 mm large</dd></div>
+        <div><dt>Bases</dt><dd>Shaped wood bullion bar, sprayed PVC junction or utility box, or a plain wood block</dd></div>
+        <div><dt>Printing</dt><dd>Full colour on white vinyl, then laminated gloss or matte</dd></div>
+        <div><dt>Photos</dt><dd>Printed straight into the sticker. Send the original, 1000 px or wider</dd></div>
+        <div><dt>Smallest text</dt><dd>2 mm cap height. Below that lamination softens the edges</dd></div>
+        <div><dt>Logo files</dt><dd>SVG, PDF or AI preferred · PNG or JPG at 300 dpi minimum</dd></div>
+        <div><dt>Logo colour</dt><dd>Prints full colour. Send the version with a transparent or white background</dd></div>
+        <div><dt>Sizes</dt><dd>Small 17 cm · Medium 22 cm · Large 28 cm, base included</dd></div>
+        <div><dt>Figure shapes</dt><dd>Lady and Gentleman carry the sticker on the base, not the body</dd></div>
+        <div><dt>Proof</dt><dd>Free, within 2 working days, unlimited revisions before approval</dd></div>
+        <div><dt>Rush</dt><dd>3 working days, +30%, subject to the schedule</dd></div>
+        <div><dt>Standard</dt><dd>7 working days</dd></div>
+        <div><dt>Economy</dt><dd>14 working days, −8% — batched with other jobs</dd></div>
+        <div><dt>Delivery</dt><dd>Pickup free · Oriental Mindoro next day · Luzon 3 days · Visayas &amp; Mindanao 5–7</dd></div>
+        <div><dt>Payment</dt><dd>Cash, GCash, PayMaya or bank transfer</dd></div>
+        <div><dt>Terms</dt><dd>Half on approval of the proof, half before despatch or handover</dd></div>
+      </dl>
+    </div>
+
+    <div data-rev id="faq">
+      <h2 class="d2">Before you order</h2>
+      <div class="faq">
+        <details>
+          <summary>Is it engraved or printed?</summary>
+          <p>Printed. We cut the shape from coloured acrylic sheet, print your artwork in full colour
+             on vinyl, laminate it, cut it to shape and apply it by hand. That is why colour, logos,
+             team shades and photographs cost nothing extra — engraving cannot do any of those.</p>
+        </details>
+        <details>
+          <summary>Why are there no cup or star shapes?</summary>
+          <p>Because we cut flat sheet rather than mould it. A cup would have to be moulded, and
+             shapes with thin arms or points crack at the narrow part — first in our hands, then in
+             yours. Everything we offer is cut as one piece with no weak section.</p>
+        </details>
+        <details>
+          <summary>A PVC junction box as a base?</summary>
+          <p>Yes, and it is one of our better ideas. An electrical junction box is moulded to a tight
+             tolerance, costs very little, weighs nothing in a courier box and takes spray paint
+             beautifully. Sprayed black or silver, nobody has ever guessed what it started as.</p>
+        </details>
+        <details>
+          <summary>What happens to the photo I dropped in?</summary>
+          <p>Nothing leaves your device. The designer reads the file in your own browser to draw the
+             preview — it is never uploaded to us or to anyone else. When you order, send us the
+             original file and we print from that.</p>
+        </details>
+        <details>
+          <summary>Will the sticker peel off?</summary>
+          <p>Not in normal indoor use. The lamination is what protects it; an unlaminated sticker is
+             what curls at the edges after a year. Keep it out of direct sun and off a car
+             dashboard, and do not scrub it with solvent.</p>
+        </details>
+        <details>
+          <summary>Can I really order just one?</summary>
+          <p>Yes. There is no minimum. Volume only changes the unit price, not whether we take the
+             job. A single piece still gets a free proof.</p>
+        </details>
+        <details>
+          <summary>Is the price in the designer final?</summary>
+          <p>It is an estimate covering the body, printing, your quantity, turnaround and shipping.
+             VAT and any special packing are confirmed on the written quote we send with the proof.
+             The courier can also run a day either side of the date shown.</p>
+        </details>
+        <details>
+          <summary>Can every piece have a different name?</summary>
+          <p>Yes, at no extra cost, as long as the title and layout stay the same. Send the names as
+             a list or a spreadsheet and we will match them to the proof line by line.</p>
+        </details>
+        <details>
+          <summary>What if a name is printed wrong?</summary>
+          <p>If it differs from the proof you approved, we reprint and reapply free, usually the same
+             week. If the approved proof carried the mistake, it is charged as a new sticker — which
+             is far cheaper than a new trophy, since the acrylic and base are reused.</p>
+        </details>
+        <details>
+          <summary>Can you match trophies we bought before?</summary>
+          <p>Usually. Send photographs with a ruler or a known object in frame, plus the overall
+             height. We will tell you honestly whether it is a close match or only a near one.</p>
+        </details>
+      </div>
+      <a class="btn btn--solid" href="./#quote" style="margin-top:28px">
+        Ask us directly
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m0 0-6-6m6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <div>
+      <a class="brand" href="./">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg>
+        <b>Tala<i>Artisan</i></b>
+      </a>
+      <p>Trophies, medals and awards made in Calapan City, Oriental Mindoro. Printed, laminated and
+         assembled by hand, with no minimum order.</p>
+    </div>
+    <nav class="foot__cols" aria-label="Footer">
+      <div>
+        <h3>Shop</h3>
+        <ul>
+          <li><a href="./#shop">Trophies</a></li>
+          <li><a href="./#shop">Medals</a></li>
+          <li><a href="./#shop">Plaques</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Design</h3>
+        <ul>
+          <li><a href="#designer">Trophy designer</a></li>
+          <li><a href="#guide">How to design one</a></li>
+          <li><a href="#ref">Artwork &amp; limits</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Studio</h3>
+        <ul>
+          <li><a href="./#studio">Materials</a></li>
+          <li><a href="./#studio">Delivery areas</a></li>
+          <li><a href="./#quote">Get a quote</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="wrap foot__base">
+    <p>© <span id="yr">2026</span> Tala Artisan · Calapan City, Oriental Mindoro</p>
+    <ul><li><a href="#designer">Privacy</a></li><li><a href="#designer">Terms</a></li></ul>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=202610221917" defer></script>
+<script type="module" src="assets/js/designer.js?v=202610221917"></script>
+</body>
+</html>

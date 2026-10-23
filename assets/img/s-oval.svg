@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Red acrylic oval with a gold printed sticker">
+  <rect width="800" height="1000" fill="#F3F1EB"/>
+  <ellipse cx="400" cy="858" rx="200" ry="14" fill="#15140F" opacity=".09"/>
+  <path d="M400 150 A200 295 0 0 1 400 740 A200 295 0 0 1 400 150 Z" fill="#C02626"/>
+  <path d="M400 150 A200 295 0 0 1 400 740 A200 295 0 0 1 400 150 Z" fill="none" stroke="#821818" stroke-width="3" opacity=".5"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="#1A1917"/>
+  <path d="M250 850 L266 740 L534 740 L550 850 Z" fill="none" stroke="#000000" stroke-width="2.5" opacity=".6"/>
+  <g>
+    <rect x="285" y="375" width="230" height="140" rx="18" fill="#E2C275"/>
+    <rect x="292" y="382" width="216" height="126" rx="13" fill="none" stroke="#6E4F10" stroke-width="2.5"/>
+    <rect x="336" y="409" width="129" height="10" rx="3" fill="#6E4F10"/>
+    <rect x="317" y="430" width="166" height="24" rx="4" fill="#2C2008"/>
+    <rect x="345" y="465" width="110" height="7" rx="2" fill="#6E4F10" opacity=".75"/>
+  </g>
+</svg>
