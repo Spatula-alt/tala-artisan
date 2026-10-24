@@ -8,6 +8,6 @@
    While these are empty the form still validates, but nothing is sent -- it
    tells the customer so, rather than thanking them for a request no one gets. */
 window.TALA_CONFIG = {
-  supabaseUrl: '',
-  supabaseKey: '',
+  supabaseUrl: 'https://roymwsehvvynrbduddit.supabase.co',
+  supabaseKey: 'sb_publishable_LBf7nML65x7L2HpZ_Ony0A_QdH9q0hn',
 };
