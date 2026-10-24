@@ -3,8 +3,8 @@
    Two live viewers, plus the six shop thumbnails rendered through
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250020';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610250020';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250051';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610250051';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -14,12 +14,59 @@ const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 function writePrices() {
   for (const card of $$('#shopGrid .card')) {
     const slot = card.querySelector('[data-price]');
-    if (!slot) continue;
+    if (!slot || card.hasAttribute('data-fixed') || !card.dataset.cfg) continue;
     try {
       const cfg = JSON.parse(card.dataset.cfg);
       slot.textContent = peso(price({ ...cfg, qty: 1 }).unit);
     } catch { /* keep the hand-written fallback */ }
   }
+}
+
+/* The shop grid is run from the Admin Deck (admin.html → shop_items). The six
+   cards written into index.html stay as the fallback: offline, Supabase down,
+   or nothing published yet. A card shows the trophy's photo when it has one,
+   otherwise its 3D design baked to a still, like the built-in cards. */
+const SHOP_POSTERS = ['lady', 'shield', 'oval', 'arch', 'plaque', 'facet'];
+const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+async function loadShop() {
+  const grid = $('#shopGrid');
+  const C = window.TALA_CONFIG || {};
+  const base = String(C.supabaseUrl || '').replace(/\/+$/, '');
+  if (!grid || !base || !C.supabaseKey) return;
+  const photoBase = `${base}/storage/v1/object/public/trophy-photos/`;
+  let rows;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 6000);
+    const res = await fetch(`${base}/rest/v1/shop_items?select=id,name,line,category,price,design,images&published=is.true&order=sort.asc,name.asc`, {
+      headers: { apikey: C.supabaseKey }, signal: ctl.signal,
+    });
+    clearTimeout(t);
+    if (!res.ok) return;
+    rows = await res.json();
+  } catch { return; }                       // keep the built-in cards
+  if (!Array.isArray(rows) || !rows.length) return;
+
+  grid.innerHTML = rows.map(r => {
+    const photo = (r.images || []).find(u => typeof u === 'string' && u.startsWith(photoBase));
+    const d = r.design && typeof r.design === 'object' && r.design.shape !== 'custom' ? r.design : null;
+    if (!photo && !d) return '';
+    const fixed = r.price != null;
+    const shown = fixed ? peso(r.price) : 'Ask for a price';
+    const pic = photo
+      ? `<img class="viz__poster viz__photo" src="${escH(photo)}" alt="${escH(r.name)}" loading="lazy">`
+      : `<img class="viz__poster" src="assets/img/${SHOP_POSTERS.includes(d.shape) ? 's-' + d.shape : 'poster-hero'}.svg" alt="${escH(r.name)}, ${escH(r.line)}">`;
+    return `<article class="card in" data-rev${!photo ? ` data-cfg="${escH(JSON.stringify(d))}"` : ''}${fixed ? ' data-fixed' : ''}>
+        <div class="viz">${pic}</div>
+        <div class="card__b">
+          <div><h3>${escH(r.name)}</h3><p>${escH(r.line || r.category)}</p></div>
+          <p class="card__p" data-price>${shown}</p>
+        </div>
+      </article>`;
+  }).join('');
+  const head = $('#shop .sec-head h2');
+  if (head && rows.length !== 6) head.textContent = 'What we make most often.';
 }
 
 function liveViewer(vizId, canvasId, cfg) {
@@ -160,10 +207,12 @@ async function boot() {
   })));
 
   // the shop grid is well below the fold: bake its stills only on approach
-  whenNear('#shopGrid', () => { bakeThumbnails(); });
+  whenNear('#shopGrid', () => { shopReady.then(bakeThumbnails); });
 }
 
 writePrices();
+// the hero must not wait for the network: only the shop stills wait for the shop
+const shopReady = loadShop().then(writePrices, () => {});
 boot().catch(err => {
   // A failure here just means the SVG posters stay on screen.
   console.warn('[tala] 3D unavailable:', err);

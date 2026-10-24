@@ -4,14 +4,14 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610250020';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250051';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-} from './trophy.js?v=202610250020';
+} from './trophy.js?v=202610250051';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -325,7 +325,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610250020'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610250051'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1042,15 +1042,20 @@ function saveImage() {
   }
 }
 
+/* The machine-readable spec, saved with a request so the shop can rebuild the
+   exact piece; the customer's photo and cut-out picture are never included. */
+function designSpec() {
+  const design = {};
+  for (const [k, v] of Object.entries(cfg)) {
+    if (k.startsWith('_') || k === 'photoImg' || v == null || typeof v === 'object') continue;
+    design[k] = v;
+  }
+  return design;
+}
+
 function sendToStudio() {
   try {
-    // `design` is the machine-readable spec, saved with the request so the shop
-    // can rebuild the exact piece; the customer's photo is never included.
-    const design = {};
-    for (const [k, v] of Object.entries(cfg)) {
-      if (k.startsWith('_') || k === 'photoImg' || v == null || typeof v === 'object') continue;
-      design[k] = v;
-    }
+    const design = designSpec();
     sessionStorage.setItem('tala.spec', JSON.stringify({ text: specText(), qty: cfg.qty, item: 'Trophy', design }));
   } catch { /* private mode — the quote form still opens, just empty */ }
   location.href = './#quote';
@@ -1136,6 +1141,40 @@ function startTour() {
   addEventListener('resize', place);
   addEventListener('scroll', place, { passive: true });
   show();
+}
+
+/* ───────────────────────── Admin Deck hand-off ─────────────────────────
+   admin.html opens design.html?admin=1 to design a shop trophy, with
+   &from=<design> to start from the trophy's current one. The stage bar then
+   gets "Use in the Admin Deck", which hands the design back through
+   localStorage (the deck's tab hears the storage event) and closes the tab. */
+const adminQ = new URLSearchParams(location.search);
+const ADMIN_MODE = adminQ.get('admin') === '1';
+if (ADMIN_MODE) {
+  try {
+    const from = JSON.parse(adminQ.get('from') || 'null');
+    if (from && typeof from === 'object' && SHAPES[from.shape] && from.shape !== 'custom') {
+      for (const [k, v] of Object.entries(from)) if (k in cfg && (v === null || typeof v !== 'object')) cfg[k] = v;
+      cfg._occasion = null;
+      cfg.variant = cfg.variant || 0;
+      setVariant(cfg.shape, cfg.variant);
+      for (const [id, prop] of Object.entries(TEXT_FIELDS)) { const el = $('#' + id); if (el) el.value = cfg[prop] ?? ''; }
+    }
+  } catch { /* a bad link just opens the default design */ }
+  const bar = $('.stage__bar');
+  const use = document.createElement('button');
+  use.type = 'button'; use.className = 'btn btn--solid btn--sm'; use.id = 'dzAdmin';
+  use.textContent = 'Use in the Admin Deck';
+  bar?.prepend(use);
+  use.addEventListener('click', () => {
+    if (cfg.shape === 'custom') { use.textContent = 'Pick a cut shape first — a picture cut cannot go in the shop'; return; }
+    const design = designSpec();
+    for (const k of ['qty', 'speed', 'zone', 'payment', 'needBy', 'logo', 'extraSticker', 'cutPrint', 'cutMode', 'cutAspect', 'photoFit', 'photoTarget']) delete design[k];
+    try { localStorage.setItem('tala.admin.design', JSON.stringify(design)); }
+    catch { use.textContent = 'This browser blocked the hand-off'; return; }
+    use.textContent = 'Sent ✓ — back to the Admin Deck';
+    setTimeout(() => window.close(), 700);
+  });
 }
 
 /* ───────────────────────── wire up ───────────────────────── */
