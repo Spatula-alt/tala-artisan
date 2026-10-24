@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250118';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250119';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610250118';
+} from './trophy.js?v=202610250119';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -240,6 +240,12 @@ function signInScreen(msg = '') {
   let pw = false;
 
   $('#google').addEventListener('click', async () => {
+    // supabase-js would send the browser off to a bare JSON error page if the
+    // provider is off, so ask the server first
+    try {
+      const st = await (await fetch(`${URL_}/auth/v1/settings`, { headers: { apikey: KEY } })).json();
+      if (!st?.external?.google) return say('Google sign-in is not switched on yet — the owner turns it on in Supabase. Use the emailed link for now.', true);
+    } catch { /* let supabase-js try anyway */ }
     say('Opening Google…');
     const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: backHere() } });
     if (error) say(/provider is not enabled|Unsupported provider/i.test(error.message)
