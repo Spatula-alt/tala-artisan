@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250051';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250118';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610250051';
+} from './trophy.js?v=202610250118';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -211,31 +211,68 @@ function setupScreen() {
        (project URL and publishable key) and run <code>supabase/admin.sql</code>.</p></section>`;
 }
 
+/* Three ways in. Google and the emailed link need no password; the password
+   form stays for staff logins made in Supabase → Authentication → Users.
+   A first Google or email-link sign-in creates the login, but it can do
+   nothing until the owner adds it to the staff list (make-admin.sql). */
+const backHere = () => location.origin + location.pathname;
+
 function signInScreen(msg = '') {
   app.innerHTML = `<section class="adm-gate">
     <div class="brand">★ <b>Tala Artisan</b> · Admin Deck</div>
     <h1>Sign in</h1>
     <p>For shop staff. Requests and the website's shop are managed here.</p>
-    <form id="signin" novalidate>
+    <div style="display:grid;gap:10px;margin-top:20px">
+      <button class="btn btn--line adm-google" type="button" id="google">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="stroke:none;transform:none"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z"/></svg>
+        Continue with Google</button>
+    </div>
+    <p class="adm-or">or</p>
+    <form id="signin" novalidate style="margin-top:0">
       <label class="fld">Email<input type="email" name="email" autocomplete="username" required></label>
-      <label class="fld">Password<input type="password" name="password" autocomplete="current-password" required></label>
+      <label class="fld" id="pwRow" hidden>Password<input type="password" name="password" autocomplete="current-password"></label>
       <p class="adm-msg${msg ? ' bad' : ''}" id="signMsg" role="alert">${esc(msg)}</p>
-      <button class="btn btn--solid" type="submit">Sign in</button>
+      <button class="btn btn--solid" type="submit" id="go">Email me a sign-in link</button>
+      <button class="adm-link" type="button" id="usePw">Use a password instead</button>
     </form></section>`;
-  const f = $('#signin');
-  f.email.focus();
+  const f = $('#signin'), out = $('#signMsg');
+  const say = (t, bad = false) => { out.textContent = t; out.className = 'adm-msg' + (bad ? ' bad' : ''); };
+  let pw = false;
+
+  $('#google').addEventListener('click', async () => {
+    say('Opening Google…');
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: backHere() } });
+    if (error) say(/provider is not enabled|Unsupported provider/i.test(error.message)
+      ? 'Google sign-in is not switched on in Supabase yet. Use the emailed link for now.' : friendly(error), true);
+  });
+  $('#usePw').addEventListener('click', () => {
+    pw = !pw;
+    $('#pwRow').hidden = !pw;
+    $('#go').textContent = pw ? 'Sign in' : 'Email me a sign-in link';
+    $('#usePw').textContent = pw ? 'Email me a link instead' : 'Use a password instead';
+    (pw ? f.password : f.email).focus();
+  });
   f.addEventListener('submit', async e => {
     e.preventDefault();
-    const out = $('#signMsg'), btn = $('button', f);
-    if (!f.email.value || !f.password.value) { out.textContent = 'Enter your email and password.'; out.className = 'adm-msg bad'; return; }
-    btn.disabled = true; out.textContent = 'Signing in…'; out.className = 'adm-msg';
+    const email = f.email.value.trim(), btn = $('#go');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return say('Enter your email address.', true);
+    if (pw && !f.password.value) return say('Enter your password.', true);
+    btn.disabled = true;
     try {
-      chk(await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value }));
-      await enter();
+      if (pw) {
+        say('Signing in…');
+        chk(await sb.auth.signInWithPassword({ email, password: f.password.value }));
+        await enter();
+      } else {
+        say('Sending…');
+        chk(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: backHere() } }));
+        say(`Check ${email} — we sent a sign-in link. Open it on this device. It can take a minute; look in Spam too.`);
+      }
     } catch (err) {
-      out.textContent = friendly(err); out.className = 'adm-msg bad'; btn.disabled = false;
-    }
+      say(/rate limit|too many/i.test(err.message || '') ? 'Too many emails just now. Wait a few minutes and try again.' : friendly(err), true);
+    } finally { btn.disabled = false; }
   });
+  f.email.focus();
 }
 
 function notStaffScreen(email) {
@@ -578,7 +615,12 @@ function openItem(orig) {
 
 async function enter() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) return signInScreen();
+  const why = new URLSearchParams(location.hash.slice(1)).get('error_description');
+  // a Google or emailed-link sign-in comes back with tokens in the address; drop them
+  if (/access_token|refresh_token|[?&]code=|error_description/.test(location.hash + location.search)) history.replaceState(null, '', backHere());
+  if (!session) {
+    return signInScreen(why ? why.replace(/\+/g, ' ') : '');
+  }
   S.user = session.user;
   let staff;
   try { staff = chk(await sb.from('admins').select('user_id').eq('user_id', S.user.id).maybeSingle()); }
