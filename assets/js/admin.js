@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250912';
+import { createViewer, webglAvailable } from './viewer.js?v=202610251510';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610250912';
+} from './trophy.js?v=202610251510';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -330,23 +330,45 @@ function notStaffScreen(email) {
 
 async function signOut() { await sb.auth.signOut(); signInScreen(); }
 
+/* small line icons for the sidebar */
+const IC = {
+  inbox: '<path d="M4 13h4l2 3h4l2-3h4M4 13l2.5-7h11L20 13v6H4Z"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0ZM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/>',
+  site: '<path d="M4 5h16v14H4ZM4 9h16M7 7h.01M9.5 7h.01"/>',
+  pen: '<path d="M4 20h4L19 9l-4-4L4 16Zm9-13 4 4"/>',
+};
+const ico = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+
 function shell() {
   app.innerHTML = `
-  <header class="adm-top"><div class="adm-top__in">
-    <span class="brand">Tala Artisan<em>Admin Deck</em></span>
-    <nav class="adm-tabs" role="tablist">
-      <button class="adm-tab" role="tab" data-tab="requests">Requests <span class="adm-badge" id="newCount" hidden></span></button>
-      <button class="adm-tab" role="tab" data-tab="shop">Shop trophies</button>
-    </nav>
-    <div class="adm-who"><span>${esc(S.user.email)}</span><a href="./" target="_blank" rel="noopener" style="color:inherit">View site ↗</a><button id="out">Sign out</button></div>
-  </div></header>
-  <main class="adm-main" id="main"></main>`;
-  $$('.adm-tab').forEach(t => t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); }));
+  <div class="adm-shell">
+    <aside class="adm-side">
+      <a class="adm-side__brand" href="./" target="_blank" rel="noopener" aria-label="Open the website">Tala Artisan</a>
+      <span class="adm-side__label">Admin Deck</span>
+      <nav class="adm-side__nav" aria-label="Admin">
+        <button type="button" data-tab="requests">${ico('inbox')}<span>Requests</span><span class="adm-badge" id="newCount" hidden></span></button>
+        <button type="button" data-tab="shop">${ico('trophy')}<span>Shop trophies</span></button>
+        <span class="adm-side__sep"></span>
+        <a href="./" target="_blank" rel="noopener">${ico('site')}<span>View website</span></a>
+        <a href="design.html" target="_blank" rel="noopener">${ico('pen')}<span>Open the designer</span></a>
+      </nav>
+      <div class="adm-side__foot">
+        <span class="adm-side__user" title="${esc(S.user.email)}">${esc(S.user.email)}</span>
+        <button type="button" id="out">Sign out</button>
+      </div>
+    </aside>
+    <main class="adm-main" id="main"></main>
+  </div>`;
+  $$('.adm-side__nav [data-tab]').forEach(t => t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); window.scrollTo(0, 0); }));
   $('#out').addEventListener('click', signOut);
 }
 
 function render() {
-  $$('.adm-tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === S.tab)));
+  $$('.adm-side__nav [data-tab]').forEach(t => {
+    const on = t.dataset.tab === S.tab;
+    t.classList.toggle('is-active', on);
+    if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+  });
   const n = S.requests.filter(r => r.status === 'new').length;
   const badge = $('#newCount'); badge.hidden = !n; badge.textContent = n;
   if (S.tab === 'requests') renderRequests(); else renderShop();
@@ -370,6 +392,12 @@ function renderRequests() {
     <div class="adm-head"><div><h1>Requests</h1>
       <p>Everything customers sent through the quote form and the designer, newest first.</p></div>
       <button class="btn btn--line btn--sm" id="reload">Refresh</button></div>
+    <div class="adm-kpis">
+      <div><b>${counts.new}</b><span>New, not answered</span></div>
+      <div><b>${open}</b><span>Open (new, quoted, proofing)</span></div>
+      <div><b>${counts.won}</b><span>Won</span></div>
+      <div><b>${S.requests.filter(r => Date.now() - new Date(r.created_at) < 7 * 864e5).length}</b><span>Came in this week</span></div>
+    </div>
     <div class="adm-tools">
       <div class="chips" role="group" aria-label="Show">
         ${[['open', 'Open', open], ['all', 'All', S.requests.length], ...STATUSES.map(s => [s, STATUS_LABEL[s], counts[s]])]
