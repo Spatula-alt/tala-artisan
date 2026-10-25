@@ -4,14 +4,14 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610251528';
+import { createViewer, webglAvailable } from './viewer.js?v=202610251536';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-} from './trophy.js?v=202610251528';
+} from './trophy.js?v=202610251536';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -325,7 +325,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610251528'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610251536'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -353,7 +353,20 @@ function drawCutPreview() {
   const g = cv.getContext('2d'), { S, k, ox, oy } = cutView();
   g.clearRect(0, 0, S, S);
   const W = cut.c.width, H = cut.c.height;
-  if (cut.hand) {
+  // the traced cut line, in preview pixels
+  let path = null;
+  if (r) {
+    const s = r.art.height * k / 300;
+    path = new Path2D();
+    for (const ring of r.d.split('Z')) {
+      const pts = [...ring.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)]
+        .map(m => [ox + r.x0 * k + +m[1] * s, oy + r.y0 * k + +m[2] * s]);
+      if (!pts.length) continue;
+      path.moveTo(...pts[0]); for (const q of pts.slice(1)) path.lineTo(...q); path.closePath();
+    }
+  }
+  if (cut.hand && (painting || !path)) {
+    // mid-stroke: show the paint itself, so the brush answers at once
     fadeCanvas = fadeCanvas || document.createElement('canvas');
     fadeCanvas.width = W; fadeCanvas.height = H;
     const fx = fadeCanvas.getContext('2d');
@@ -362,19 +375,22 @@ function drawCutPreview() {
     for (let i = 0; i < cut.m.length; i++) if (!cut.m[i]) id.data[i * 4 + 3] = 55;
     fx.putImageData(id, 0, 0);
     g.drawImage(fadeCanvas, ox, oy, W * k, H * k);
+  } else if (cut.hand) {
+    // after a stroke: show what will really be cut. Holes too small to cut
+    // cleanly are filled back and thin parts thickened, so the raw paint is
+    // not the truth -- the finished outline is.
+    g.globalAlpha = 0.22;
+    g.drawImage(cut.c, ox, oy, W * k, H * k);
+    g.globalAlpha = 1;
+    g.save(); g.clip(path, 'evenodd');
+    g.drawImage(cut.c, ox, oy, W * k, H * k);
+    g.restore();
   } else if (r && $('#cutPrint')?.checked) {
     g.drawImage(r.art, ox + r.x0 * k, oy + r.y0 * k, r.art.width * k, r.art.height * k);
   }
-  if (r) {                                          // the cut line, from the traced path
-    const s = r.art.height * k / 300, p = new Path2D();
-    for (const ring of r.d.split('Z')) {
-      const pts = [...ring.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)]
-        .map(m => [ox + r.x0 * k + +m[1] * s, oy + r.y0 * k + +m[2] * s]);
-      if (!pts.length) continue;
-      p.moveTo(...pts[0]); for (const q of pts.slice(1)) p.lineTo(...q); p.closePath();
-    }
-    if (!cut.hand && !$('#cutPrint')?.checked) { g.fillStyle = 'rgba(21,20,15,.18)'; g.fill(p, 'evenodd'); }
-    g.lineWidth = 2; g.strokeStyle = '#c0392b'; g.setLineDash([6, 4]); g.stroke(p); g.setLineDash([]);
+  if (path) {
+    if (!cut.hand && !$('#cutPrint')?.checked) { g.fillStyle = 'rgba(21,20,15,.18)'; g.fill(path, 'evenodd'); }
+    if (!(cut.hand && painting)) { g.lineWidth = 2; g.strokeStyle = '#c0392b'; g.setLineDash([6, 4]); g.stroke(path); g.setLineDash([]); }
   }
   cv.hidden = false;
   $('#cutHint').hidden = true;
@@ -393,7 +409,8 @@ async function finishAndApply() {
                   photo: 'the photo background removed' }[cut.mode];
     cutNote((cut.hand ? 'Your trophy is now cut to your edited shape.' : `Your trophy is now cut to this shape (${how}).`)
       + ' Anything thinner than 3 mm was thickened so it will not snap.'
-      + (r.holes ? ` ${r.holes} cut-out${r.holes > 1 ? 's' : ''} kept.` : ''));
+      + (r.holes ? ` ${r.holes} hole${r.holes > 1 ? 's' : ''} will be cut right through the acrylic.` : '')
+      + (cut.hand ? ' Erasing inside the shape cuts a hole; marks too small to cut are filled back in.' : ''));
   } catch (err) {
     cutNote(err.message || 'Nothing would be left to cut. Undo, or paint some of it back with Keep.', true);
   }
