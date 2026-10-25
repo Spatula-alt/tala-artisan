@@ -8,6 +8,14 @@
   const $  = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 
+  /* A staff sign-in link that Supabase sent to the site's front page (it does
+     when the Admin Deck address is not on its allow list) still belongs to the
+     Admin Deck: pass it on, tokens and all. */
+  if (/(^|[#&])(access_token|error_description)=/.test(location.hash) && !/admin\.html$/.test(location.pathname)) {
+    location.replace(location.pathname.replace(/[^/]*$/, '') + 'admin.html' + location.hash);
+    return;
+  }
+
   /* ─── Lottie, on demand ───
      The two animations (assets/anim/) were authored and checked frame by frame
      in the official Skottie player (../tala-artisan-motion). The site plays them
