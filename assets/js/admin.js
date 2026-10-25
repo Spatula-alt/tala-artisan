@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250906';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250912';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610250906';
+} from './trophy.js?v=202610250912';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -232,7 +232,7 @@ function signInScreen(msg = '') {
       <label class="fld">Email<input type="email" name="email" autocomplete="username" required></label>
       <label class="fld" id="pwRow" hidden>Password<input type="password" name="password" autocomplete="current-password"></label>
       <p class="adm-msg${msg ? ' bad' : ''}" id="signMsg" role="alert">${esc(msg)}</p>
-      <button class="btn btn--solid" type="submit" id="go">Email me a sign-in link</button>
+      <button class="btn btn--solid" type="submit" id="go">Email me a sign-in code</button>
       <button class="adm-link" type="button" id="usePw">Use a password instead</button>
     </form></section>`;
   const f = $('#signin'), out = $('#signMsg');
@@ -254,8 +254,8 @@ function signInScreen(msg = '') {
   $('#usePw').addEventListener('click', () => {
     pw = !pw;
     $('#pwRow').hidden = !pw;
-    $('#go').textContent = pw ? 'Sign in' : 'Email me a sign-in link';
-    $('#usePw').textContent = pw ? 'Email me a link instead' : 'Use a password instead';
+    $('#go').textContent = pw ? 'Sign in' : 'Email me a sign-in code';
+    $('#usePw').textContent = pw ? 'Email me a code instead' : 'Use a password instead';
     (pw ? f.password : f.email).focus();
   });
   f.addEventListener('submit', async e => {
@@ -272,13 +272,50 @@ function signInScreen(msg = '') {
       } else {
         say('Sending…');
         chk(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: backHere() } }));
-        say(`Check ${email} — we sent a sign-in link. Open it on this device. It can take a minute; look in Spam too.`);
+        codeStep(email);
       }
     } catch (err) {
       say(/rate limit|too many/i.test(err.message || '') ? 'Too many emails just now. Wait a few minutes and try again.' : friendly(err), true);
     } finally { btn.disabled = false; }
   });
   f.email.focus();
+}
+
+/* Step two of the emailed sign-in: the 6-digit code from the same email. The
+   code needs no redirect, so it works when the email is read on another
+   device; the link in the email still works too. */
+function codeStep(email) {
+  app.innerHTML = `<section class="adm-gate">
+    <div class="brand">★ <b>Tala Artisan</b> · Admin Deck</div>
+    <h1>Check your email</h1>
+    <p>We sent a sign-in code to <b>${esc(email)}</b>. It can take a minute — look in Spam too.
+       Only the newest email works.</p>
+    <form id="code" novalidate>
+      <label class="fld">Sign-in code<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"
+        pattern="[0-9]*" style="font-size:1.4rem;letter-spacing:.3em;text-align:center" required></label>
+      <p class="adm-msg" id="codeMsg" role="alert"></p>
+      <button class="btn btn--solid" type="submit">Sign in</button>
+      <button class="adm-link" type="button" id="back">Use a different email</button>
+    </form></section>`;
+  const f = $('#code'), out = $('#codeMsg');
+  f.code.focus();
+  $('#back').addEventListener('click', () => signInScreen());
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const token = f.code.value.replace(/\D/g, '');
+    if (token.length < 6) { out.textContent = 'Enter the code from the email.'; out.className = 'adm-msg bad'; return; }
+    const btn = $('button[type=submit]', f); btn.disabled = true;
+    out.textContent = 'Checking…'; out.className = 'adm-msg';
+    try {
+      chk(await sb.auth.verifyOtp({ email, token, type: 'email' }));
+      await enter();
+    } catch (err) {
+      out.textContent = /expired|invalid/i.test(err.message || '')
+        ? 'That code is wrong or has expired. Check you used the newest email, or go back and send a new one.'
+        : friendly(err);
+      out.className = 'adm-msg bad'; btn.disabled = false;
+    }
+  });
 }
 
 function notStaffScreen(email) {

@@ -3,8 +3,8 @@
    Two live viewers, plus the six shop thumbnails rendered through
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610250906';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610250906';
+import { createViewer, webglAvailable } from './viewer.js?v=202610250912';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610250912';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
