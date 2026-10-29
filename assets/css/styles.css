@@ -304,3 +304,6 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .band li b{display:block;font-weight:600;font-size:.98rem}
 .band li span{display:block;font-size:.92rem;color:var(--mute)}
 .steps li{border-top:1px solid var(--line);padding-top:18px}
+
+/* short laptop screens: the pinned build scene must fit under the menu bar whole */
+@media (min-width:900px) and (max-height:820px){.band{padding:36px 0}.band .d2{margin-bottom:.3em}.band ol{margin:1rem 0 1.3rem;gap:10px}}

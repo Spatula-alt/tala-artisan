@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300135';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300135';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300138';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300138';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -239,7 +239,10 @@ async function assembleOnScroll(sel, live) {
   viewer.hold(true);
   ScrollTrigger.create({
     trigger: wide ? '.band' : sel,
-    start: 'center center',
+    // wide screens: lock the whole section just under the fixed menu bar, so the
+    // heading, the list and the trophy all stay in view until the build is done
+    // (centring it slid the heading under the bar on tall screens)
+    start: () => wide ? `top ${Math.round(($('#nav')?.getBoundingClientRect().height || 70))}px` : 'center center',
     end: () => `+=${Math.round(innerHeight * (wide ? 0.95 : 0.8))}`,   // about one screen of scrolling
     pin: wide ? '.band' : sel,
     scrub: 0.35,                               // follows the wheel closely, still smooth
