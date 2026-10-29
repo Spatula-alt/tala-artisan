@@ -2606,7 +2606,12 @@ export const QTY_TIERS = [
   { min: 1,  mult: 1.00, label: '1–4' },
 ];
 
-const UNIT_BASE = 170;          // small acrylic blade + one printed sticker + plain block
+/* Owner, 30 Oct 2026: acrylic sheet is expensive, and below about ₱500 a single
+   trophy -- often shipped on its own -- earns nothing. So the base roughly
+   doubled, and no trophy is ever quoted under MIN_UNIT a piece, at any
+   quantity. Still estimates until the owner gives real prices to match. */
+const UNIT_BASE = 320;          // small acrylic blade + one printed sticker + plain block
+const MIN_UNIT = 500;
 const EXTRA_STICKER_FEE = 40;
 const ARTWORK_FEE = 150;
 /* "Your art" from a picture: the picture printed over the whole cut piece is
@@ -2634,7 +2639,7 @@ export function quote(cfg, today = new Date()) {
                + (cutFromPic && cfg.cutPrint ? CUT_PRINT_FEE : 0);
   const tier = QTY_TIERS.find(t => qty >= t.min) || QTY_TIERS[QTY_TIERS.length - 1];
 
-  const unit = Math.round(((materialCost + extras) * speed.mult * tier.mult) / 5) * 5;
+  const unit = Math.max(MIN_UNIT, Math.round(((materialCost + extras) * speed.mult * tier.mult) / 5) * 5);
   const make = unit * qty;
   const setup = (cfg.logo || cutFromPic) ? ARTWORK_FEE : 0;
   const shipping = zone.fee ? Math.round(zone.fee + zone.per * qty) : 0;
