@@ -3,8 +3,9 @@
    Two live viewers, plus the six shop thumbnails rendered through
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610300051';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300051';
+import * as THREE from 'three';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300113';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300113';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -132,21 +133,41 @@ async function bakeThumbnails() {
   viewer.dispose();
 }
 
-/* The band trophy assembles as its section scrolls into view: the base rises,
-   the cut acrylic drops into its slot, the printed sticker presses on. It is
-   the product's real anatomy, not decoration. GSAP + ScrollTrigger are fetched
-   only here, when the section is near; with reduced motion the trophy simply
-   stays assembled. Scrubbed (scrub: 0.6) and driving three object offsets,
-   so each scroll step costs one render. */
+/* The band trophy is built on screen as a short scroll scene. The section
+   pins, and the scroll position IS the timeline (scrubbed, so scrolling back
+   takes it apart again in reverse): the camera starts wide and low and glides
+   round while the base rises, the cut acrylic drops into its slot, the gold
+   wings slide in from either side and the printed sticker presses on. The
+   list beside it and a caption follow the same clock. It is the product's
+   real anatomy, not decoration. GSAP + ScrollTrigger are fetched only here;
+   with reduced motion the trophy simply stays assembled. */
 const GSAP = 'https://cdn.jsdelivr.net/npm/gsap@3.12.5';
+// `li` is the line of the list beside the scene that the stage is about
+const STAGES = [
+  { at: 0.00, cap: 'The base', li: 1 },
+  { at: 0.20, cap: 'Cut acrylic, dropped into its slot', li: 0 },
+  { at: 0.44, cap: 'Gold accents, layered on', li: 1 },
+  { at: 0.64, cap: 'The printed sticker, pressed on', li: 2 },
+  { at: 0.84, cap: 'Ready for the podium', li: 3 },
+];
 async function assembleOnScroll(sel, live) {
   if (!live || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const { viewer, model } = live;
-  const parts = ['base', 'blade', 'sticker'].map(n => model.getObjectByName(n));
-  if (parts.some(p => !p)) return;
-  const [base, blade, sticker] = parts;
-  const rest = parts.map(p => p.position.clone());
+  const base = model.getObjectByName('base'), blade = model.getObjectByName('blade');
+  const sticker = model.getObjectByName('sticker');
+  if (!base || !blade || !sticker || !viewer.setView) return;
+  const wings = model.children.filter(o => /^accent\d+$/.test(o.name));
   const h = model.userData.height || 20;
+  const w = model.userData.dims?.w || 6;
+
+  // each wing slides in from its own side
+  const side = wings.map(m => {
+    m.geometry.computeBoundingBox();
+    const c = m.geometry.boundingBox.getCenter(new THREE.Vector3());
+    return c.x < 0 ? -1 : 1;
+  });
+  const rest = { base: base.position.clone(), blade: blade.position.clone(), sticker: sticker.position.clone(),
+                 wings: wings.map(m => m.position.clone()), sScale: sticker.scale.clone() };
 
   let gsap, ScrollTrigger;
   try {
@@ -155,24 +176,77 @@ async function assembleOnScroll(sel, live) {
   } catch { return; }                       // offline CDN: the trophy just stays assembled
   gsap.registerPlugin(ScrollTrigger);
 
-  const k = { base: 0, blade: 0, sticker: 0 };   // 0 = apart, 1 = assembled
-  const apply = () => {
-    base.position.y    = rest[0].y - (1 - k.base) * h * 0.18;
-    blade.position.y   = rest[1].y + (1 - k.blade) * h * 0.32;
-    sticker.position.y = rest[2].y + (1 - k.blade) * (sticker.parent === model && rest[2].y > rest[0].y + 1 ? h * 0.32 : 0);
-    // never past 1: an overshoot pushed the sticker behind the acrylic face,
-    // where it read as dim and printed on the inside
-    sticker.position.z = rest[2].z + (1 - Math.min(1, k.sticker)) * h * 0.22;
-    viewer.invalidate();
+  const home = viewer.getHome();
+  // opens three-quarter and a little high, so the falling acrylic reads as a shape, not an edge
+  const cam = { az: home.az - 0.72, pol: 1.32, dist: home.dist * 1.78 };
+  const k = { base: 0, blade: 0, wings: 0, sticker: 0 };   // 0 = apart, 1 = in place
+
+  const steps = $$('.band ol li');
+  const viz = $(sel);
+  const cap = document.createElement('p');
+  cap.className = 'viz__stage';
+  cap.setAttribute('aria-hidden', 'true');
+  viz.append(cap);
+  let shown = -1;
+
+  const apply = progress => {
+    const drop = (1 - k.blade) * h * 0.50;
+    base.position.y = rest.base.y - (1 - k.base) * h * 0.22;
+    blade.position.y = rest.blade.y + drop;
+    wings.forEach((m, i) => {
+      m.visible = k.wings > 0.001;
+      m.position.x = rest.wings[i].x + side[i] * (1 - k.wings) * w * 2.2;
+      m.position.y = rest.wings[i].y + drop;
+      m.position.z = rest.wings[i].z + (1 - k.wings) * h * 0.10;
+    });
+    // never past 1: an overshoot pushes the sticker behind the acrylic face
+    const ks = Math.min(1, k.sticker);
+    sticker.visible = ks > 0.001;
+    sticker.position.y = rest.sticker.y + (rest.sticker.y > rest.base.y + 1 ? drop : 0);
+    sticker.position.z = rest.sticker.z + (1 - ks) * h * 0.55;
+    sticker.scale.setScalar(rest.sScale.x * (1 + (1 - ks) * 0.35));
+    viewer.setView(cam);
+
+    if (typeof progress === 'number') {
+      let i = 0;
+      STAGES.forEach((st, j) => { if (progress >= st.at) i = j; });
+      if (i !== shown) {
+        shown = i;
+        cap.innerHTML = `<span>${String(i + 1).padStart(2, '0')} / ${String(STAGES.length).padStart(2, '0')}</span>${STAGES[i].cap}`;
+        cap.classList.remove('is-in'); void cap.offsetWidth; cap.classList.add('is-in');
+        steps.forEach((li, j) => li.classList.toggle('is-on', j === STAGES[i].li));
+      }
+    }
   };
-  apply();
-  gsap.timeline({
-    scrollTrigger: { trigger: sel, start: 'top 85%', end: 'center 55%', scrub: 0.6 },
-    onUpdate: apply,
-  })
-    .to(k, { base: 1, duration: 0.35, ease: 'power2.out' })
-    .to(k, { blade: 1, duration: 0.45, ease: 'power3.inOut' }, 0.2)
-    .to(k, { sticker: 1, duration: 0.35, ease: 'power2.out' }, 0.62);
+
+  const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
+  tl.to(cam, { keyframes: [
+        { az: home.az - 0.40, pol: 1.36, dist: home.dist * 1.30, duration: 4.4, ease: 'sine.inOut' },
+        { az: home.az, pol: home.pol, dist: home.dist * 1.06, duration: 4.6, ease: 'sine.inOut' },
+      ] }, 0)
+    .to(k, { base: 1, duration: 1.6, ease: 'power3.out' }, 0.1)
+    .to(k, { blade: 1, duration: 2.2, ease: 'power2.inOut' }, 1.6)
+    .to(k, { wings: 1, duration: 1.8, ease: 'power3.out' }, 3.8)
+    .to(k, { sticker: 1, duration: 1.6, ease: 'power2.out' }, 5.6)
+    .to({}, { duration: 1.4 }, 7.6);           // a beat on the finished piece
+
+  viz.classList.add('is-scene');
+  apply(0);
+  const wide = matchMedia('(min-width: 900px)').matches;
+  viewer.hold(true);
+  ScrollTrigger.create({
+    trigger: wide ? '.band' : sel,
+    start: 'center center',
+    end: () => `+=${Math.round(innerHeight * (wide ? 1.9 : 1.5))}`,
+    pin: wide ? '.band' : sel,
+    scrub: 0.8,
+    animation: tl,
+    // finished: the idle sway and dragging take over, and the hint comes back
+    onLeave: () => { viewer.hold(false); viz.classList.remove('is-scene'); },
+    onEnterBack: () => { viewer.hold(true); viz.classList.add('is-scene'); },
+  });
+  // one clock: the scrubbed (smoothed) timeline drives parts, camera and captions alike
+  tl.eventCallback('onUpdate', () => apply(tl.progress()));
 }
 
 /* Run `fn` once, when `sel` comes within a screen of the viewport. Each live

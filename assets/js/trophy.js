@@ -1698,12 +1698,43 @@ function ovalDecalShape(w, h) {
   return s;
 }
 
+/* ONE shield outline, shared by the cut sticker, its printed keyline and the
+   text fitting. They used to be three different shields: the cut one even
+   curved back on itself, which left ragged slivers down its sides, and the
+   wording was sized for the full width while the shield narrows to a point.
+   Normalised: u -1..1 across, v 0 (top) .. 1 (point). */
+const SH = { r: 0.10, shoulder: 0.40, c1: [1, 0.74], c2: [0.56, 0.93] };
+function shieldTrace(P, u0, v0, cw, ch) {
+  // P = { move, line, quad, bez } in some space; (u0,v0) maps the outline
+  const X = u => u0 + u * cw, Y = v => v0 + v * ch;
+  const r = SH.r, k = SH.shoulder, [a, b] = SH.c1, [c, d] = SH.c2;
+  P.move(X(-1 + r), Y(0));
+  P.line(X(1 - r), Y(0));
+  P.quad(X(1), Y(0), X(1), Y(r * 0.8));
+  P.line(X(1), Y(k));
+  P.bez(X(a), Y(b), X(c), Y(d), X(0), Y(1));
+  P.bez(X(-c), Y(d), X(-a), Y(b), X(-1), Y(k));
+  P.line(X(-1), Y(r * 0.8));
+  P.quad(X(-1), Y(0), X(-1 + r), Y(0));
+}
+/* half-width (0..1) of the shield at depth v, for fitting each line of text */
+function shieldHalfWidth(v) {
+  const k = SH.shoulder;
+  if (v <= k) return 1;
+  const [a, b] = SH.c1, [c, d] = SH.c2;
+  const B = (t, p0, p1, p2, p3) => (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t * t * p2 + t ** 3 * p3;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (B(m, k, b, d, 1) < v) lo = m; else hi = m; }
+  return Math.max(0, B((lo + hi) / 2, 1, a, c, 0));
+}
+
 function shieldDecalShape(w, h) {
-  const x = w / 2, y = h / 2;
   const s = new THREE.Shape();
-  s.moveTo(-x, y); s.lineTo(x, y); s.lineTo(x, -y * 0.28);
-  s.bezierCurveTo(x, y * 0.30, x * 0.46, -y * 0.86, 0, -y);
-  s.bezierCurveTo(-x * 0.46, -y * 0.86, -x, y * 0.30, -x, -y * 0.28);
+  shieldTrace({
+    move: (x, y) => s.moveTo(x, y), line: (x, y) => s.lineTo(x, y),
+    quad: (a, b, x, y) => s.quadraticCurveTo(a, b, x, y),
+    bez: (a, b, c, d, x, y) => s.bezierCurveTo(a, b, c, d, x, y),
+  }, 0, h / 2, w / 2, -h);                  // three's y runs up: v=0 is the top edge
   s.closePath();
   return s;
 }
@@ -1724,12 +1755,11 @@ function keylinePath(g, kind, W, H, inset) {
   if (kind === 'circle' || kind === 'oval') {
     g.ellipse(W / 2, H / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
   } else if (kind === 'shield') {
-    const cx = W / 2, hw = w / 2, top = y, bot = y + h;
-    g.moveTo(cx - hw, top);
-    g.lineTo(cx + hw, top);
-    g.lineTo(cx + hw, top + h * 0.36);
-    g.bezierCurveTo(cx + hw, top + h * 0.65, cx + hw * 0.46, bot - h * 0.07, cx, bot);
-    g.bezierCurveTo(cx - hw * 0.46, bot - h * 0.07, cx - hw, top + h * 0.65, cx - hw, top + h * 0.36);
+    shieldTrace({
+      move: (a, b) => g.moveTo(a, b), line: (a, b) => g.lineTo(a, b),
+      quad: (a, b, c, d) => g.quadraticCurveTo(a, b, c, d),
+      bez: (a, b, c, d, e, f) => g.bezierCurveTo(a, b, c, d, e, f),
+    }, W / 2, y, w / 2, h);
     g.closePath();
   } else {
     const r = Math.min(w, h) * 0.13;
@@ -1787,15 +1817,44 @@ function heartPath(g, cx, cy, r) {
   g.closePath();
 }
 
+/* A real laurel wreath: two branches curving up either side, a thin stem
+   and pointed leaves set alternately along it. The old one stacked ellipses
+   on top of each other and printed as a gold blob. Filled in one go by the
+   caller, so leaves and stems are separate sub-paths that never overlap. */
 function laurelPath(g, cx, cy, r) {
   g.beginPath();
+  const R = r * 0.86, ccx = cx, ccy = cy + r * 0.04;
+  const leaf = (x, y, ang, L, Wd) => {          // an almond, base at (x,y), pointing along ang
+    const ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux;
+    const tx = x + ux * L, ty = y + uy * L;
+    g.moveTo(x, y);
+    g.quadraticCurveTo(x + ux * L * 0.5 + nx * Wd, y + uy * L * 0.5 + ny * Wd, tx, ty);
+    g.quadraticCurveTo(x + ux * L * 0.5 - nx * Wd, y + uy * L * 0.5 - ny * Wd, x, y);
+    g.closePath();
+  };
   for (const dir of [-1, 1]) {
-    for (let i = 0; i < 6; i++) {
-      const t = i / 5;
-      const ax = cx + dir * (r * 0.34 + Math.sin(t * Math.PI) * r * 0.5);
-      const ay = cy + r * 0.72 - t * r * 1.5;
-      g.ellipse(ax, ay, r * 0.26, r * 0.12, dir * (0.5 + t * 0.7), 0, Math.PI * 2);
+    // canvas angles, y down: the branch climbs from just off the bottom to near the top
+    const a0 = Math.PI / 2 + dir * -0.28, a1 = Math.PI / 2 + dir * -2.55;
+    // stem: a thin ring segment
+    const sw = r * 0.035;
+    g.moveTo(ccx + (R + sw) * Math.cos(a0), ccy + (R + sw) * Math.sin(a0));
+    g.arc(ccx, ccy, R + sw, a0, a1, dir > 0);
+    g.arc(ccx, ccy, R - sw, a1, a0, dir < 0);
+    g.closePath();
+    const N = 7;
+    for (let i = 0; i < N; i++) {
+      const t = (i + 0.5) / N;
+      const a = a0 + (a1 - a0) * t;
+      const px = ccx + R * Math.cos(a), py = ccy + R * Math.sin(a);
+      const tangent = a - dir * Math.PI / 2;     // direction of growth, up the branch
+      const L = r * (0.40 - t * 0.12), Wd = L * 0.30;
+      leaf(px, py, tangent - dir * 0.62, L, Wd);  // outer leaf
+      if (i < N - 1) leaf(px, py, tangent + dir * 0.55, L * 0.82, Wd * 0.85);  // inner leaf
     }
+    // a berry-like bud at the tip
+    const ta = a1 - dir * 0.10;
+    g.moveTo(ccx + R * Math.cos(ta) + r * 0.07, ccy + R * Math.sin(ta));
+    g.arc(ccx + R * Math.cos(ta), ccy + R * Math.sin(ta), r * 0.07, 0, Math.PI * 2);
   }
 }
 
@@ -1941,9 +2000,18 @@ export function stickerCanvas(cfg, aspect) {
      line above it. Instead: measure what is switched on, share the space
      between those lines, and scale the whole block to fit. */
   const round = cfg.decal === 'circle' || cfg.decal === 'oval';
-  const padY = H * (round ? 0.17 : 0.11);
+  const isShield = cfg.decal === 'shield';
+  const padY = H * (round ? 0.17 : isShield ? 0.10 : 0.11);
   let top = padY;
-  let room = H - padY * 2;
+  let room = isShield ? H * 0.80 - padY : H - padY * 2;   // a shield's point holds no text
+  /* the width a line may use between its top and bottom; a shield narrows */
+  const widthAt = (y0, y1) => {
+    if (!isShield) return safe;
+    const ins = 0.082;                                     // inside the inner keyline
+    const v = y => Math.min(1, Math.max(0, (y / H - ins) / (1 - ins * 2)));
+    const hw = Math.min(shieldHalfWidth(v(y0)), shieldHalfWidth(v(y1)));
+    return Math.max(W * 0.2, (hw * (W / 2 - W * ins) - W * 0.035) * 2);
+  };
 
   const motif = MOTIFS[cfg.motif];
   const hasMotif = motif && motif.draw && fit !== 'badge';
@@ -1999,7 +2067,7 @@ export function stickerCanvas(cfg, aspect) {
       }
 
       const planned = r.rel * k;
-      const px = fitFont(g, r.t, safe, planned, r.fam, r.wt, r.track);
+      const px = fitFont(g, r.t, widthAt(cursor, cursor + planned * LH), planned, r.fam, r.wt, r.track);
       g.font = `${r.st} ${r.wt} ${px}px ${r.fam}`.trim();
       g.fillStyle = r.col;
       const baseline = cursor + planned * 0.82;

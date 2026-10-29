@@ -167,7 +167,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .band__in{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,72px);align-items:center}
 .band .viz{aspect-ratio:1/1;background:var(--surface-2)}
 .band ol{counter-reset:b;display:grid;gap:14px;margin:1.6rem 0 2rem}
-.band li{position:relative;padding-left:30px;font-size:1rem;color:var(--ink)}
+.band li{position:relative;padding-left:30px;font-size:1rem;color:var(--ink);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+/* while the scroll scene runs, the step being built is the one that reads */
+.band ol:has(.is-on) li{opacity:.38}
+.band ol li.is-on{opacity:1;transform:translateX(6px)}
+.viz__stage{position:absolute;left:22px;top:20px;margin:0;font-family:var(--f-display);
+  font-size:clamp(1.1rem,1.8vw,1.45rem);line-height:1.15;color:var(--ink);opacity:0;pointer-events:none;max-width:70%}
+.viz__stage span{display:block;font-family:var(--f-body);font-size:.68rem;letter-spacing:.2em;color:var(--brass);margin-bottom:4px}
+.viz.is-scene .viz__hint{opacity:0!important}
+.viz__stage.is-in{animation:stageIn .6s var(--ease) forwards}
+@keyframes stageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .band li::before{
   counter-increment:b;content:counter(b);position:absolute;left:0;top:.08em;
   width:20px;height:20px;border:1px solid var(--line);border-radius:50%;

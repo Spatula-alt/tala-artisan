@@ -317,6 +317,7 @@ export function createViewer(canvas, opts = {}) {
   }
 
   let last = performance.now(), swayAcc = 0;
+  let held = false;                         // a scripted camera (the scroll scene) is driving
   function tick(now) {
     if (!running) return;
     requestAnimationFrame(tick);
@@ -330,7 +331,7 @@ export function createViewer(canvas, opts = {}) {
        renders the scene twice per frame -- Lighthouse measured 16 s of main
        thread on the home page with it running forever. So it sways at 30 fps,
        and only for the first ~12 s of idleness; any touch restarts it. */
-    if (opts.autoRotate && !calm) {
+    if (opts.autoRotate && !calm && !held) {
       idle += dt;
       // after ~12 s it keeps going only until it swings back to the front
       if (idle > 2.2 && (idle < 14 || Math.abs(Math.sin(sway)) > 0.04)) {
@@ -354,6 +355,11 @@ export function createViewer(canvas, opts = {}) {
     frame, frameObject, reset, resize,
     invalidate() { dirty = true; },
     renderNow,
+    /* For a scripted camera: the framed resting view, and a way to drive it.
+       While held, the idle sway stays out of the way. */
+    getHome() { return { ...home }; },
+    setView(v) { Object.assign(view, v); dirty = true; },
+    hold(on) { held = !!on; idle = 0; sway = 0; dirty = true; },
     stop() { running = false; },
     dispose() { running = false; renderer.dispose(); },
   };
