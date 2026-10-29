@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300113';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300113';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300126';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300126';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -145,10 +145,10 @@ const GSAP = 'https://cdn.jsdelivr.net/npm/gsap@3.12.5';
 // `li` is the line of the list beside the scene that the stage is about
 const STAGES = [
   { at: 0.00, cap: 'The base', li: 1 },
-  { at: 0.20, cap: 'Cut acrylic, dropped into its slot', li: 0 },
+  { at: 0.17, cap: 'Cut acrylic, dropped into its slot', li: 0 },
   { at: 0.44, cap: 'Gold accents, layered on', li: 1 },
   { at: 0.64, cap: 'The printed sticker, pressed on', li: 2 },
-  { at: 0.84, cap: 'Ready for the podium', li: 3 },
+  { at: 0.83, cap: 'Ready for the podium', li: 3 },
 ];
 async function assembleOnScroll(sel, live) {
   if (!live || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -221,14 +221,14 @@ async function assembleOnScroll(sel, live) {
 
   const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
   tl.to(cam, { keyframes: [
-        { az: home.az - 0.40, pol: 1.36, dist: home.dist * 1.30, duration: 4.4, ease: 'sine.inOut' },
-        { az: home.az, pol: home.pol, dist: home.dist * 1.06, duration: 4.6, ease: 'sine.inOut' },
+        { az: home.az - 0.40, pol: 1.36, dist: home.dist * 1.30, duration: 3.8, ease: 'sine.inOut' },
+        { az: home.az, pol: home.pol, dist: home.dist * 1.06, duration: 4.0, ease: 'sine.inOut' },
       ] }, 0)
     .to(k, { base: 1, duration: 1.6, ease: 'power3.out' }, 0.1)
-    .to(k, { blade: 1, duration: 2.2, ease: 'power2.inOut' }, 1.6)
-    .to(k, { wings: 1, duration: 1.8, ease: 'power3.out' }, 3.8)
-    .to(k, { sticker: 1, duration: 1.6, ease: 'power2.out' }, 5.6)
-    .to({}, { duration: 1.4 }, 7.6);           // a beat on the finished piece
+    .to(k, { blade: 1, duration: 2.0, ease: 'power2.inOut' }, 1.3)
+    .to(k, { wings: 1, duration: 1.6, ease: 'power3.out' }, 3.3)
+    .to(k, { sticker: 1, duration: 1.5, ease: 'power2.out' }, 5.0)
+    .to({}, { duration: 0.6 }, 7.2);           // a short beat on the finished piece
 
   viz.classList.add('is-scene');
   apply(0);
@@ -237,9 +237,9 @@ async function assembleOnScroll(sel, live) {
   ScrollTrigger.create({
     trigger: wide ? '.band' : sel,
     start: 'center center',
-    end: () => `+=${Math.round(innerHeight * (wide ? 1.9 : 1.5))}`,
+    end: () => `+=${Math.round(innerHeight * (wide ? 0.95 : 0.8))}`,   // about one screen of scrolling
     pin: wide ? '.band' : sel,
-    scrub: 0.8,
+    scrub: 0.35,                               // follows the wheel closely, still smooth
     animation: tl,
     // finished: the idle sway and dragging take over, and the hint comes back
     onLeave: () => { viewer.hold(false); viz.classList.remove('is-scene'); },
