@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610300022';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300051';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610300022';
+} from './trophy.js?v=202610300051';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -329,7 +329,33 @@ function notStaffScreen(email) {
   $('#out').addEventListener('click', signOut);
 }
 
-async function signOut() { await sb.auth.signOut(); signInScreen(); }
+async function signOut() { await sb.auth.signOut(); S.noDevice = true; signInScreen(); }
+
+/* A browser that has not been approved yet. Its code is the start of its
+   own id; approving it is one insert into public.admins (see make-admin.sql).
+   After that this browser opens straight into the deck, with no sign-in. */
+const deviceCode = () => S.user.id.replace(/-/g, '').slice(0, 8).toUpperCase();
+function deviceScreen() {
+  app.innerHTML = `<section class="adm-gate">
+    <div class="brand">★ <b>Tala Artisan</b> · Admin Deck</div>
+    <h1>Approve this device</h1>
+    <p>This phone or computer is not approved yet. Send this code to the owner:</p>
+    <p style="font-family:ui-monospace,Consolas,monospace;font-size:2rem;letter-spacing:.18em;text-align:center;
+      background:var(--surface);border-radius:10px;padding:14px 0;margin:14px 0">${deviceCode()}</p>
+    <p style="font-size:.86rem;color:var(--mute)">Once it is approved, this device opens straight into the deck — no email,
+      no password. Clearing this browser's data means approving it again.</p>
+    <div style="display:grid;gap:10px;margin-top:16px">
+      <button class="btn btn--solid" type="button" id="again">It's approved — open the deck</button>
+      <button class="adm-link" type="button" id="staff">Sign in with email and PIN instead</button>
+    </div>
+    <p class="adm-msg" id="devMsg" role="alert" style="margin-top:10px"></p></section>`;
+  $('#again').addEventListener('click', async () => {
+    const ok = chk(await sb.from('admins').select('user_id').eq('user_id', S.user.id).maybeSingle());
+    if (ok) return enter();
+    $('#devMsg').textContent = 'Not approved yet. Send the code above to the owner.'; $('#devMsg').className = 'adm-msg bad';
+  });
+  $('#staff').addEventListener('click', () => signInScreen());
+}
 
 /* small line icons for the sidebar */
 const IC = {
@@ -364,6 +390,10 @@ function shell() {
   $$('.adm-side__nav [data-tab]').forEach(t => t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); window.scrollTo(0, 0); }));
   $('#out').addEventListener('click', signOut);
   $('#pin').addEventListener('click', setPin);
+  if (S.user.is_anonymous) {
+    $('#pin').hidden = true; $('#out').hidden = true;
+    $('.adm-side__user').textContent = `Approved device ${deviceCode()}`;
+  }
 }
 
 /* The PIN is the login's own Supabase password, chosen by the staff member
@@ -737,6 +767,13 @@ async function enter() {
   const why = new URLSearchParams(location.hash.slice(1)).get('error_description');
   // a Google or emailed-link sign-in comes back with tokens in the address; drop them
   if (/access_token|refresh_token|[?&]code=|error_description/.test(location.hash + location.search)) history.replaceState(null, '', backHere());
+  if (!session && !why && !S.noDevice) {
+    // no sign-in: this browser becomes a "device" with its own id, and sees
+    // nothing until the owner approves it (it is added to public.admins)
+    const { error } = await sb.auth.signInAnonymously();
+    if (!error) return enter();
+    S.noDevice = true;                     // anonymous sign-ins are off: fall back to email / PIN
+  }
   if (!session) {
     const msg = why ? why.replace(/\+/g, ' ') : '';
     return signInScreen(/invalid or has expired/i.test(msg)
@@ -747,7 +784,7 @@ async function enter() {
   let staff;
   try { staff = chk(await sb.from('admins').select('user_id').eq('user_id', S.user.id).maybeSingle()); }
   catch (err) { app.innerHTML = `<section class="adm-gate"><h1>Can't open the deck</h1><p>${esc(friendly(err))}</p></section>`; return; }
-  if (!staff) return notStaffScreen(S.user.email);
+  if (!staff) return S.user.is_anonymous ? deviceScreen() : notStaffScreen(S.user.email);
   shell();
   $('#main').innerHTML = '<p class="adm-boot">Loading…</p>';
   try { await Promise.all([loadRequests(), loadItems()]); }
