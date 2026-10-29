@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610292257';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300022';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610292257';
+} from './trophy.js?v=202610300022';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -64,7 +64,7 @@ function toast(msg, bad = false) {
 
 function friendly(err) {
   const m = String(err?.message || err?.error_description || err || '');
-  if (/Invalid login credentials/i.test(m)) return 'Wrong email or password.';
+  if (/Invalid login credentials/i.test(m)) return 'Wrong email or PIN. No PIN yet? Use the emailed link once, then set one in the deck.';
   if (/Email not confirmed/i.test(m)) return 'This login is not confirmed yet. Confirm it in Supabase → Authentication → Users.';
   if (/shop_items_published_has_picture/.test(m)) return 'A trophy needs a photo or a 3D design before it can be shown on the website.';
   if (/duplicate key|23505/i.test(m)) return 'A trophy with this name already exists. Change the name a little and save again.';
@@ -222,22 +222,24 @@ function signInScreen(msg = '') {
     <div class="brand">★ <b>Tala Artisan</b> · Admin Deck</div>
     <h1>Sign in</h1>
     <p>For shop staff. Requests and the website's shop are managed here.</p>
-    <div style="display:grid;gap:10px;margin-top:20px">
+    <div style="display:grid;gap:10px;margin-top:20px" id="googleRow" hidden>
       <button class="btn btn--line adm-google" type="button" id="google">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="stroke:none;transform:none"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z"/></svg>
         Continue with Google</button>
+      <p class="adm-or">or</p>
     </div>
-    <p class="adm-or">or</p>
     <form id="signin" novalidate style="margin-top:0">
       <label class="fld">Email<input type="email" name="email" autocomplete="username" required></label>
-      <label class="fld" id="pwRow" hidden>Password<input type="password" name="password" autocomplete="current-password"></label>
+      <label class="fld" id="pwRow">PIN<input type="password" name="password" inputmode="numeric" autocomplete="current-password"></label>
       <p class="adm-msg${msg ? ' bad' : ''}" id="signMsg" role="alert">${esc(msg)}</p>
-      <button class="btn btn--solid" type="submit" id="go">Email me a sign-in link</button>
-      <button class="adm-link" type="button" id="usePw">Use a password instead</button>
+      <button class="btn btn--solid" type="submit" id="go">Sign in</button>
+      <button class="adm-link" type="button" id="usePw">No PIN yet, or forgot it? Email me a sign-in link</button>
     </form></section>`;
   const f = $('#signin'), out = $('#signMsg');
   const say = (t, bad = false) => { out.textContent = t; out.className = 'adm-msg' + (bad ? ' bad' : ''); };
-  let pw = false;
+  let pw = true;                         // PIN first; the emailed link is the way in to set one
+  fetch(`${URL_}/auth/v1/settings`, { headers: { apikey: KEY } }).then(r => r.json())
+    .then(st => { if (st?.external?.google) $('#googleRow').hidden = false; }).catch(() => {});
 
   $('#google').addEventListener('click', async () => {
     // supabase-js would send the browser off to a bare JSON error page if the
@@ -255,14 +257,14 @@ function signInScreen(msg = '') {
     pw = !pw;
     $('#pwRow').hidden = !pw;
     $('#go').textContent = pw ? 'Sign in' : 'Email me a sign-in link';
-    $('#usePw').textContent = pw ? 'Email me a link instead' : 'Use a password instead';
+    $('#usePw').textContent = pw ? 'No PIN yet, or forgot it? Email me a sign-in link' : 'I have a PIN';
     (pw ? f.password : f.email).focus();
   });
   f.addEventListener('submit', async e => {
     e.preventDefault();
     const email = f.email.value.trim(), btn = $('#go');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return say('Enter your email address.', true);
-    if (pw && !f.password.value) return say('Enter your password.', true);
+    if (pw && !f.password.value) return say('Enter your PIN.', true);
     btn.disabled = true;
     try {
       if (pw) {
@@ -353,6 +355,7 @@ function shell() {
       </nav>
       <div class="adm-side__foot">
         <span class="adm-side__user" title="${esc(S.user.email)}">${esc(S.user.email)}</span>
+        <button type="button" id="pin">Set my sign-in PIN</button>
         <button type="button" id="out">Sign out</button>
       </div>
     </aside>
@@ -360,6 +363,52 @@ function shell() {
   </div>`;
   $$('.adm-side__nav [data-tab]').forEach(t => t.addEventListener('click', () => { S.tab = t.dataset.tab; render(); window.scrollTo(0, 0); }));
   $('#out').addEventListener('click', signOut);
+  $('#pin').addEventListener('click', setPin);
+}
+
+/* The PIN is the login's own Supabase password, chosen by the staff member
+   while signed in -- so nobody else ever sees or sets it, and signing in
+   needs no email at all. */
+function setPin() {
+  const d = document.createElement('dialog');
+  d.className = 'adm-dlg';
+  d.style.width = 'min(440px, 100% - 24px)';
+  d.innerHTML = `<form novalidate>
+    <div class="dlg-h"><div><h2>Your sign-in PIN</h2><p>Sign in with your email and this PIN on any phone or computer. No emails needed.</p></div>
+      <button class="dlg-x" type="button" value="close" aria-label="Close">×</button></div>
+    <div class="dlg-b">
+      <label class="fld">New PIN<input type="password" name="a" inputmode="numeric" autocomplete="new-password" minlength="6" required>
+        <small>At least 6 numbers or letters. Not your birthday or 123456.</small></label>
+      <label class="fld">Type it again<input type="password" name="b" inputmode="numeric" autocomplete="new-password" required></label>
+      <p class="adm-msg" id="pinMsg" role="alert"></p>
+    </div>
+    <div class="dlg-f"><span class="grow"></span>
+      <button class="btn btn--line btn--sm" type="button" value="close">Cancel</button>
+      <button class="btn btn--solid btn--sm" type="submit">Save PIN</button></div></form>`;
+  document.body.append(d);
+  const f = $('form', d), out = $('#pinMsg', d);
+  const end = () => { if (d.open) d.close(); d.remove(); };
+  $$('[value="close"]', d).forEach(b => b.addEventListener('click', end));
+  d.addEventListener('cancel', e => { e.preventDefault(); end(); });
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const a = f.a.value, b = f.b.value;
+    if (a.length < 6) { out.textContent = 'Make it at least 6 characters.'; out.className = 'adm-msg bad'; return; }
+    if (/^(\d)\1+$/.test(a) || '01234567890'.includes(a) || '09876543210'.includes(a)) { out.textContent = 'That one is too easy to guess. Pick another.'; out.className = 'adm-msg bad'; return; }
+    if (a !== b) { out.textContent = 'The two PINs are different.'; out.className = 'adm-msg bad'; return; }
+    const btn = $('button[type=submit]', f); btn.disabled = true;
+    out.textContent = 'Saving…'; out.className = 'adm-msg';
+    try {
+      chk(await sb.auth.updateUser({ password: a }));
+      end(); toast('PIN saved. Next time, sign in with your email and this PIN.');
+    } catch (err) {
+      out.textContent = /different from the old/i.test(err.message || '') ? 'That is already your PIN.'
+        : /weak|at least/i.test(err.message || '') ? 'Supabase says that PIN is too weak. Try a longer one.' : friendly(err);
+      out.className = 'adm-msg bad'; btn.disabled = false;
+    }
+  });
+  d.showModal();
+  f.a.focus();
 }
 
 function render() {
