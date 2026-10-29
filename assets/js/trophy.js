@@ -2173,19 +2173,19 @@ export const OCCASIONS = {
     label: 'Pageant', hint: 'Mutya, Mr & Ms, coronation',
     cfg: { shape: 'lady', material: 'white', size: 'l', baseKind: 'goldbar', baseFinish: 'gold',
            decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script', motif: 'crown',
-           org: 'Mutya ng Calapan', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026' },
+           org: 'Mutya ng Gloria', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026' },
   },
   liga: {
     label: 'Sports / Liga', hint: 'Basketball, volleyball, athletics',
     cfg: { shape: 'shield', material: 'blue', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
            decal: 'shield', scheme: 'navy', laminate: 'gloss', font: 'sport', motif: 'laurel',
-           org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Calapan City' },
+           org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Gloria' },
   },
   school: {
     label: 'School awards', hint: 'Recognition day, honour roll',
     cfg: { shape: 'arch', material: 'white', size: 'm', baseKind: 'block', baseFinish: 'black',
            decal: 'rect', scheme: 'white', laminate: 'matte', font: 'classic', motif: 'star',
-           org: 'Calapan City NHS', title: 'Most Outstanding', name: 'Juan D. Reyes', date: 'SY 2025 – 2026' },
+           org: 'Gloria NHS', title: 'Most Outstanding', name: 'Juan D. Reyes', date: 'SY 2025 – 2026' },
   },
   fiesta: {
     label: 'Fiesta', hint: 'Street dance, float, palaro',
@@ -2581,7 +2581,7 @@ export const SPEEDS = {
 };
 
 export const ZONES = {
-  pickup:   { label: 'Studio pickup',      fee: 0,   per: 0,  days: 0, hint: 'Calapan City' },
+  pickup:   { label: 'Studio pickup',      fee: 0,   per: 0,  days: 0, hint: 'Gloria, Oriental Mindoro' },
   province: { label: 'Oriental Mindoro',   fee: 180, per: 8,  days: 1, hint: 'Next day, island-wide' },
   luzon:    { label: 'Rest of Luzon',      fee: 420, per: 18, days: 3, hint: 'Courier, 3 days' },
   vismin:   { label: 'Visayas / Mindanao', fee: 780, per: 28, days: 6, hint: 'Courier, 5–7 days' },

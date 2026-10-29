@@ -4,14 +4,14 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300138';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300158';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-} from './trophy.js?v=202610300138';
+} from './trophy.js?v=202610300158';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -22,7 +22,7 @@ const cfg = {
   shape: 'lady', variant: 0, material: 'white', size: 'l',
   baseKind: 'goldbar', baseFinish: 'gold',
   decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script', motif: 'crown',
-  org: 'Mutya ng Calapan', title: '1st Runner-Up',
+  org: 'Mutya ng Gloria', title: '1st Runner-Up',
   name: 'Maria C. Lualhati', date: '2026',
   photoImg: null, photoFit: 'badge', photoTarget: 'sticker',
   place: null,            // the customer's own sticker placement, or null for the design's box
@@ -325,7 +325,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610300138'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202610300158'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');

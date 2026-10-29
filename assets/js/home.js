@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300138';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300138';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300158';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300158';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -277,13 +277,13 @@ async function boot() {
   liveViewer('#heroViz', '#heroCanvas', {
     shape: 'lady', material: 'gold', size: 'l', baseKind: 'goldbar', baseFinish: 'black',
     decal: 'rect', scheme: 'black', font: 'script', laminate: 'gloss', motif: 'crown',
-    org: 'Mutya ng Calapan', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026',
+    org: 'Mutya ng Gloria', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026',
   });
 
   whenNear('#bandViz', () => assembleOnScroll('#bandViz', liveViewer('#bandViz', '#bandCanvas', {
     shape: 'shield', material: 'blue', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
     decal: 'shield', scheme: 'navy', font: 'sport', laminate: 'gloss', motif: 'laurel',
-    org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Calapan City',
+    org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Gloria',
   })));
 
   // the shop grid is well below the fold: bake its stills only on approach
