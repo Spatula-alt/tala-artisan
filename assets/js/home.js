@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300126';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300126';
+import { createViewer, webglAvailable } from './viewer.js?v=202610300135';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300135';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -21,6 +21,9 @@ function writePrices() {
       slot.textContent = peso(price({ ...cfg, qty: 1 }).unit);
     } catch { /* keep the hand-written fallback */ }
   }
+  // "from ₱…" on the page follows the cheapest trophy actually in the shop
+  const prices = $$('#shopGrid [data-price]').map(e => Number(e.textContent.replace(/[^\d]/g, ''))).filter(n => n > 0);
+  if (prices.length) $$('[data-from]').forEach(e => { e.textContent = peso(Math.min(...prices)); });
 }
 
 /* The shop grid is run from the Admin Deck (admin.html → shop_items). The six
