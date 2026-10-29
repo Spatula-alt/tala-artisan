@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202610251536';
+import { createViewer, webglAvailable } from './viewer.js?v=202610292257';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202610251536';
+} from './trophy.js?v=202610292257';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -281,41 +281,38 @@ function signInScreen(msg = '') {
   f.email.focus();
 }
 
-/* Step two of the emailed sign-in: the 6-digit code from the same email. The
-   code needs no redirect, so it works when the email is read on another
-   device; the link in the email still works too. */
+/* Step two of the emailed sign-in. Supabase's built-in mail sends a link, not
+   a code, and the link signs in whichever device it is opened on -- so the
+   page says exactly that, and offers a resend instead of a code box. */
 function codeStep(email) {
   app.innerHTML = `<section class="adm-gate">
     <div class="brand">★ <b>Tala Artisan</b> · Admin Deck</div>
     <h1>Check your email</h1>
-    <p>We sent an email to <b>${esc(email)}</b> titled <b>“Your sign-in link”</b>. Open the newest one
-       and press <b>Sign in</b> in it — that brings you straight into the deck. It can take a minute; look in Spam too.
-       In Gmail, press <b>•••</b> if the email looks empty.</p>
-    <p style="font-size:.84rem;color:var(--mute)">If the email shows a 6-digit code instead, type it here.</p>
-    <form id="code" novalidate>
-      <label class="fld">Code (only if the email has one)<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"
-        pattern="[0-9]*" style="font-size:1.4rem;letter-spacing:.3em;text-align:center" required></label>
-      <p class="adm-msg" id="codeMsg" role="alert"></p>
-      <button class="btn btn--solid" type="submit">Sign in</button>
+    <p>We sent <b>“Your sign-in link”</b> to <b>${esc(email)}</b>. Open the newest one and press <b>Sign in</b>.</p>
+    <p><b>Open it on the device you want to use.</b> The link signs in whichever phone or computer it is
+       opened on — open it on your phone and the phone is signed in, not this screen.</p>
+    <p style="font-size:.84rem;color:var(--mute)">It can take a minute; look in Spam too. In Gmail on a computer,
+       press <b>•••</b> if the email looks empty. Each new email cancels the one before it.</p>
+    <div style="display:grid;gap:10px;margin-top:18px">
+      <button class="btn btn--line" type="button" id="again">Send a new link</button>
       <button class="adm-link" type="button" id="back">Use a different email</button>
-    </form></section>`;
-  const f = $('#code'), out = $('#codeMsg');
-  f.code.focus();
+    </div>
+    <p class="adm-msg" id="codeMsg" role="alert" style="margin-top:10px"></p></section>`;
+  const out = $('#codeMsg'), again = $('#again');
   $('#back').addEventListener('click', () => signInScreen());
-  f.addEventListener('submit', async e => {
-    e.preventDefault();
-    const token = f.code.value.replace(/\D/g, '');
-    if (token.length < 6) { out.textContent = 'Enter the code from the email.'; out.className = 'adm-msg bad'; return; }
-    const btn = $('button[type=submit]', f); btn.disabled = true;
-    out.textContent = 'Checking…'; out.className = 'adm-msg';
+  // Supabase's free mail allows about two of these an hour, so make a resend deliberate
+  let wait = 60;
+  const tick = () => { again.disabled = wait > 0; again.textContent = wait > 0 ? `Send a new link (in ${wait}s)` : 'Send a new link'; };
+  tick();
+  const t = setInterval(() => { wait--; tick(); if (wait <= 0) clearInterval(t); }, 1000);
+  again.addEventListener('click', async () => {
+    again.disabled = true;
     try {
-      chk(await sb.auth.verifyOtp({ email, token, type: 'email' }));
-      await enter();
+      chk(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: backHere() } }));
+      out.textContent = 'Sent. Use only this newest email.'; out.className = 'adm-msg';
     } catch (err) {
-      out.textContent = /expired|invalid/i.test(err.message || '')
-        ? 'That code is wrong or has expired. Check you used the newest email, or go back and send a new one.'
-        : friendly(err);
-      out.className = 'adm-msg bad'; btn.disabled = false;
+      out.textContent = /rate limit|too many/i.test(err.message || '') ? 'Too many emails just now. Wait a few minutes and try again.' : friendly(err);
+      out.className = 'adm-msg bad'; again.disabled = false;
     }
   });
 }
@@ -692,7 +689,10 @@ async function enter() {
   // a Google or emailed-link sign-in comes back with tokens in the address; drop them
   if (/access_token|refresh_token|[?&]code=|error_description/.test(location.hash + location.search)) history.replaceState(null, '', backHere());
   if (!session) {
-    return signInScreen(why ? why.replace(/\+/g, ' ') : '');
+    const msg = why ? why.replace(/\+/g, ' ') : '';
+    return signInScreen(/invalid or has expired/i.test(msg)
+      ? 'That sign-in link was already used, or a newer email replaced it. If you are signed in on another device, you are fine there; to sign in here, send a new link and open it on this device.'
+      : msg);
   }
   S.user = session.user;
   let staff;
