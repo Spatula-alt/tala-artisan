@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — Tala Artisan custom acrylic trophies</title>
+<meta name="description" content="A quick tour of Tala Artisan: design your acrylic trophy in 3D, see the price and date instantly, get a free proof, and have it made by hand in Gloria, Oriental Mindoro and shipped nationwide.">
+<meta name="theme-color" content="#15140F">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tala Artisan — see how it works">
+<meta property="og:description" content="Design your trophy in 3D, see the price instantly, free proof first. From ₱500, shipped nationwide.">
+<meta property="og:image" content="assets/img/tour/d_wording.jpg">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+  /* The tour: one feature per row, a real screenshot of the live site beside a
+     short explanation. Uses the site's own type, colours and buttons. */
+  .t-hero{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px);text-align:center}
+  .t-hero .kick{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);font-weight:600}
+  .t-hero h1{margin:.5em auto .35em;max-width:14ch}
+  .t-hero .lede{margin:0 auto}
+  .t-hero .trust{justify-content:center}
+  .t-hero .hero__cta{justify-content:center}
+  .t-row{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(28px,5vw,72px);align-items:center;padding:clamp(40px,6vw,84px) 0;border-top:1px solid var(--line-soft)}
+  .t-row:nth-of-type(even) .t-copy{order:2}
+  .t-num{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:600}
+  .t-copy h2{margin:.45em 0 .4em}
+  .t-copy p{color:var(--ink-2);max-width:44ch}
+  .t-copy ul{list-style:none;margin:1.1rem 0 0;padding:0;display:grid;gap:8px}
+  .t-copy li{display:flex;gap:10px;align-items:baseline;color:var(--ink-2);font-size:.96rem}
+  .t-copy li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--brass);transform:translateY(-2px)}
+  .t-win{border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 24px 60px rgba(21,20,15,.14),0 0 0 1px var(--line)}
+  .t-win::before{content:"";display:block;height:28px;background:#F3F1EB;border-bottom:1px solid var(--line);
+    background-image:radial-gradient(circle,#E0A39A 4.5px,transparent 5px),radial-gradient(circle,#E8CB8A 4.5px,transparent 5px),radial-gradient(circle,#A9C79E 4.5px,transparent 5px);
+    background-size:18px 28px;background-repeat:no-repeat;background-position:14px 0,32px 0,50px 0}
+  .t-win img{display:block;width:100%;height:auto}
+  .t-phones{display:flex;justify-content:center;gap:clamp(12px,3vw,28px)}
+  .t-phone{width:min(42%,240px);border-radius:30px;background:var(--ink);padding:8px;box-shadow:0 24px 50px rgba(21,20,15,.2)}
+  .t-phone img{display:block;width:100%;border-radius:23px}
+  .t-phone:first-child{transform:translateY(28px) rotate(-3deg)}
+  .t-phone:last-child{transform:rotate(3deg)}
+  .t-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,3vw,32px);margin-top:2rem;list-style:none;padding:0}
+  .t-steps li{border-top:1px solid var(--line);padding-top:18px}
+  .t-steps b{display:block;font-family:var(--f-display);font-weight:400;font-size:2.4rem;color:var(--brass);line-height:1}
+  .t-steps h3{font-family:var(--f-display);font-weight:400;font-size:1.4rem;margin:.5em 0 .3em}
+  .t-steps p{font-size:.94rem;color:var(--ink-2);margin:0}
+  .t-band{background:var(--surface);padding:clamp(56px,8vw,104px) 0}
+  .t-perks{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,3vw,32px);margin-top:2rem}
+  .t-perks div{background:var(--paper);border:1px solid var(--line-soft);border-radius:12px;padding:22px}
+  .t-perks dt{font-family:var(--f-display);font-size:1.9rem;line-height:1}
+  .t-perks dd{margin:.5em 0 0;color:var(--ink-2);font-size:.94rem}
+  .t-end{padding:clamp(64px,9vw,120px) 0;text-align:center}
+  .t-end h2{max-width:16ch;margin:0 auto .4em}
+  .t-end .hero__cta{justify-content:center}
+  @media (max-width:860px){
+    .t-row{grid-template-columns:1fr}
+    .t-row:nth-of-type(even) .t-copy{order:0}
+    .t-steps,.t-perks{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:460px){.t-steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg>
+      <b>Tala<i>Artisan</i></b>
+    </a>
+    <div class="nav__act">
+      <a class="btn btn--solid btn--sm" href="design.html">Design yours</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="wrap t-hero">
+    <span class="kick">A quick tour</span>
+    <h1 class="d1">From idea to trophy, <em>on one screen.</em></h1>
+    <p class="lede">Tala Artisan makes custom acrylic trophies by hand in Gloria, Oriental Mindoro and ships them
+       nationwide. Here is how ordering one works — from designing it in 3D to holding it.</p>
+    <ul class="trust">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>From ₱500 a piece</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>Free proof before we cut</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>No minimum order</li>
+    </ul>
+  </section>
+
+  <div class="wrap">
+    <section class="t-row">
+      <div class="t-copy">
+        <span class="t-num">01 · The 3D designer</span>
+        <h2 class="d2">Design it yourself, <em>in 3D.</em></h2>
+        <p>Start from an occasion — pageant, liga, school, fiesta, corporate — then change anything. The trophy
+           is a real 3D model you can turn and zoom.</p>
+        <ul>
+          <li>17 cut shapes, including pageant and sports figures</li>
+          <li>11 acrylic colours, gold and silver mirror, 3 sizes</li>
+          <li>4 bases in 6 finishes</li>
+        </ul>
+      </div>
+      <figure class="t-win"><img src="assets/img/tour/d_designer.jpg" alt="The Tala Artisan 3D designer with a gold mirror lady trophy." loading="lazy" width="1400" height="875"></figure>
+    </section>
+
+    <section class="t-row">
+      <div class="t-copy">
+        <span class="t-num">02 · The printed sticker</span>
+        <h2 class="d2">Your words, <em>printed live.</em></h2>
+        <p>Type the event, title, name and date. The full-colour sticker redraws on the 3D trophy as you type, so
+           you see whether a long name fits before anything is printed.</p>
+        <ul>
+          <li>Sticker shapes, colour schemes and 5 fonts</li>
+          <li>Add a motif — crown, laurel, star — or your own logo</li>
+          <li>Drop in a photo and it prints straight onto the sticker</li>
+        </ul>
+      </div>
+      <figure class="t-win"><img src="assets/img/tour/d_wording.jpg" alt="Typing the wording, with the sticker updating on the 3D trophy." loading="lazy" width="1400" height="875"></figure>
+    </section>
+
+    <section class="t-row">
+      <div class="t-copy">
+        <span class="t-num">03 · Your own shape</span>
+        <h2 class="d2">Cut it from <em>your own picture.</em></h2>
+        <p>Upload a mascot, a logo or a photo of a person. The background is removed automatically and the rest
+           becomes the cut shape — with the picture printed on it if you like.</p>
+        <ul>
+          <li>Automatic background removal, or touch it up by hand</li>
+          <li>Thin parts are thickened so the acrylic will not snap</li>
+        </ul>
+      </div>
+      <figure class="t-win"><img src="assets/img/tour/d_cut.jpg" alt="A graduate photo turned into a cut acrylic trophy shape." loading="lazy" width="1400" height="875"></figure>
+    </section>
+
+    <section class="t-row">
+      <div class="t-copy">
+        <span class="t-num">04 · No guessing</span>
+        <h2 class="d2">The price and the date, <em>instantly.</em></h2>
+        <p>Every change updates the total and the day it arrives — quantity, speed, delivery area and payment
+           included. Bulk orders cost less per piece.</p>
+        <ul>
+          <li>Rush in 3 days, standard in 7, economy in 14</li>
+          <li>Pickup in Gloria, or shipped anywhere in the Philippines</li>
+          <li>Cash, GCash, PayMaya or bank transfer</li>
+        </ul>
+      </div>
+      <figure class="t-win"><img src="assets/img/tour/d_price.jpg" alt="The live price and estimated arrival date in the designer." loading="lazy" width="1400" height="875"></figure>
+    </section>
+
+    <section class="t-row">
+      <div class="t-copy">
+        <span class="t-num">05 · On any phone</span>
+        <h2 class="d2">Order from <em>your phone.</em></h2>
+        <p>The whole site works on mobile. Browse the shop, design your trophy and send it to the studio in a
+           few minutes — no app to install, no account needed.</p>
+      </div>
+      <div class="t-phones">
+        <div class="t-phone"><img src="assets/img/tour/m_shop.jpg" alt="The shop on a phone." loading="lazy" width="600" height="1299"></div>
+        <div class="t-phone"><img src="assets/img/tour/m_designer.jpg" alt="The 3D designer on a phone." loading="lazy" width="600" height="1299"></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="t-band">
+    <div class="wrap">
+      <span class="t-num">06 · How ordering works</span>
+      <h2 class="d2" style="margin-top:.45em">Four steps, <em>no surprises.</em></h2>
+      <ol class="t-steps">
+        <li><b>1</b><h3>Send your design</h3><p>Tap "Send this design to the studio", or just message us the names, quantity and date.</p></li>
+        <li><b>2</b><h3>Approve the free proof</h3><p>A digital mock-up within 2 days. Nothing is cut until you say yes.</p></li>
+        <li><b>3</b><h3>We make it by hand</h3><p>Cut, printed, laminated and assembled in 7 working days. Rush in 3.</p></li>
+        <li><b>4</b><h3>Pickup or shipping</h3><p>Free pickup in Gloria, or shipped nationwide — next day around Mindoro.</p></li>
+      </ol>
+      <dl class="t-perks">
+        <div><dt>₱500</dt><dd>Trophies from, per piece</dd></div>
+        <div><dt>Free</dt><dd>Digital proof before anything is cut</dd></div>
+        <div><dt>1 piece</dt><dd>Minimum order — order as few as one</dd></div>
+        <div><dt>Nationwide</dt><dd>Shipping across the Philippines</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="wrap t-end">
+    <h2 class="d2">Ready to make yours?</h2>
+    <p class="lede" style="margin:0 auto 1.6rem">Design it in 3D and send it to the studio — the proof is free.</p>
+    <div class="hero__cta">
+      <a class="btn btn--solid" href="design.html">Open the designer
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m0 0-6-6m6 6-6 6"/></svg></a>
+      <a class="btn btn--quiet" href="./#shop">See the shop</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__base">
+    <p>© <span id="yr">2026</span> Tala Artisan · Gloria, Oriental Mindoro · Shipped nationwide</p>
+    <ul><li><a href="./">Home</a></li><li><a href="design.html">Designer</a></li></ul>
+  </div>
+</footer>
+</body>
+</html>
