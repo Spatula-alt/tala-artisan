@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610301917';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610301917';
+import { createViewer, webglAvailable } from './viewer.js?v=202610301919';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610301919';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -227,10 +227,10 @@ async function assembleOnScroll(sel, live) {
         { az: home.az - 0.40, pol: 1.36, dist: home.dist * 1.30, duration: 3.8, ease: 'sine.inOut' },
         { az: home.az, pol: home.pol, dist: home.dist * 1.06, duration: 4.0, ease: 'sine.inOut' },
       ] }, 0)
-    .to(k, { base: 1, duration: 1.6, ease: 'power3.out' }, 0.1)
-    .to(k, { blade: 1, duration: 2.0, ease: 'power2.inOut' }, 1.3)
-    .to(k, { wings: 1, duration: 1.6, ease: 'power3.out' }, 3.3)
-    .to(k, { sticker: 1, duration: 1.5, ease: 'power2.out' }, 5.0)
+    .to(k, { base: 1, duration: 1.8, ease: 'sine.inOut' }, 0.1)
+    .to(k, { blade: 1, duration: 2.2, ease: 'sine.inOut' }, 1.3)
+    .to(k, { wings: 1, duration: 1.8, ease: 'sine.inOut' }, 3.3)
+    .to(k, { sticker: 1, duration: 1.7, ease: 'sine.inOut' }, 5.0)
     .to({}, { duration: 0.6 }, 7.2);           // a short beat on the finished piece
 
   viz.classList.add('is-scene');
@@ -243,9 +243,9 @@ async function assembleOnScroll(sel, live) {
     // heading, the list and the trophy all stay in view until the build is done
     // (centring it slid the heading under the bar on tall screens)
     start: () => wide ? `top ${Math.round(($('#nav')?.getBoundingClientRect().height || 70))}px` : 'center center',
-    end: () => `+=${Math.round(innerHeight * (wide ? 1.4 : 1.15))}`,   // about 1.4 screens: unhurried, not slow
+    end: () => `+=${Math.round(innerHeight * (wide ? 1.9 : 1.5))}`,   // about 2 screens: slow and calm
     pin: wide ? '.band' : sel,
-    scrub: 0.5,                                // eases a touch behind the wheel
+    scrub: 1.2,                                // glides after the wheel instead of following it step by step
     animation: tl,
     // finished: the idle sway and dragging take over, and the hint comes back
     onLeave: () => { viewer.hold(false); viz.classList.remove('is-scene'); },
