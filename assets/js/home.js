@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202610300216';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610300216';
+import { createViewer, webglAvailable } from './viewer.js?v=202610301917';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202610301917';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -243,9 +243,9 @@ async function assembleOnScroll(sel, live) {
     // heading, the list and the trophy all stay in view until the build is done
     // (centring it slid the heading under the bar on tall screens)
     start: () => wide ? `top ${Math.round(($('#nav')?.getBoundingClientRect().height || 70))}px` : 'center center',
-    end: () => `+=${Math.round(innerHeight * (wide ? 0.95 : 0.8))}`,   // about one screen of scrolling
+    end: () => `+=${Math.round(innerHeight * (wide ? 1.4 : 1.15))}`,   // about 1.4 screens: unhurried, not slow
     pin: wide ? '.band' : sel,
-    scrub: 0.35,                               // follows the wheel closely, still smooth
+    scrub: 0.5,                                // eases a touch behind the wheel
     animation: tl,
     // finished: the idle sway and dragging take over, and the hint comes back
     onLeave: () => { viewer.hold(false); viz.classList.remove('is-scene'); },
