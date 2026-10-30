@@ -267,7 +267,13 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   .nav__links.open{transform:none;opacity:1;visibility:visible}
   .nav__links a{padding:13px 0;font-size:1rem;border-bottom:1px solid var(--line-soft)}
   .sec-head{grid-template-columns:1fr}
-  .grid,.steps{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  /* phones: the shop two across, so six trophies are three short rows, not six screens */
+  .grid{grid-template-columns:repeat(2,1fr);gap:22px 12px}
+  .card__b{flex-direction:column;align-items:flex-start;gap:4px;padding-top:10px}
+  .card__b h3{font-size:1.02rem}
+  .card__b p{font-size:.8rem;line-height:1.4}
+  .card__p{font-size:.92rem;font-weight:600;color:var(--ink)}
   .row2{grid-template-columns:1fr}
   .foot__cols{grid-template-columns:repeat(2,1fr)}
 }
@@ -275,7 +281,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 @media (max-width:460px){
   .nav__act .btn--line{display:none}
   .facts{grid-template-columns:repeat(2,1fr)}
-  .foot__cols{grid-template-columns:1fr}
+  .foot__cols{grid-template-columns:repeat(2,1fr)}
   .foot__base{flex-direction:column}
 }
 
