@@ -1407,40 +1407,38 @@ const GRAD_TRACE = `M63.7 299.9 L52.3 299.9 L52.2 294.3 L51.3 293.0 L50.9 291.6 
    "completed" ball was two overlapping circles. Slot 2 was "Shoot" and is now
    the Layup. Every ball is in the hand that holds it; the dribbler's ball,
    which also leaned on his hip, is cleared there. */
-const BALL_DRIBBLE_TRACE = `M-6.5 299.9 L-23.7 299.9 L-23.8 294.3 L-25.7 293.2 L-26.5 292.4 L-27.0 290.9 L-27.0 289.2 L-26.0 285.6
+const BALL_DRIBBLE_TRACE = `M-6.5 299.9 L-23.7 299.9 L-23.8 294.3 L-25.7 293.2 L-26.5 292.4 L-27.0 290.9 L-26.8 288.3 L-25.6 284.7
   L-23.3 280.4 L-18.6 265.5 L-17.7 264.2 L-15.3 262.3 L-14.1 259.5 L-12.6 253.9 L-11.4 247.8 L-9.0 240.8
   L-1.1 209.3 L0.6 204.0 L2.2 200.5 L3.8 197.7 L5.7 195.2 L8.4 192.3 L9.9 190.0 L14.4 179.9
   L15.2 174.9 L15.1 168.3 L15.5 162.8 L14.8 160.3 L11.9 153.8 L11.5 152.1 L11.8 150.1 L12.7 149.3
   L13.5 149.3 L15.7 150.2 L16.4 150.2 L17.1 149.9 L17.8 149.0 L22.2 137.9 L25.4 132.2 L27.1 126.5
-  L29.9 120.7 L30.8 115.5 L31.3 114.1 L32.7 111.9 L36.5 108.5 L37.1 107.3 L37.1 106.1 L35.4 101.9
-  L34.7 101.0 L34.1 100.8 L33.5 101.0 L32.6 101.9 L29.6 105.8 L27.6 107.5 L25.0 108.1 L23.7 107.8
-  L23.0 107.2 L23.1 100.7 L22.3 96.3 L21.0 92.5 L17.9 87.1 L18.0 86.1 L19.1 82.3 L19.7 77.3
-  L22.2 71.1 L22.2 69.4 L21.1 63.6 L21.1 59.7 L21.8 55.7 L22.8 52.7 L24.1 49.8 L27.4 45.6
-  L29.1 44.3 L30.3 43.6 L34.1 42.6 L36.0 41.8 L41.6 37.4 L46.8 34.3 L47.5 32.7 L47.1 30.0
-  L46.4 29.1 L44.0 28.3 L43.1 27.7 L42.5 26.7 L42.1 25.5 L42.1 23.5 L42.7 20.5 L45.0 16.7
-  L45.7 11.2 L46.9 7.1 L48.6 4.6 L52.0 2.4 L55.3 0.8 L57.1 0.2 L58.6 -0.1 L61.0 0.1
-  L63.9 1.1 L67.2 3.1 L69.9 5.9 L71.7 9.0 L72.5 11.9 L73.0 16.6 L74.2 20.8 L74.5 24.1
-  L74.5 26.5 L74.3 27.7 L72.2 30.0 L71.8 31.4 L72.0 33.1 L72.6 34.5 L74.0 35.4 L78.8 36.5
-  L84.7 38.6 L88.6 40.9 L91.1 43.0 L97.8 49.6 L103.2 55.4 L104.8 57.6 L108.8 67.1 L118.0 81.3
-  L120.3 85.9 L123.4 95.1 L126.5 105.7 L126.8 109.6 L126.6 112.2 L125.8 113.8 L124.8 114.7 L117.6 118.2
-  L112.4 121.9 L110.7 122.6 L102.1 125.2 L101.3 125.6 L100.3 126.6 L99.7 129.0 L98.2 139.5 L95.6 151.6
-  L94.2 154.9 L92.0 158.2 L90.8 160.7 L89.5 164.3 L87.9 167.6 L86.6 172.9 L85.8 174.4 L84.2 176.5
-  L74.5 186.8 L72.0 189.8 L71.0 191.6 L70.7 192.7 L70.9 193.9 L72.8 197.6 L73.4 200.1 L73.0 203.8
-  L70.8 212.6 L70.4 215.0 L70.5 217.2 L71.2 221.0 L71.1 223.5 L67.3 231.8 L65.5 234.9 L62.2 239.2
-  L58.9 242.3 L55.8 244.2 L52.7 244.9 L51.2 244.8 L49.8 244.3 L47.5 242.5 L46.3 239.6 L46.0 236.0
-  L46.9 230.6 L49.2 223.1 L49.3 221.2 L48.4 220.2 L44.0 219.2 L40.0 217.2 L38.3 215.8 L37.3 213.6
-  L37.0 211.9 L37.1 205.0 L39.1 193.7 L40.6 189.4 L44.7 181.9 L45.0 180.9 L44.9 179.3 L44.3 178.2
-  L42.6 176.7 L41.0 176.0 L39.7 176.4 L38.9 177.2 L36.2 181.4 L32.9 185.6 L30.4 189.6 L26.4 197.1
-  L23.1 202.2 L22.3 203.9 L20.0 213.1 L17.3 220.8 L15.5 224.4 L11.8 230.2 L4.2 244.5 L2.6 247.8
-  L1.3 252.1 L0.3 254.6 L-0.0 256.3 L0.6 257.9 L0.7 259.1 L-0.0 260.9 L-1.7 263.2 L-2.2 264.6
-  L-1.0 271.2 L-2.6 275.3 L-3.4 279.8 L-6.0 287.1 L-6.2 289.2 L-5.9 292.5 L-6.4 294.2 Z
-  M0.0 123.5 L-4.0 123.4 L-8.0 122.5 L-12.0 120.6 L-15.1 118.4 L-17.7 115.7 L-19.7 112.7 L-21.2 109.4
-  L-22.0 105.7 L-22.2 100.7 L-21.5 97.2 L-20.7 94.7 L-19.3 92.0 L-18.0 90.1 L-15.8 87.6 L-16.4 85.6
-  L-16.4 84.5 L-16.0 83.8 L-14.9 82.7 L-13.5 81.9 L-12.4 81.9 L-10.8 82.4 L-9.7 82.2 L-8.9 81.5
-  L-7.6 79.1 L-6.7 78.3 L-5.7 78.0 L-4.8 78.0 L-4.0 78.3 L-2.2 80.2 L-0.8 81.0 L3.2 81.7
-  L7.7 83.0 L9.5 83.1 L12.2 82.9 L13.3 83.4 L13.9 84.2 L14.0 85.2 L14.0 88.8 L16.2 91.7
-  L17.7 94.5 L18.7 97.3 L19.2 99.9 L19.3 104.5 L18.7 108.0 L17.2 112.0 L14.7 115.8 L12.5 118.1
-  L8.9 120.8 L6.7 121.9 L4.2 122.7 Z`;
+  L29.9 120.7 L30.8 115.5 L31.3 114.1 L32.7 111.9 L36.6 108.5 L37.1 107.3 L37.1 106.2 L35.4 101.9
+  L34.7 101.0 L34.0 100.8 L33.5 101.0 L32.6 101.9 L30.4 104.9 L28.2 107.1 L26.3 108.0 L25.1 108.1
+  L24.0 108.0 L23.3 107.6 L22.9 106.4 L23.1 104.7 L23.0 99.5 L22.3 96.3 L21.3 93.7 L18.3 96.2
+  L19.3 100.9 L19.3 104.5 L18.9 107.1 L17.2 112.0 L15.5 114.8 L13.9 116.8 L10.6 119.6 L6.1 122.1
+  L1.1 123.4 L-2.9 123.5 L-4.9 123.2 L-8.9 122.1 L-13.0 120.0 L-15.2 118.3 L-17.0 116.5 L-19.2 113.6
+  L-21.2 109.4 L-22.0 105.7 L-22.2 100.7 L-21.7 97.7 L-19.8 92.9 L-18.7 91.1 L-16.8 88.6 L-14.0 86.1
+  L-11.5 84.5 L-8.6 83.1 L-5.7 82.3 L-5.4 80.5 L-4.6 79.7 L-2.8 79.8 L2.6 81.6 L10.1 83.3
+  L14.7 84.8 L16.3 84.7 L17.6 83.7 L18.9 81.6 L19.7 77.3 L22.2 71.1 L22.2 69.4 L21.1 63.6
+  L21.1 59.7 L21.5 56.8 L22.3 54.0 L24.1 49.8 L26.2 46.9 L28.7 44.5 L30.3 43.6 L34.1 42.6
+  L36.0 41.8 L41.6 37.4 L46.8 34.3 L47.5 32.7 L47.1 30.0 L46.4 29.1 L44.0 28.3 L43.1 27.7
+  L42.5 26.7 L42.1 25.5 L42.1 23.5 L42.7 20.5 L45.0 16.7 L45.7 11.2 L46.9 7.1 L48.6 4.6
+  L52.0 2.4 L55.3 0.8 L57.1 0.2 L58.6 -0.1 L61.0 0.1 L63.9 1.1 L67.2 3.1 L69.9 5.9
+  L71.7 9.0 L72.5 11.9 L73.0 16.6 L74.2 20.8 L74.5 24.1 L74.5 26.5 L74.3 27.7 L72.2 30.0
+  L71.8 31.4 L72.0 33.1 L72.6 34.5 L74.0 35.4 L78.8 36.5 L84.7 38.6 L88.6 40.9 L91.1 43.0
+  L97.8 49.6 L103.2 55.4 L104.8 57.6 L108.8 67.1 L118.0 81.3 L120.3 85.9 L123.4 95.1 L126.5 105.7
+  L126.8 109.6 L126.6 112.2 L125.8 113.8 L124.8 114.7 L117.6 118.2 L112.4 121.9 L110.7 122.6 L102.1 125.2
+  L101.3 125.6 L100.3 126.6 L99.7 129.0 L98.2 139.5 L95.6 151.6 L94.2 154.9 L92.0 158.2 L90.8 160.7
+  L89.5 164.3 L87.9 167.6 L86.6 172.9 L85.8 174.4 L84.2 176.5 L74.5 186.8 L72.0 189.8 L71.0 191.6
+  L70.7 192.7 L70.9 193.9 L72.8 197.6 L73.4 200.1 L73.0 203.8 L70.8 212.6 L70.4 215.0 L70.5 217.2
+  L71.2 221.0 L71.1 223.5 L67.3 231.8 L65.5 234.9 L62.2 239.2 L58.9 242.3 L55.8 244.2 L52.7 244.9
+  L51.2 244.8 L49.8 244.3 L47.5 242.5 L46.3 239.6 L46.0 236.0 L46.9 230.6 L49.2 223.1 L49.3 221.2
+  L48.4 220.2 L44.0 219.2 L40.0 217.2 L38.3 215.8 L37.3 213.6 L37.0 211.9 L37.1 205.0 L39.1 193.7
+  L40.6 189.4 L44.7 181.9 L45.0 180.9 L44.9 179.3 L44.3 178.2 L42.6 176.7 L41.0 176.0 L39.7 176.4
+  L38.9 177.2 L36.2 181.4 L32.9 185.6 L30.4 189.6 L26.4 197.1 L23.1 202.2 L22.3 203.9 L20.0 213.1
+  L17.3 220.8 L15.5 224.4 L11.8 230.2 L4.2 244.5 L2.6 247.8 L1.3 252.1 L0.3 254.6 L-0.0 256.3
+  L0.6 257.9 L0.7 259.1 L-0.0 260.9 L-1.7 263.2 L-2.2 264.6 L-1.0 271.2 L-2.6 275.3 L-3.4 279.8
+  L-6.0 287.1 L-6.2 289.2 L-5.9 292.5 L-6.4 294.2 Z`;
 
 const BALL_JUMPSHOT_TRACE = `M62.1 299.9 L52.5 299.9 L52.4 294.3 L49.5 292.4 L48.2 290.8 L47.3 288.5 L47.1 285.1 L46.7 283.5
   L44.0 279.1 L43.1 276.5 L43.3 274.0 L44.7 271.5 L45.2 269.2 L46.1 268.1 L48.1 266.9 L48.7 265.6
@@ -1906,7 +1904,7 @@ const FIGURES = {
              Train 0.53, Evening 0.51, Sweep 0.53. That is base ~ 2.31w + 0.03.
              The Sweep was 1.75 while it was the fan skirt, which was 0.73 wide;
              the column gown that replaced it needs far less sheet. */
-          bases: [2.23, 1.25, 1.24, 1.25] },
+          bases: [2.14, 1.25, 1.24, 1.25] },
   gent: { path: GENT_TRACE },
   lady: { path: LADY_TRACE },
   suit: { path: SUIT_TRACE },
@@ -1918,8 +1916,8 @@ const FIGURES = {
                     'Dig', 'Lunge', 'Ball at hip', 'Ball in hand', 'Spike'],
             groups: [{ label: 'Men', from: 0, to: 5 }, { label: 'Women', from: 5, to: 10 }],
             /* priced by width per unit height, 2.31w + 0.03, floor 1.26 */
-            bases: [1.79, 1.97, 1.26, 1.88, 2.74,
-                    2.74, 2.44, 1.26, 1.42, 1.91] },
+            bases: [1.79, 1.97, 1.26, 1.88, 1.74,
+                    1.74, 1.95, 1.26, 1.42, 1.91] },
   box: { paths: [BOX_VICTORY_TRACE, BOX_GUARD_TRACE, BOX_STANCE_TRACE, BOX_READY_TRACE],
          names: ['Victory', 'Guard', 'Stance', 'Ready'] },
   foot: { paths: [FOOT_STRIKE_TRACE, FOOT_DRIBBLE_TRACE, FOOT_ONBALL_TRACE, FOOT_VOLLEY_TRACE,
@@ -1929,14 +1927,20 @@ const FIGURES = {
              than a compact one — Strike is 1.17 wide for every 1 tall, On the
              ball only 0.47. Priced per pose, not per shape: 1.53w + 0.45, the
              rate the first four were set at. */
-          bases: [2.24, 1.35, 1.17, 2.08, 1.25, 1.63] },
+          bases: [1.59, 1.35, 1.17, 1.70, 1.25, 1.63] },
   /* Athletics, men's poses 0-2 and the women's sprint. A runner in full stride
      is wide -- 0.9 to 1.4 for every 1 tall, where the old blob was 0.34 -- so
-     these are priced like the football poses, 1.53w + 0.45. */
+     these are priced like the football poses, 1.53w + 0.45.
+
+     Every `bases` here prices the sheet a pose really uses. buildTrophy holds
+     a figure to FIG_SPAN of its base's width, so a pose wider than about 0.93
+     of its height is cut smaller: its rectangle is c * c / w of the height
+     squared, not w (c = 0.93 at the medium size). That is why the widest
+     runner, the Start, is now one of the cheaper ones. */
   run: { paths: [RUN_SPRINT_TRACE, RUN_START_TRACE, RUN_STRIDE_TRACE, RUN_W_SPRINT_TRACE],
          names: ['Sprint', 'Start', 'Stride', 'Sprint'],
          groups: [{ label: 'Men', from: 0, to: 3 }, { label: 'Women', from: 3, to: 4 }],
-         bases: [2.17, 2.58, 2.10, 1.85] },
+         bases: [1.63, 1.41, 1.69, 1.85] },
   grad: { path: GRAD_TRACE },
   ball: { paths: [BALL_DRIBBLE_TRACE, BALL_JUMPSHOT_TRACE, BALL_SHOOT_TRACE, BALL_PASS_TRACE],
           names: ['Dribble', 'Jump shot', 'Layup', 'Pass'],
@@ -2850,6 +2854,10 @@ function safeExtrude(shape, opts) {
   return new THREE.ExtrudeGeometry(SHAPES.arch.build(6.8, 17.8), opts);
 }
 
+/* How a figure sits on its base -- see buildTrophy. */
+const FIG_SPAN = 1.05;   // the widest a figure may be, as a share of the base's nominal width
+const FOOT_ROOM = 0.3;   // base left past the outermost foot, as a share of the blade width
+
 export function buildTrophy(cfg) {
   const shape = SHAPES[cfg.shape] || SHAPES.arch;
   const mat   = MATERIALS[cfg.material] || MATERIALS.blue;
@@ -2864,16 +2872,40 @@ export function buildTrophy(cfg) {
      Blade height always makes up the advertised total. */
   const onBase = !!shape.decal.onBase;
   const bh = size.baseH * (onBase ? 1.35 : 1);
-  const h = size.total - bh;
+  let h = size.total - bh;
 
-  const cut = shape.build(w, h, cfg.variant);
+  let cut = shape.build(w, h, cfg.variant);
+
+  /* A figure is fitted to the blade height. That suits a player standing up,
+     but a sprinter in full stride is 1.1 to 1.4 times as wide as he is tall:
+     fitted to the full height he came out half as wide again as the base he
+     stands on -- "awkwardly large, it doesn't balance the size of the base".
+     So a figure is also held to FIG_SPAN of the base's nominal width; a wide
+     pose is cut smaller and the trophy stands a little lower. */
+  const nominal = w * 2 * 0.86 + 2.8;
+  if (cut && onBase) {
+    const xs = pieces(cut).flatMap(r => r.getPoints(120)).map(p => p.x);
+    const span = Math.max(...xs) - Math.min(...xs);
+    if (span > nominal * FIG_SPAN) {
+      h *= nominal * FIG_SPAN / span;
+      cut = shape.build(w, h, cfg.variant);
+    }
+  }
 
   /* The base normally follows the nominal width, but it must reach every
      point where the cut touches down. The volleying footballer lands 5 units
      off his centre of mass; the crouching basketball player plants one foot
      and reaches the other toe far behind him. An earlier version widened only
-     for the one-sided case and left the crouch's back foot standing on air. */
-  let bw = w * 2 * 0.86 + 2.8;
+     for the one-sided case and left the crouch's back foot standing on air.
+     A figure's base is not centred on the figure any more. Centred, it had to
+     reach the far foot on BOTH sides, so a lunge planted out to one side got a
+     base 25 cm long under a 19 cm trophy, half of it empty. Now the base runs
+     from the outermost feet (plus FOOT_ROOM of the blade width -- at 0.13 a
+     lone foot stood on the very edge and looked about to step off) to at
+     least half the nominal width either side of the centre of mass, and the
+     figure is slid along it so the base sits centred in the view. The centre
+     of mass always stays over the base, at least half a nominal width in. */
+  let bw = nominal, bx = 0;
   if (cut) {
     const pts = pieces(cut).flatMap(r => r.getPoints(240));
     const ys = pts.map(p => p.y);
@@ -2883,7 +2915,19 @@ export function buildTrophy(cfg) {
     const foot = pts.filter(p => p.y <= bot + span * 0.12).map(p => p.x);
     if (foot.length) {
       const lo = Math.min(...foot), hi = Math.max(...foot);
-      bw = Math.max(bw, 2 * (Math.max(Math.abs(lo), Math.abs(hi)) + w * 0.13));
+      if (onBase) {
+        // a lone foot gets FOOT_ROOM; a hem or two planted feet need less
+        const room = w * (hi - lo < nominal * 0.3 ? FOOT_ROOM : 0.13);
+        // and nothing of the figure hangs past the ends: a striding runner's
+        // back leg reached 2 cm off the end of his base
+        const xs = pts.map(p => p.x), edge = w * 0.1;
+        const L = Math.min(lo - room, -nominal / 2, Math.min(...xs) - edge);
+        const R = Math.max(hi + room, nominal / 2, Math.max(...xs) + edge);
+        bw = R - L;
+        bx = (L + R) / 2;
+      } else {
+        bw = Math.max(bw, 2 * (Math.max(Math.abs(lo), Math.abs(hi)) + w * 0.13));
+      }
     }
   }
   const bd = Math.max(5.2, w * 0.90);
@@ -2907,6 +2951,7 @@ export function buildTrophy(cfg) {
   blade.castShadow = true;
   blade.receiveShadow = true;
   blade.position.y = baseTop - h * 0.015;   // seated into the base -- a figure's mounting tab is exactly this deep (TAB in polish-figure.py)
+  blade.position.x = -bx;                   // slid along the base so the base sits centred
   blade.name = 'blade';
   group.add(blade);
 
@@ -2954,7 +2999,7 @@ export function buildTrophy(cfg) {
       map: tex, roughness: 0.28, metalness: 0,
       clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.0,
     }));
-    artMesh.position.set(0, blade.position.y + (h - ah) / 2, faceZ + 0.004);
+    artMesh.position.set(-bx, blade.position.y + (h - ah) / 2, faceZ + 0.004);
     artMesh.name = 'figurePhoto';
     group.add(artMesh);
   }
@@ -2980,7 +3025,7 @@ export function buildTrophy(cfg) {
       map: tex, transparent: true, alphaTest: 0.5, roughness: 0.28, metalness: 0,
       clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.0,
     }));
-    printed.position.set(0, blade.position.y, faceZ + 0.004);
+    printed.position.set(-bx, blade.position.y, faceZ + 0.004);
     printed.name = 'cutPrint';
     group.add(printed);
   }
