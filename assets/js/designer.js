@@ -4,15 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611022104';
+import { createViewer, webglAvailable } from './viewer.js?v=202611022157';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-  standingHeight,
-} from './trophy.js?v=202611022104';
+  standingHeight, printNote,
+} from './trophy.js?v=202611022157';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -326,7 +326,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611022104'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611022157'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1000,6 +1000,7 @@ function specText() {
     r('Occasion', cfg._occasion ? OCCASIONS[cfg._occasion].label : 'Custom'),
     r('Cut shape', shape.label + (groupOf(cfg.shape, cfg.variant) ? ' — ' + groupOf(cfg.shape, cfg.variant).label : '') +
         (variantsOf(cfg.shape) ? ' — ' + variantsOf(cfg.shape)[cfg.variant] + (isStyled(cfg.shape) ? ' style' : ' pose') : '')),
+    printNote(cfg) ? r('Print', printNote(cfg)) : null,
     r('Sheet', `${mat.label}, ${(size.t * 10).toFixed(0)} mm`),
     r('Size', `${size.label} — ${heightCm()} cm tall${heightCm() < size.total ? ' (figure cut to fit its base)' : ''}, ${(size.w * 2).toFixed(1)} cm wide`),
     r('Base', `${BASES[cfg.baseKind].label}, ${BASE_FINISHES[cfg.baseFinish].label}`),

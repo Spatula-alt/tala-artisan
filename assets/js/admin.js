@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611022104';
+import { createViewer, webglAvailable } from './viewer.js?v=202611022157';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight,
-} from './trophy.js?v=202611022104';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote,
+} from './trophy.js?v=202611022157';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -108,6 +108,7 @@ function specRows(d) {
     ['Sticker', SCHEMES[d.scheme] ? [SCHEMES[d.scheme].label, DECALS[d.decal]?.label, LAMINATES[d.laminate]?.label].filter(Boolean).join(' · ') : null],
     ['Wording', [d.org, d.title, d.name, d.date].filter(Boolean).join(' / ')],
   ];
+  if (SHAPES[d.shape] && printNote(d)) rows.push(['Print', printNote(d)]);
   if (d.shape === 'custom') rows.push(['Cut', `From the customer's own picture${d.cutPrint ? ', picture printed on it' : ''}. Ask them to send the original file.`]);
   if (d.logo) rows.push(['Logo', 'Yes — ask for the file']);
   if (d.extraSticker) rows.push(['Extra sticker', 'Yes']);

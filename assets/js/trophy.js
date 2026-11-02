@@ -390,36 +390,49 @@ export function accentShapes(key, w, h, variant) {
    the depth buildTrophy sinks every blade into its base. So the feet stand ON
    the base, whole, and the tab is out of sight. 300 tall with the tab, y DOWN. */
 
-/* The Gentleman is not authored at all — it is TRACED from the shop's own
-   reference silhouette: the photo was thresholded, its holes filled, features
-   under ~1 % of the height rounded off (a hair tuft that fine would snap out of
-   5 mm sheet), the outer contour walked and then simplified. That is why it
-   keeps the things a smooth profile spline destroys — the square shoulder, the
-   corner where the jacket hem ends, the splayed shoes, and the fact that the two
-   sides are not mirror images of each other. Drawn 300 tall, y down. */
-const GENT_TRACE = `M90.6 299.9 L18.7 299.9 L18.4 299.8 L18.3 294.3 L17.6 292.6 L17.8 291.1 L19.1 288.1 L23.0 282.6
-  L23.3 281.5 L23.3 277.6 L23.9 274.5 L23.5 272.5 L22.3 270.1 L22.2 268.1 L24.0 263.3 L24.3 261.7
-  L21.9 249.6 L21.9 245.8 L23.8 210.8 L21.3 191.3 L23.2 160.5 L22.8 159.7 L22.0 159.1 L18.7 159.7
-  L17.3 159.3 L16.7 158.5 L16.5 157.5 L17.0 152.3 L16.6 150.7 L15.2 148.6 L14.6 146.8 L14.0 137.4
-  L13.3 135.7 L8.3 127.2 L6.8 121.2 L5.2 101.5 L9.0 62.6 L9.9 57.9 L10.6 56.4 L11.5 55.4
-  L32.9 46.2 L39.5 41.0 L41.1 39.4 L41.7 37.7 L41.7 35.3 L41.4 33.1 L40.9 31.9 L38.7 29.1
-  L37.2 24.9 L37.8 20.1 L37.3 12.8 L38.3 8.5 L39.4 6.7 L42.3 4.6 L44.0 3.9 L47.0 1.4
-  L48.7 0.8 L53.1 -0.1 L57.5 0.1 L60.9 1.6 L63.5 4.5 L65.9 6.4 L67.6 11.1 L67.2 14.2
-  L67.1 18.6 L65.9 23.0 L65.2 27.1 L64.1 30.0 L62.7 32.1 L61.2 35.7 L59.5 38.7 L59.1 41.0
-  L59.6 42.4 L62.4 45.4 L64.1 46.6 L83.2 53.5 L85.2 54.7 L86.4 56.7 L87.4 61.3 L87.2 66.0
-  L87.7 72.3 L91.1 94.0 L90.8 104.7 L91.5 106.3 L94.3 109.9 L94.7 111.1 L93.2 124.1 L89.8 130.3
-  L89.4 131.8 L90.1 136.7 L90.1 139.9 L89.9 141.1 L88.7 144.2 L87.8 147.7 L84.4 152.1 L83.0 154.8
-  L82.5 156.4 L82.5 159.2 L83.3 168.5 L83.3 199.1 L82.6 222.7 L81.4 239.3 L78.3 258.6 L78.5 260.5
-  L79.3 263.4 L79.3 264.3 L77.5 269.7 L77.7 272.0 L79.5 275.9 L80.1 279.7 L82.2 283.5 L84.1 285.6
-  L89.4 288.8 L90.4 289.9 L90.9 290.9 L91.1 293.1 L90.6 294.3 Z
-  M75.5 295.1 L75.4 294.2 L71.7 293.0 L70.3 291.7 L68.6 289.7 L67.9 289.3 L66.9 289.3 L65.5 289.8
-  L64.2 289.8 L61.6 289.1 L60.3 288.2 L60.0 287.2 L59.9 283.6 L58.5 279.9 L57.8 277.1 L57.1 273.2
-  L57.1 270.6 L57.5 267.9 L57.9 266.3 L60.6 261.3 L60.6 260.1 L59.1 254.3 L59.0 249.1 L60.0 241.3
-  L59.9 230.4 L61.1 220.6 L60.8 219.2 L58.6 214.8 L58.3 213.4 L58.4 211.5 L59.5 205.3 L59.6 201.4
-  L56.4 186.6 L55.8 176.2 L55.4 174.9 L54.2 172.7 L53.5 172.0 L52.8 171.9 L52.1 172.3 L51.8 172.9
-  L50.5 180.3 L47.3 189.0 L45.9 201.6 L40.8 223.3 L39.8 252.5 L44.1 265.9 L44.5 268.5 L44.5 271.2
-  L43.6 273.9 L39.9 281.7 L38.9 286.3 L36.7 289.5 L36.1 292.2 L35.4 293.0 L32.2 294.2 L32.1 295.0
-  L32.5 295.1 Z`;
+/* The Gentleman is not authored at all — it is TRACED from the owner's own
+   reference (figure-src/owner/couple.png): a man in a suit beside a woman in a
+   gown, held up with "like this" when the owner asked for "faces and clothes
+   instead of blank". His head is turned, so the face reads in profile, and his
+   white shirt and tie are GENT_DETAIL, printed on the front of the cut rather
+   than cut out of it. The first trace of the same picture filled the shirt and
+   tie in, and the man came out blank. Drawn 300 tall, y down. */
+const GENT_TRACE = `M87.4 299.9 L23.7 299.9 L23.7 294.4 L23.1 293.8 L22.9 293.1 L22.9 285.9 L24.6 282.3 L27.0 278.8
+  L27.5 277.1 L27.1 275.6 L24.0 269.7 L23.7 269.0 L23.7 267.8 L24.3 266.1 L27.0 261.2 L27.1 260.1
+  L21.6 249.4 L20.4 243.6 L20.9 237.6 L20.8 221.9 L21.4 216.0 L21.5 212.0 L22.3 208.7 L21.6 206.2
+  L21.3 203.6 L21.4 200.2 L21.1 193.5 L20.8 187.6 L20.3 184.8 L19.5 168.9 L18.2 165.6 L18.1 161.3
+  L16.8 157.2 L16.8 154.2 L16.5 152.4 L15.3 149.0 L14.2 146.9 L14.8 144.3 L14.2 143.6 L13.6 143.7
+  L12.5 144.8 L11.8 146.6 L11.4 146.8 L10.9 146.5 L10.2 144.2 L9.2 142.5 L8.4 140.2 L7.0 137.4
+  L6.0 136.1 L5.5 134.7 L5.4 133.2 L5.9 130.9 L5.9 128.3 L4.5 124.3 L4.2 121.4 L2.7 118.3
+  L2.5 111.0 L1.3 108.1 L3.2 103.3 L3.1 98.5 L4.4 92.5 L4.5 89.1 L5.9 84.8 L5.9 81.2
+  L7.3 71.2 L7.3 66.7 L7.4 66.0 L8.5 64.1 L9.2 61.5 L10.4 59.1 L10.9 55.9 L12.0 53.8
+  L13.2 52.6 L16.5 51.9 L18.2 50.9 L20.4 50.2 L26.2 47.6 L27.6 47.3 L29.5 46.2 L31.2 45.8
+  L34.9 44.0 L36.8 41.5 L40.8 40.1 L41.0 39.2 L40.7 37.1 L41.2 35.3 L41.2 32.8 L40.8 31.8
+  L38.6 28.3 L38.0 26.1 L37.3 24.7 L36.7 21.2 L36.7 14.1 L36.9 12.8 L37.9 10.8 L38.8 7.6
+  L41.4 4.6 L43.7 2.9 L45.6 2.3 L47.3 1.4 L51.3 1.1 L53.6 -0.1 L55.1 -0.0 L60.1 1.2
+  L64.7 1.2 L67.1 2.3 L69.6 2.6 L70.3 3.2 L70.6 3.9 L70.6 5.7 L69.2 8.1 L68.1 10.8
+  L67.9 11.8 L68.9 14.4 L69.2 16.4 L69.2 18.8 L68.8 20.3 L68.8 21.6 L70.6 24.9 L70.7 26.6
+  L68.2 29.9 L67.7 31.1 L67.2 33.3 L67.4 37.2 L67.0 38.3 L66.5 38.9 L65.3 39.6 L62.5 40.1
+  L62.1 40.8 L63.0 41.9 L63.9 42.5 L66.6 44.0 L70.3 45.7 L73.5 46.2 L75.6 47.3 L78.0 47.6
+  L80.2 48.7 L82.6 49.0 L86.0 50.5 L88.1 50.8 L89.6 52.1 L90.1 53.0 L90.4 54.2 L91.0 60.4
+  L92.0 63.1 L92.4 66.4 L93.6 69.3 L93.9 72.1 L95.0 74.7 L95.7 79.3 L96.9 83.9 L97.0 92.9
+  L98.4 98.8 L98.4 111.6 L97.1 114.8 L96.8 118.1 L95.6 122.8 L95.5 129.0 L95.0 131.3 L92.5 135.6
+  L92.2 136.9 L89.3 142.6 L88.5 144.9 L87.1 146.4 L84.4 147.0 L83.6 148.2 L83.3 150.0 L83.3 153.6
+  L82.9 156.1 L82.8 172.4 L81.5 181.0 L81.4 189.7 L80.0 194.0 L80.0 198.1 L81.0 203.5 L81.0 204.8
+  L80.0 208.0 L80.0 210.3 L80.3 212.4 L81.2 214.6 L81.6 216.1 L82.8 218.6 L83.2 224.4 L82.7 233.6
+  L82.9 238.6 L84.1 243.6 L84.1 246.2 L82.9 251.1 L82.8 254.5 L81.4 258.6 L81.4 262.4 L81.8 263.6
+  L84.4 266.3 L85.6 268.3 L85.8 269.4 L85.3 270.8 L83.3 273.9 L83.0 275.0 L82.8 276.5 L83.1 277.8
+  L84.3 279.9 L88.7 286.0 L89.2 287.8 L89.1 290.5 L88.2 293.5 L87.5 294.4 Z
+  M75.1 295.2 L75.1 294.3 L74.2 293.7 L72.5 291.7 L72.4 289.4 L72.0 287.9 L71.5 287.3 L70.1 286.7
+  L69.3 285.9 L69.1 284.6 L69.1 282.8 L68.0 279.3 L67.9 277.4 L67.6 276.2 L67.0 275.3 L64.7 273.6
+  L63.6 271.8 L63.8 270.5 L65.6 266.2 L65.8 264.7 L64.5 260.2 L64.3 256.5 L63.1 252.7 L63.1 235.7
+  L62.2 223.6 L61.4 220.3 L58.8 215.6 L58.3 214.2 L58.3 210.4 L56.9 204.8 L56.9 190.9 L55.5 185.7
+  L55.2 180.5 L53.7 176.7 L53.4 174.3 L52.4 172.5 L52.0 170.6 L50.9 168.6 L50.6 166.3 L50.1 165.6
+  L49.7 165.6 L49.0 166.3 L48.6 168.7 L47.5 171.4 L47.3 175.6 L46.2 178.5 L45.9 183.3 L44.5 187.9
+  L44.3 191.4 L44.3 201.7 L44.0 203.5 L42.8 206.4 L42.5 209.0 L41.2 212.2 L41.2 218.5 L40.3 225.1
+  L40.5 227.4 L41.2 230.5 L41.2 236.6 L42.6 241.1 L42.8 246.0 L43.9 250.4 L44.5 255.1 L44.5 261.2
+  L44.8 262.5 L45.9 265.0 L46.1 268.3 L45.4 269.9 L41.4 275.3 L41.2 283.9 L39.7 286.8 L39.0 291.9
+  L38.3 292.8 L35.8 294.3 L35.8 295.0 L36.1 295.2 Z`;
 
 /* ── posed figures ──────────────────────────────────────────────────────────
    A profile can say how WIDE a body is at each height; it cannot say where the
@@ -708,50 +721,44 @@ const GOWN_BALL_TRACE = `M192.3 299.9 L-92.4 299.9 L-92.5 294.4 L-93.0 291.8 L-9
   L172.1 274.4 L174.8 274.7 L177.2 275.6 L178.8 276.9 L182.3 281.4 L183.8 282.8 L185.9 284.0 L189.2 285.2
   L191.3 286.8 L192.2 288.4 L192.9 290.7 L192.9 292.9 L192.4 294.3 Z`;
 
-/* Gown — Train. Standing tall, hand on the hip, fitted to the knee and then a
-   train sweeping out behind. --radius 1.2 --close 2.4, plus one local patch.
-   Every number here was fought for and they pull against each other:
-     - the opening at the default 2.4 wipes out the FAR arm, a strip four
-       source pixels wide, and she comes out one-armed;
-     - the closing at the default 0.5 cannot reach the fold where the train
-       meets the skirt, so that fold stays as a nick and the train hangs off
-       a thread;
-     - the wedge the artist left where the shoulder meets the arm is wider
-       still, and closing hard enough to fill it everywhere swallows the
-       elbow hole and bulks out the whole torso. So that one is closed
-       LOCALLY, across the shoulder band only, at 0.035 of the width.
-   The triangle at the near elbow is cut, not filled. */
-const GOWN_TRAIN_TRACE = `M75.1 299.9 L23.5 299.9 L23.3 299.8 L23.2 294.2 L16.0 294.2 L9.8 292.9 L6.1 292.8 L2.5 291.9
-  L-0.0 291.7 L-2.9 290.7 L-6.2 290.3 L-8.9 289.4 L-11.1 289.1 L-16.3 287.2 L-19.3 285.6 L-20.5 284.0
-  L-20.7 283.0 L-20.1 280.3 L-18.2 275.3 L-17.8 272.5 L-16.7 269.8 L-16.3 267.1 L-15.4 264.5 L-15.0 261.5
-  L-13.3 255.6 L-12.9 251.0 L-11.8 247.3 L-11.5 243.0 L-10.2 237.0 L-8.1 213.6 L-8.4 194.6 L-9.0 190.6
-  L-9.2 181.9 L-10.2 176.7 L-10.3 172.3 L-11.5 167.3 L-11.7 164.0 L-13.0 159.0 L-13.9 152.3 L-15.1 148.2
-  L-15.4 145.5 L-16.6 140.7 L-16.7 127.8 L-17.1 127.2 L-17.5 127.0 L-18.5 127.7 L-21.6 133.4 L-22.3 135.3
-  L-22.4 136.6 L-21.5 142.2 L-21.8 151.2 L-22.1 154.1 L-21.5 155.6 L-21.4 156.8 L-21.9 158.6 L-22.3 159.0
-  L-22.9 159.4 L-25.5 158.8 L-26.4 158.4 L-27.2 157.2 L-27.8 156.0 L-28.9 151.7 L-29.0 146.2 L-25.3 129.5
-  L-22.6 121.0 L-19.2 112.3 L-17.8 107.5 L-15.5 102.3 L-11.9 90.2 L-10.7 79.0 L-9.5 74.5 L-9.6 70.5
-  L-8.7 66.7 L-9.1 58.8 L-8.0 53.5 L-7.2 52.3 L-4.6 50.1 L-2.5 49.6 L6.1 48.4 L8.6 47.4
-  L11.6 44.7 L12.3 43.3 L12.3 39.1 L12.1 37.5 L11.6 36.6 L10.3 35.8 L5.4 35.8 L4.4 35.3
-  L3.7 34.5 L2.0 30.9 L1.3 28.4 L0.3 26.6 L0.1 25.4 L0.9 22.9 L0.9 19.7 L0.0 16.1
-  L0.6 10.7 L-0.2 8.6 L-0.2 7.3 L0.2 6.1 L1.8 4.5 L5.0 3.5 L8.7 1.4 L12.9 0.1
-  L19.2 -0.1 L20.4 0.2 L23.8 1.7 L27.8 5.2 L30.3 9.5 L31.2 10.5 L34.3 11.8 L36.1 13.7
-  L36.6 15.1 L36.7 18.1 L35.9 20.7 L35.8 23.8 L35.2 25.5 L32.7 28.1 L31.4 29.2 L27.9 30.4
-  L25.2 30.6 L24.2 31.6 L24.0 34.5 L24.3 36.4 L25.8 41.1 L27.9 44.5 L30.7 47.1 L34.7 49.5
-  L38.4 50.6 L40.8 51.5 L41.9 52.3 L44.8 55.5 L46.5 58.4 L53.1 71.2 L60.2 81.4 L63.5 87.0
-  L66.5 94.1 L66.3 96.0 L65.4 97.5 L63.8 98.8 L59.2 101.7 L50.1 106.0 L45.9 108.2 L42.4 109.3
-  L40.2 110.5 L37.4 111.4 L31.6 114.0 L28.3 114.8 L27.2 115.5 L26.8 116.5 L26.8 118.4 L28.1 123.2
-  L28.1 134.4 L26.9 138.6 L26.6 141.8 L25.7 144.5 L25.0 147.8 L23.4 152.4 L22.8 156.7 L21.9 159.2
-  L21.7 163.0 L20.6 169.1 L20.6 175.4 L21.8 183.1 L21.8 185.4 L22.9 189.1 L23.3 192.3 L24.4 195.0
-  L24.8 197.1 L26.9 203.4 L27.9 205.5 L30.8 213.3 L37.7 226.8 L44.7 237.8 L51.0 246.3 L54.6 250.1
-  L66.2 261.8 L73.6 267.4 L78.3 270.4 L81.9 272.2 L85.9 273.7 L86.5 273.7 L86.7 273.4 L86.3 272.9
-  L81.8 269.8 L81.8 269.1 L82.7 268.7 L87.7 269.4 L94.7 269.4 L99.4 270.5 L104.6 270.9 L108.3 271.8
-  L111.0 272.1 L113.7 273.0 L115.9 273.1 L118.8 274.2 L121.0 274.6 L125.4 276.5 L128.0 278.6 L128.9 280.2
-  L128.8 281.3 L128.1 282.3 L125.4 284.8 L119.9 287.2 L116.5 288.1 L114.8 289.0 L112.0 289.4 L107.9 290.6
-  L84.7 294.0 L75.2 294.2 Z
-  M28.2 108.1 L30.7 107.4 L40.3 102.5 L44.2 100.1 L49.4 96.3 L51.0 94.6 L52.1 92.9 L52.3 91.7
-  L52.2 90.4 L51.1 87.4 L43.4 76.6 L41.6 74.8 L39.8 73.9 L38.0 73.7 L36.4 74.1 L35.2 74.8
-  L33.0 77.1 L25.8 88.9 L22.2 95.7 L21.2 99.3 L21.3 101.1 L22.7 103.7 L24.3 105.9 L26.1 107.6
-  L27.3 108.1 Z`;
+/* Gown — Train. The woman from the owner's own reference (figure-src/owner/
+   couple.png, beside the Gentleman): hand on the hip, fitted to the knee and
+   then a train, her face in profile under the hair. The triangle at the elbow
+   is cut, not filled. */
+const GOWN_TRAIN_TRACE = `M44.7 299.9 L25.2 299.9 L25.0 299.8 L25.0 294.4 L23.1 293.0 L18.6 291.9 L14.4 291.2 L4.6 290.9
+  L3.3 290.3 L2.9 289.8 L2.7 288.0 L4.5 283.9 L4.9 281.1 L6.1 278.4 L6.4 275.7 L7.5 273.5
+  L7.8 270.8 L9.0 268.4 L9.4 265.5 L11.0 261.9 L11.4 259.1 L12.5 257.1 L12.8 254.3 L14.1 251.6
+  L14.4 248.9 L15.4 246.6 L16.2 242.8 L17.4 239.5 L17.6 236.9 L17.6 211.7 L19.1 205.2 L19.1 202.0
+  L20.4 198.6 L20.7 194.9 L22.4 187.9 L22.7 184.4 L23.8 181.3 L24.1 179.2 L24.1 172.7 L22.7 164.7
+  L22.4 157.8 L21.9 154.1 L20.7 150.6 L20.6 147.9 L19.1 144.2 L19.1 140.1 L18.3 134.8 L18.1 132.5
+  L18.4 127.8 L19.1 123.8 L19.1 119.2 L19.4 118.0 L20.4 115.8 L21.1 112.4 L21.9 110.8 L22.6 108.4
+  L23.9 106.2 L24.3 104.5 L26.0 101.2 L28.0 99.0 L29.5 96.8 L29.7 96.0 L29.1 93.9 L29.1 92.5
+  L30.5 89.5 L30.5 87.7 L30.3 86.8 L29.3 85.5 L27.6 81.8 L26.4 75.8 L26.4 74.2 L27.2 69.8
+  L28.5 66.7 L28.6 65.2 L27.5 62.8 L26.9 59.8 L26.0 57.0 L25.7 55.5 L25.9 54.3 L27.4 49.9
+  L29.2 48.0 L30.4 47.4 L33.3 46.6 L35.3 45.6 L38.8 45.3 L40.8 44.2 L42.3 43.8 L44.2 41.9
+  L44.9 40.4 L44.8 38.4 L44.3 37.8 L43.6 37.5 L41.2 37.4 L35.5 37.6 L34.2 37.0 L33.7 35.7
+  L33.7 32.7 L33.2 30.5 L33.3 28.6 L32.8 27.8 L31.2 26.7 L30.8 26.0 L30.8 25.3 L33.3 21.7
+  L33.6 21.0 L33.9 14.7 L35.1 10.7 L35.1 9.6 L34.2 7.5 L34.7 5.9 L37.7 3.6 L44.4 0.7
+  L45.3 0.6 L47.2 1.3 L47.9 1.3 L51.0 0.1 L53.6 -0.1 L55.3 0.3 L57.1 1.5 L59.1 2.2
+  L61.4 4.2 L62.3 5.3 L64.6 9.1 L67.7 15.0 L69.6 19.9 L70.8 22.1 L71.6 24.6 L72.6 26.6
+  L73.0 29.6 L72.9 32.2 L73.2 33.2 L74.0 34.5 L74.4 36.6 L76.0 38.8 L78.9 41.5 L80.0 43.5
+  L79.9 44.6 L78.1 47.8 L77.1 50.3 L77.3 52.1 L78.1 53.2 L80.0 54.6 L80.2 56.1 L80.7 57.2
+  L82.2 59.3 L83.9 62.4 L84.5 64.5 L85.5 66.3 L86.1 68.5 L89.5 75.8 L90.6 77.4 L91.0 78.8
+  L91.9 80.2 L92.3 81.5 L93.5 83.5 L94.0 85.3 L95.2 87.3 L97.2 92.0 L97.2 95.9 L96.9 96.8
+  L93.5 100.1 L88.2 104.0 L83.4 106.9 L81.8 107.5 L79.8 109.0 L78.4 109.5 L70.9 113.7 L69.5 115.1
+  L69.1 117.8 L69.2 122.2 L69.5 125.0 L70.1 127.8 L70.2 133.0 L69.3 137.9 L69.2 141.1 L68.0 143.8
+  L67.7 146.4 L66.5 148.6 L66.0 151.2 L64.9 153.3 L64.2 156.2 L63.1 158.2 L62.7 160.7 L61.6 162.7
+  L61.1 165.3 L60.0 166.9 L59.6 169.3 L59.9 173.4 L61.2 176.2 L61.5 178.7 L62.8 181.5 L63.0 183.7
+  L64.2 186.3 L64.9 189.6 L66.1 192.3 L66.5 195.3 L67.7 197.7 L67.9 199.7 L69.1 202.5 L69.5 205.2
+  L71.2 209.1 L71.5 211.8 L72.8 214.9 L72.9 217.4 L74.2 220.1 L74.4 222.9 L75.6 225.5 L76.0 229.1
+  L77.7 233.1 L77.8 235.9 L79.1 239.2 L79.3 243.9 L80.8 250.1 L80.9 260.5 L81.9 268.8 L82.7 270.2
+  L88.6 277.5 L93.3 285.5 L93.7 287.0 L93.3 288.1 L91.4 290.7 L89.5 292.1 L88.1 292.6 L86.7 292.4
+  L84.4 291.4 L82.4 291.1 L70.5 291.1 L66.6 289.5 L64.9 288.4 L62.8 287.9 L61.6 288.7 L61.1 290.4
+  L59.9 291.9 L58.2 293.0 L55.3 293.8 L51.5 292.7 L48.8 292.7 L46.9 293.1 L44.8 294.2 Z
+  M67.1 109.0 L68.1 108.7 L70.3 107.2 L73.9 104.1 L83.1 95.3 L85.0 93.0 L85.5 92.0 L85.5 91.2
+  L84.2 88.9 L82.4 86.7 L80.7 83.7 L79.0 81.4 L78.1 81.3 L76.6 83.1 L75.9 83.5 L75.3 83.5
+  L74.1 80.3 L71.4 76.6 L70.5 76.0 L69.5 76.6 L68.3 79.7 L67.6 83.3 L66.5 85.3 L66.1 88.0
+  L64.9 90.7 L64.3 93.7 L63.0 96.4 L62.8 98.6 L62.1 100.8 L63.0 105.4 L63.3 106.1 L65.4 108.9 Z`;
 
 /* Gown — Evening. Slim column gown, hands clasped. The quiet one. */
 const GOWN_EVENING_TRACE = `M101.4 299.9 L7.6 299.9 L7.5 299.8 L7.4 294.2 L4.4 293.4 L-0.7 290.9 L-3.7 290.0 L-13.4 290.1
@@ -1272,6 +1279,71 @@ const RUN_W_RUN_TRACE = `M101.4 299.9 L-45.0 299.9 L-45.2 299.8 L-45.2 294.2 L-4
   L-19.6 260.7 L-21.4 262.3 L-22.8 264.1 L-27.6 274.2 L-31.9 286.3 L-33.9 290.6 L-35.2 292.4 L-36.6 293.3
   L-38.8 294.2 L-38.9 294.5 L-38.9 295.1 L-38.6 295.1 Z`;
 
+/* The Gentleman's white shirt and tie, printed on the front of his cut. */
+const GENT_DETAIL = `M53.1 88.0 L52.5 87.8 L52.2 86.8 L52.2 62.9 L52.7 59.7 L52.2 57.8 L52.2 55.4 L51.7 53.1
+  L52.2 51.2 L54.1 50.0 L54.2 49.2 L53.6 48.7 L53.2 48.1 L52.5 47.5 L51.6 47.4 L48.8 47.5
+  L48.3 47.6 L47.6 48.2 L47.1 48.7 L46.4 49.2 L46.1 49.8 L46.2 50.5 L47.3 51.1 L47.9 52.1
+  L48.1 52.5 L48.1 53.6 L47.5 55.2 L47.3 58.0 L46.7 59.0 L46.2 60.5 L46.1 62.7 L46.1 78.8
+  L45.8 80.5 L45.2 80.9 L44.9 80.7 L44.0 78.3 L42.8 76.3 L42.5 73.6 L41.5 72.3 L41.3 71.7
+  L41.2 68.6 L40.0 65.2 L39.8 64.1 L39.7 59.2 L39.5 58.2 L39.7 56.2 L38.6 55.0 L38.3 53.9
+  L38.3 50.0 L37.9 47.8 L38.0 42.5 L38.4 42.2 L40.5 41.6 L41.4 40.8 L41.8 40.8 L43.5 42.6
+  L44.3 42.8 L45.6 43.8 L46.8 44.2 L48.2 45.3 L50.3 46.1 L51.2 46.1 L51.9 45.8 L53.6 44.2
+  L54.4 43.9 L55.1 43.2 L56.1 42.6 L58.6 40.0 L59.4 40.0 L60.9 41.7 L60.9 44.1 L61.6 46.4
+  L61.6 49.7 L61.2 52.6 L61.1 56.3 L60.4 59.4 L59.8 64.3 L59.7 68.9 L58.4 71.9 L58.2 74.5
+  L57.0 76.3 L56.8 78.8 L56.2 80.1 L55.6 80.8 L55.3 83.1 L54.9 84.5 L53.7 86.1 L53.4 87.7 Z
+  M80.6 121.1 L79.9 121.1 L79.3 120.8 L78.8 119.7 L78.6 118.1 L78.2 116.4 L78.1 112.8 L77.9 111.9
+  L77.4 110.7 L77.1 109.1 L77.3 103.2 L78.0 99.0 L78.0 97.4 L78.2 95.2 L78.2 92.5 L78.8 91.1
+  L79.0 91.0 L79.6 91.1 L80.0 91.8 L80.2 94.8 L80.8 96.7 L81.4 97.9 L81.4 100.0 L82.0 102.3
+  L82.0 103.9 L81.6 105.5 L81.4 106.9 L81.6 108.4 L82.5 109.7 L83.3 111.5 L83.3 112.6 L82.8 115.9
+  L82.2 116.9 L81.6 118.9 L81.4 120.4 L81.1 120.8 Z
+  M20.6 121.3 L20.1 121.2 L19.7 120.8 L18.8 119.4 L18.2 118.2 L18.1 117.3 L18.1 112.8 L18.0 111.9
+  L18.2 111.0 L19.3 109.7 L19.5 109.2 L19.5 101.4 L19.6 100.2 L20.3 98.1 L20.7 97.5 L21.0 96.2
+  L21.6 95.7 L22.0 95.6 L22.6 96.1 L22.9 97.1 L22.9 111.2 L22.8 112.2 L21.6 114.9 L21.3 119.0
+  L21.0 120.6 Z
+  M85.4 144.7 L84.8 144.6 L84.2 144.0 L84.0 143.4 L83.5 142.5 L83.5 142.2 L83.8 141.8 L84.1 141.9
+  L85.9 143.4 L86.1 144.2 L85.9 144.4 Z`;
+
+/* The same, drawn round in a line, for a light sheet (see figureDetail). */
+const GENT_LINE = `M53.1 88.0 L52.5 87.8 L52.2 86.8 L52.2 62.9 L52.7 59.7 L52.2 57.8 L52.2 55.4 L51.7 53.1
+  L52.2 51.2 L54.1 50.0 L54.2 49.2 L53.6 48.7 L53.2 48.1 L52.5 47.5 L51.6 47.4 L48.8 47.5
+  L48.3 47.6 L47.6 48.2 L47.1 48.7 L46.4 49.2 L46.1 49.8 L46.2 50.5 L47.3 51.1 L47.9 52.1
+  L48.1 52.5 L48.1 53.6 L47.5 55.2 L47.3 58.0 L46.7 59.0 L46.2 60.5 L46.1 62.7 L46.1 78.8
+  L45.8 80.5 L45.2 80.9 L44.9 80.7 L44.0 78.3 L42.8 76.3 L42.5 73.6 L41.5 72.3 L41.3 71.7
+  L41.2 68.6 L40.0 65.2 L39.8 64.1 L39.7 59.2 L39.5 58.2 L39.7 56.2 L38.6 55.0 L38.3 53.9
+  L38.3 50.0 L37.9 47.8 L38.0 42.5 L38.4 42.2 L40.5 41.6 L41.4 40.8 L41.8 40.8 L43.5 42.6
+  L44.3 42.8 L45.6 43.8 L46.8 44.2 L48.2 45.3 L50.3 46.1 L51.2 46.1 L51.9 45.8 L53.6 44.2
+  L54.4 43.9 L55.1 43.2 L56.1 42.6 L58.6 40.0 L59.4 40.0 L60.9 41.7 L60.9 44.1 L61.6 46.4
+  L61.6 49.7 L61.2 52.6 L61.1 56.3 L60.4 59.4 L59.8 64.3 L59.7 68.9 L58.4 71.9 L58.2 74.5
+  L57.0 76.3 L56.8 78.8 L56.2 80.1 L55.6 80.8 L55.3 83.1 L54.9 84.5 L53.7 86.1 L53.4 87.7 Z
+  M53.3 85.6 L53.9 84.8 L54.3 83.8 L54.7 80.8 L55.3 80.1 L55.9 78.8 L56.1 76.3 L57.3 74.5
+  L57.5 71.9 L58.8 68.9 L58.9 64.3 L59.5 59.4 L60.2 56.3 L60.3 52.6 L60.7 49.6 L60.7 46.4
+  L60.0 44.1 L60.0 41.8 L59.5 41.0 L59.2 40.9 L58.7 40.9 L56.2 43.4 L54.4 44.8 L53.6 45.1
+  L52.1 46.5 L52.9 46.8 L54.2 48.2 L55.1 49.3 L55.0 50.0 L53.9 51.0 L53.1 51.5 L52.5 53.1
+  L53.0 55.4 L53.1 57.8 L53.6 59.6 L53.1 63.1 L53.1 85.3 L53.1 85.6 Z
+  M45.1 78.7 L45.2 62.7 L45.3 60.5 L45.8 59.0 L46.4 58.0 L46.6 55.2 L47.2 53.5 L47.2 52.5
+  L47.1 52.1 L45.4 50.6 L45.2 50.0 L45.5 49.3 L46.5 48.2 L48.2 46.8 L48.9 46.5 L48.2 46.2
+  L46.8 45.1 L45.6 44.7 L44.3 43.7 L43.5 43.5 L41.5 41.6 L40.5 42.5 L38.9 42.9 L38.8 43.1
+  L38.8 47.8 L39.2 50.0 L39.2 53.9 L39.4 54.8 L40.6 56.2 L40.3 58.2 L40.6 59.2 L40.7 64.1
+  L40.9 65.2 L42.1 68.6 L42.1 71.7 L42.4 72.3 L43.4 73.6 L43.5 74.0 L43.5 75.6 L43.7 76.3 Z
+  M80.6 121.1 L79.9 121.1 L79.3 120.8 L78.8 119.7 L78.6 118.1 L78.2 116.4 L78.1 112.8 L77.9 111.9
+  L77.4 110.7 L77.1 109.1 L77.3 103.2 L78.0 99.0 L78.0 97.4 L78.2 95.2 L78.2 92.5 L78.8 91.1
+  L79.0 91.0 L79.6 91.1 L80.0 91.8 L80.2 94.8 L80.8 96.7 L81.4 97.9 L81.4 100.0 L82.0 102.3
+  L82.0 103.9 L81.6 105.5 L81.4 106.9 L81.6 108.4 L82.5 109.7 L83.3 111.5 L83.3 112.6 L82.8 115.9
+  L82.2 116.9 L81.6 118.9 L81.4 120.4 L81.1 120.8 Z
+  M80.5 120.1 L80.7 118.9 L81.3 116.9 L81.9 115.9 L82.4 112.6 L82.4 111.5 L81.6 109.7 L80.8 108.7
+  L80.5 107.7 L80.6 105.6 L81.1 103.9 L81.1 102.3 L80.5 100.0 L80.5 97.9 L79.9 96.7 L79.2 94.6
+  L79.0 95.6 L78.9 99.0 L78.2 103.2 L78.0 109.1 L78.2 110.7 L78.8 111.9 L79.0 112.8 L79.1 116.4
+  L79.5 118.1 L79.6 119.7 L79.9 120.2 Z
+  M20.6 121.3 L20.1 121.2 L19.7 120.8 L18.8 119.4 L18.2 118.2 L18.1 117.3 L18.1 112.8 L18.0 111.9
+  L18.2 111.0 L19.3 109.7 L19.5 109.2 L19.5 101.4 L19.6 100.2 L20.3 98.1 L20.7 97.5 L21.0 96.2
+  L21.6 95.7 L22.0 95.6 L22.6 96.1 L22.9 97.1 L22.9 111.2 L22.8 112.2 L21.6 114.9 L21.3 119.0
+  L21.0 120.6 Z
+  M20.2 119.9 L20.5 117.8 L20.5 115.8 L20.7 114.9 L21.9 112.2 L22.0 111.2 L22.0 97.2 L21.8 96.8
+  L21.6 97.5 L21.2 98.1 L20.5 100.3 L20.4 101.4 L20.4 109.3 L20.2 109.8 L19.1 111.0 L18.9 111.9
+  L19.1 118.1 L19.6 119.4 L20.0 119.9 Z
+  M85.4 144.7 L84.8 144.6 L84.2 144.0 L84.0 143.4 L83.5 142.5 L83.5 142.2 L83.8 141.8 L84.1 141.9
+  L85.9 143.4 L86.1 144.2 L85.9 144.4 Z`;
+
 const FIGURES = {
   /* Heads sit on a circle of half-width 21, so every figure is about seven
      heads tall — the proportion that stops a cut piece reading as a chess
@@ -1288,7 +1360,7 @@ const FIGURES = {
              The Sweep was 1.75 while it was the fan skirt, which was 0.73 wide;
              the column gown that replaced it needs far less sheet. */
           bases: [1.46, 1.26, 1.24, 1.26] },
-  gent: { path: GENT_TRACE },
+  gent: { path: GENT_TRACE, detail: GENT_DETAIL, line: GENT_LINE },
   lady: { path: LADY_TRACE },
   suit: { path: SUIT_TRACE },
   /* One Volleyball shape: the men's pose 0, the women's 1. `groups` drives the
@@ -1378,6 +1450,40 @@ function figurePath(key, variant) {
   if (!f.paths) return f.path;
   const i = variant == null ? (VARIANT[key] || 0) : variant;
   return f.paths[Math.min(Math.max(i, 0), f.paths.length - 1)];
+}
+
+/* The face and clothes printed on a figure -- `detail` and `line` beside a
+   single `path`, or `details` and `lines` beside `paths`, one per pose (null
+   where a pose has none). polish-figure.py emits both in the same frame as the
+   cut: the detail filled, for white ink on a dark sheet, and as a line drawn
+   round it, for dark ink on a light one (filled black, a white shirt read as a
+   black shirt on a white suit). */
+export function figureDetail(key, variant, asLine = false) {
+  const f = FIGURES[key];
+  if (!f) return null;
+  if (!f.paths) return (asLine ? f.line : f.detail) || null;
+  const i = variant == null ? (VARIANT[key] || 0) : variant;
+  const list = asLine ? f.lines : f.details;
+  return (list && list[Math.min(Math.max(i, 0), f.paths.length - 1)]) || null;
+}
+
+/* What the order sheet says about the print, or null. */
+export function printNote(cfg) {
+  if (!figureDetail(cfg.shape, cfg.variant)) return null;
+  const mat = MATERIALS[cfg.material] || MATERIALS.blue;
+  return printInk(mat) === PRINT_WHITE
+    ? 'Face and clothes printed on the front, in white'
+    : 'Face and clothes drawn on the front in a black line';
+}
+
+/* Print on a figure reads in contrast with its sheet: white on a dark sheet
+   (the owner's reference: a black suit, the shirt and tie white), near-black on
+   white, yellow, tan, clear or the mirrors. */
+const PRINT_WHITE = 0xf3f0e8, PRINT_DARK = 0x1d1c1a;
+export function printInk(mat) {
+  if (mat.kind !== 'sheet') return PRINT_DARK;
+  const c = new THREE.Color(mat.color);
+  return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.45 ? PRINT_DARK : PRINT_WHITE;
 }
 
 /* Set by the designer when a customer drops in their own vector outline. */
@@ -2379,6 +2485,24 @@ export function buildTrophy(cfg) {
     });
   }
 
+  /* The figure's face and clothes, printed on its front in the same frame as
+     the cut -- the owner's "faces and clothes instead of blank". A customer's
+     own picture printed over the figure (below) replaces it. */
+  const ink = printInk(mat);
+  const detail = onBase && cut && !(cfg.photoImg && cfg.photoTarget === 'figure')
+    ? figureDetail(cfg.shape, cfg.variant, ink === PRINT_DARK) : null;
+  const printShape = detail && pathToShape(detail, w, h, cut.userData.frame);
+  if (printShape) {
+    const pg = new THREE.ShapeGeometry(pieces(printShape), 16);
+    const print = new THREE.Mesh(pg, new THREE.MeshStandardMaterial({
+      color: ink, roughness: 0.45, metalness: 0,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    }));
+    print.position.set(-bx, blade.position.y, faceZ + 0.003);
+    print.name = 'figurePrint';
+    group.add(print);
+  }
+
   /* The customer's own image, printed and applied to the whole cut figure.
      Nothing is generated here — the figure is bare acrylic unless they give
      us artwork. The decal mesh IS the silhouette, so it cannot bleed past
@@ -2588,6 +2712,9 @@ const ARTWORK_FEE = 150;
    print work on every piece; preparing the customer's cut file is a one-off,
    charged as artwork. Estimates, like every price here. */
 const CUT_PRINT_FEE = 60;
+/* A figure's printed face and clothes (figureDetail): a small sticker laid on
+   the cut, priced like the second sticker. */
+const FIGURE_PRINT_FEE = 40;
 const PROOF_DAYS = 2;
 
 export function quote(cfg, today = new Date()) {
@@ -2606,7 +2733,8 @@ export function quote(cfg, today = new Date()) {
   const shapeK = cutFromPic ? Math.max(shape.base, 2.31 / cfg.cutAspect + 0.03) : shapeBase(cfg.shape, cfg.variant);
   const materialCost = UNIT_BASE * shapeK * size.mult * mat.mult;
   const extras = baseK.fee + (cfg.extraSticker ? EXTRA_STICKER_FEE : 0)
-               + (cutFromPic && cfg.cutPrint ? CUT_PRINT_FEE : 0);
+               + (cutFromPic && cfg.cutPrint ? CUT_PRINT_FEE : 0)
+               + (figureDetail(cfg.shape, cfg.variant) ? FIGURE_PRINT_FEE : 0);
   const tier = QTY_TIERS.find(t => qty >= t.min) || QTY_TIERS[QTY_TIERS.length - 1];
 
   const unit = Math.max(MIN_UNIT, Math.round(((materialCost + extras) * speed.mult * tier.mult) / 5) * 5);
