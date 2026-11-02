@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611021215';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202611021215';
+import { createViewer, webglAvailable } from './viewer.js?v=202611021323';
+import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202611021323';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
