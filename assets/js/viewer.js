@@ -347,6 +347,11 @@ export function createViewer(canvas, opts = {}) {
   }
   resize();
 
+  /* A figure's colour print loads after the trophy is built (artTexture in
+     trophy.js); when one lands, draw again. */
+  const onArt = () => { dirty = true; };
+  addEventListener('tala:art', onArt);
+
   if (opts.loop !== false) requestAnimationFrame(tick);
   else running = false;
 
@@ -361,7 +366,7 @@ export function createViewer(canvas, opts = {}) {
     setView(v) { Object.assign(view, v); dirty = true; },
     hold(on) { held = !!on; idle = 0; sway = 0; dirty = true; },
     stop() { running = false; },
-    dispose() { running = false; renderer.dispose(); },
+    dispose() { running = false; removeEventListener('tala:art', onArt); renderer.dispose(); },
   };
 }
 
