@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611021746';
+import { createViewer, webglAvailable } from './viewer.js?v=202611021757';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf,
-} from './trophy.js?v=202611021746';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight,
+} from './trophy.js?v=202611021757';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -102,7 +102,8 @@ function specRows(d) {
   const rows = [
     ['Shape', shape ? shape.label + (pose ? ` · ${pose}` : '') : d.shape],
     ['Sheet', MATERIALS[d.material]?.label],
-    ['Size', SIZES[d.size] ? `${SIZES[d.size].label} · ${SIZES[d.size].total} cm` : null],
+    // a wide figure is cut smaller to fit its base, so it stands short of its size
+    ['Size', SIZES[d.size] ? `${SIZES[d.size].label} · ${canBuild(d) ? Math.round(standingHeight(d) * 2) / 2 : SIZES[d.size].total} cm` : null],
     ['Base', BASES[d.baseKind] ? `${BASES[d.baseKind].label} · ${BASE_FINISHES[d.baseFinish]?.label || ''}` : null],
     ['Sticker', SCHEMES[d.scheme] ? [SCHEMES[d.scheme].label, DECALS[d.decal]?.label, LAMINATES[d.laminate]?.label].filter(Boolean).join(' · ') : null],
     ['Wording', [d.org, d.title, d.name, d.date].filter(Boolean).join(' / ')],

@@ -1335,12 +1335,12 @@ const FIGURES = {
      is wide -- 0.9 to 1.4 for every 1 tall, where the old blob was 0.34 -- so
      these are priced like the football poses, 1.53w + 0.45.
 
-     Every `bases` here prices the sheet a pose really uses. buildTrophy stands
+     Every `bases` here prices the sheet a pose really uses. fitFigure stands
      a figure with its feet in the middle of its base and cuts it smaller if it
      would reach past the base, so a sprawling or lopsided pose uses less sheet
-     than its drawing suggests: w here is the sheet rectangle actually cut at the
-     medium size, over the full blade height squared (tests/figure-sheet.html
-     and the measuring snippet in DESIGN-NOTES give the numbers). */
+     than its drawing suggests: w here is the blade's own rectangle at the
+     medium size, width x height, over the full blade height squared.
+     tests/figure-fit.js lists the poses that are cut smaller, and by how much. */
   run: { paths: [RUN_SPRINT_TRACE, RUN_FINISH_TRACE],
          names: ['Sprint', 'Finish'],
          bases: [1.44, 1.29] },
@@ -2258,8 +2258,59 @@ function safeExtrude(shape, opts) {
   return new THREE.ExtrudeGeometry(SHAPES.arch.build(6.8, 17.8), opts);
 }
 
-/* How a figure sits on its base -- see buildTrophy. */
+/* A figure stands IN THE MIDDLE of its base: its feet go on the centre line,
+   the way a real trophy figure is pinned through the middle of its base. If,
+   standing there, any part of it would reach past the end of the base, the
+   whole figure is cut smaller until it fits. In the owner's words: "always
+   make sure it's in the middle, not on the side -- and if it's larger than
+   the base, minimise it to maintain balance".
+
+   Two earlier rules are gone and should stay gone. Centring the figure's
+   centre of mass put a one-footed pose's foot at the END of the base (the
+   overhead pass, the dribbler, every runner), and growing the base to reach
+   that foot gave a lunge a 25 cm base under a 19 cm trophy. Holding a wide
+   pose to the base's width but leaving its feet where they fell still stood
+   the sprinter on the corner of his base. Feet in the middle, size to fit:
+   a compact pose stays full height, a sprawling one is cut smaller.
+
+   Returns the cut, the blade height it was cut at, and bx: how far along the
+   cut the feet are, so the blade can be slid back by that much. */
 const FIG_EDGE = 0.15;   // base kept clear past the figure's furthest reach, as a share of the blade width
+const baseWidth = w => w * 2 * 0.86 + 2.8;    // a base's nominal width, for a blade w wide
+
+function fitFigure(shape, w, h, variant) {
+  let cut = shape.build(w, h, variant);
+  if (!cut) return { cut, h, bx: 0 };
+  const place = () => {
+    const pts = pieces(cut).flatMap(r => r.getPoints(160));
+    const ys = pts.map(p => p.y);
+    const bot = Math.min(...ys), span = Math.max(...ys) - bot;
+    // the feet: the tab and the soles on it, the bottom 3% of the piece
+    const feet = pts.filter(p => p.y <= bot + span * 0.03).map(p => p.x);
+    const mid = (Math.min(...feet) + Math.max(...feet)) / 2;
+    const xs = pts.map(p => p.x);
+    return { mid, reach: Math.max(mid - Math.min(...xs), Math.max(...xs) - mid) };
+  };
+  let at = place();
+  const room = baseWidth(w) / 2 - w * FIG_EDGE;
+  if (at.reach > room) {
+    h *= room / at.reach;          // pathToShape scales about one point, so once is exact
+    cut = shape.build(w, h, variant);
+    at = place();
+  }
+  return { cut, h, bx: at.mid };
+}
+
+/* How tall a trophy really stands, in cm: its size's full height, or less for
+   a figure cut smaller to stand inside its base. The size tiles quote the full
+   height; the summary, the order sheet and the admin quote this one. */
+export function standingHeight(cfg) {
+  const shape = SHAPES[cfg.shape] || SHAPES.arch;
+  const size = SIZES[cfg.size] || SIZES.m;
+  if (!shape.decal.onBase) return size.total;
+  const bh = size.baseH * 1.35;
+  return bh + fitFigure(shape, size.w, size.total - bh, cfg.variant).h;
+}
 
 export function buildTrophy(cfg) {
   const shape = SHAPES[cfg.shape] || SHAPES.arch;
@@ -2272,52 +2323,19 @@ export function buildTrophy(cfg) {
   const w = size.w, t = size.t;
 
   /* The base carries the name plate for the figures, so it is taller there.
-     Blade height always makes up the advertised total. */
+     Blade height makes up the advertised total, unless a figure has to be cut
+     smaller to stand inside its base. */
   const onBase = !!shape.decal.onBase;
   const bh = size.baseH * (onBase ? 1.35 : 1);
   let h = size.total - bh;
 
-  let cut = shape.build(w, h, cfg.variant);
-
-  /* A figure stands IN THE MIDDLE of its base: its feet go on the centre line,
-     the way a real trophy figure is pinned through the middle of its base. If,
-     standing there, any part of it would reach past the end of the base, the
-     whole figure is cut smaller until it fits. In the owner's words: "always
-     make sure it's in the middle, not on the side -- and if it's larger than
-     the base, minimise it to maintain balance".
-
-     Two earlier rules are gone and should stay gone. Centring the figure's
-     centre of mass put a one-footed pose's foot at the END of the base (the
-     overhead pass, the dribbler, every runner), and growing the base to reach
-     that foot gave a lunge a 25 cm base under a 19 cm trophy. Holding a wide
-     pose to the base's width but leaving its feet where they fell still stood
-     the sprinter on the corner of his base. Feet in the middle, size to fit:
-     a compact pose stays full height, a sprawling one is cut smaller.
-
-     Pieces that are not figures keep the old rule below: the base widens to
-     reach anything that touches down. */
-  const nominal = w * 2 * 0.86 + 2.8;
-  let bw = nominal, bx = 0;
-  if (cut && onBase) {
-    const place = () => {
-      const pts = pieces(cut).flatMap(r => r.getPoints(160));
-      const ys = pts.map(p => p.y);
-      const bot = Math.min(...ys), span = Math.max(...ys) - bot;
-      // the feet: the tab and the soles on it, the bottom 3% of the piece
-      const feet = pts.filter(p => p.y <= bot + span * 0.03).map(p => p.x);
-      const mid = (Math.min(...feet) + Math.max(...feet)) / 2;
-      const xs = pts.map(p => p.x);
-      return { mid, reach: Math.max(mid - Math.min(...xs), Math.max(...xs) - mid) };
-    };
-    let at = place();
-    const room = nominal / 2 - w * FIG_EDGE;
-    if (at.reach > room) {
-      h *= room / at.reach;          // pathToShape scales about one point, so once is exact
-      cut = shape.build(w, h, cfg.variant);
-      at = place();
-    }
-    bx = at.mid;
-  } else if (cut) {
+  /* A figure stands in the middle of its base, cut smaller if it would reach
+     past it -- see fitFigure. Pieces that are not figures keep the old rule
+     below: the base widens to reach anything that touches down. */
+  let cut, bx = 0, bw = baseWidth(w);
+  if (onBase) ({ cut, h, bx } = fitFigure(shape, w, h, cfg.variant));
+  else cut = shape.build(w, h, cfg.variant);
+  if (cut && !onBase) {
     const pts = pieces(cut).flatMap(r => r.getPoints(240));
     const ys = pts.map(p => p.y);
     const bot = Math.min(...ys), span = Math.max(...ys) - bot;

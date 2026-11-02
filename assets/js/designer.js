@@ -4,14 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611021746';
+import { createViewer, webglAvailable } from './viewer.js?v=202611021757';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-} from './trophy.js?v=202611021746';
+  standingHeight,
+} from './trophy.js?v=202611021757';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -325,7 +326,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611021746'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611021757'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -335,6 +336,12 @@ function cutNote(text, bad = false) {
 function bladeHeightCm() {
   const size = SIZES[cfg.size] || SIZES.m;
   return size.total - size.baseH * 1.35;            // the figure's own height above its base
+}
+
+/* how tall the trophy really stands, to the half centimetre: a wide figure is
+   cut smaller to fit its base, so it can be short of its size's full height */
+function heightCm() {
+  return Math.round(standingHeight(cfg) * 2) / 2;
 }
 
 /* where the working picture sits inside the preview canvas */
@@ -903,7 +910,8 @@ function sync() {
   const grp = groupOf(cfg.shape, cfg.variant);
   set('vShape', shape.label + (grp ? ' · ' + grp.label : '') + (pose ? ' · ' + pose[cfg.variant] : ''));
   set('vMaterial', mat.label);
-  set('vSize', `${size.label} · ${size.total} cm`);
+  const tall = heightCm();
+  set('vSize', `${size.label} · ${tall} cm`);
   set('vBase', `${BASES[cfg.baseKind].label} · ${BASE_FINISHES[cfg.baseFinish].label}`);
   set('vSticker', `${DECALS[cfg.decal].label} · ${SCHEMES[cfg.scheme].label} · ${FONTS[cfg.font].label}`);
   set('noteShape', shape.note);
@@ -932,7 +940,7 @@ function sync() {
   set('vDelivery', `${q.speed.label} · ${q.zone.label}`);
 
   set('dzBadge', `${mat.short} · ${shape.label} · ${size.label}`);
-  set('dzDims', `${size.total} × ${(size.w * 2).toFixed(1)} cm · ${(size.t * 10).toFixed(0)} mm sheet`);
+  set('dzDims', `${tall} × ${(size.w * 2).toFixed(1)} cm · ${(size.t * 10).toFixed(0)} mm sheet`);
 
   set('tMakeLbl', `Trophies — ${peso(q.unit)} × ${q.qty}`);
   set('tMake', peso(q.make));
@@ -993,7 +1001,7 @@ function specText() {
     r('Cut shape', shape.label + (groupOf(cfg.shape, cfg.variant) ? ' — ' + groupOf(cfg.shape, cfg.variant).label : '') +
         (variantsOf(cfg.shape) ? ' — ' + variantsOf(cfg.shape)[cfg.variant] + (isStyled(cfg.shape) ? ' style' : ' pose') : '')),
     r('Sheet', `${mat.label}, ${(size.t * 10).toFixed(0)} mm`),
-    r('Size', `${size.label} — ${size.total} cm tall, ${(size.w * 2).toFixed(1)} cm wide`),
+    r('Size', `${size.label} — ${heightCm()} cm tall${heightCm() < size.total ? ' (figure cut to fit its base)' : ''}, ${(size.w * 2).toFixed(1)} cm wide`),
     r('Base', `${BASES[cfg.baseKind].label}, ${BASE_FINISHES[cfg.baseFinish].label}`),
     '',
     'PRINTED STICKER',
