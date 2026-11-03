@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611040048';
+import { createViewer, webglAvailable } from './viewer.js?v=202611040101';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote,
-} from './trophy.js?v=202611040048';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
+} from './trophy.js?v=202611040101';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -156,6 +156,7 @@ async function bakeStills(items) {
   canvas.width = W; canvas.height = H;
   const viewer = createViewer(canvas, { capture: true, fixed: { w: W, h: H }, loop: false, interactive: false, maxDpr: 1 });
   for (const it of todo) {
+    await Promise.race([artReady(it.design), new Promise(r => setTimeout(r, 4000))]);
     const model = buildTrophy(it.design);
     viewer.scene.add(model); viewer.frameObject(model); viewer.renderNow();
     stills.set(stillKey(it), canvas.toDataURL('image/png'));
@@ -586,6 +587,61 @@ async function loadItems() {
   S.items = chk(await sb.from('shop_items').select('*').order('sort').order('name'));
 }
 
+/* Every trophy in the designer, as the shop item it would start as: its own
+   sheet and ink, sample wording, Medium on a black gold bar. The owner asked
+   to see all of them here, not only the shop's handful. */
+const CAT_GROUPS = ['Classic', 'Rounds', 'Stars', 'Curves', 'Figures'];
+const catKeys = () => Object.keys(SHAPES).filter(k => k !== 'custom');
+const inShop = k => S.items.filter(i => i.design?.shape === k);
+function catalogItem(k) {
+  const s = SHAPES[k];
+  const material = MATERIALS[s.sheet] ? s.sheet : 'white';
+  const design = { shape: k, variant: 0, material, size: 'm', baseKind: 'goldbar', baseFinish: 'black', decal: 'rect',
+    scheme: s.ink || 'black', laminate: 'gloss', font: 'classic', motif: 'star',
+    org: 'Gloria Awards Night', title: 'Champion', name: 'Juan Dela Cruz', date: '2026' };
+  return { id: null, name: s.label, category: 'Trophy', price: null, design, images: [], published: false,
+    line: `${MATERIALS[material].label} · ${BASES.goldbar.label.toLowerCase()} base · ${SIZES.m.total} cm` };
+}
+
+function catalogHtml() {
+  const keys = catKeys();
+  const missing = keys.filter(k => !inShop(k).length).length;
+  return `<div class="adm-head cat-head"><div><h2>Every trophy in the designer</h2>
+      <p>All ${keys.length}. Open one to give it a price and photos: it joins the shop list above, hidden until you switch it on.</p></div>
+      ${missing ? `<button class="btn btn--line btn--sm" id="addAll">Add all ${missing} to the shop (hidden)</button>` : ''}</div>
+    ${CAT_GROUPS.map(g => {
+      const ks = keys.filter(k => (SHAPES[k].group || 'Figures') === g);
+      return ks.length ? `<p class="cat-g">${g}</p><div class="shop-grid">${ks.map(k => {
+        const there = inShop(k).length, it = catalogItem(k), p = autoPrice(it.design);
+        return `<button class="item" data-cat="${esc(k)}" data-id="cat-${esc(k)}">
+          <div class="item__pic is-3d"><img data-3d src="${esc(stills.get(stillKey(it)) || 'assets/img/poster-hero.svg')}" alt="">
+            <span class="st ${there ? 'st--won' : 'st--hidden'}">${there ? 'In the shop' : 'Not in the shop'}</span></div>
+          <div class="item__b"><div><h3>${esc(SHAPES[k].label)}</h3><p>${esc(it.line)}</p></div><b>${p != null ? peso(p) : '—'}</b></div>
+        </button>`;
+      }).join('')}</div>` : '';
+    }).join('')}`;
+}
+
+async function addAllToShop() {
+  const todo = catKeys().filter(k => !inShop(k).length);
+  if (!await confirmBox(`Add ${todo.length} trophies to the shop?`,
+    'They are added hidden: the website does not change until you open one and switch "Show on the website" on.', 'Add them')) return;
+  let sort = S.items.at(-1)?.sort ?? 0;
+  const taken = new Set(S.items.map(i => i.id));
+  const rows = todo.map(k => {
+    const { id: _, ...row } = catalogItem(k);
+    let id = slug(row.name);
+    for (let n = 2; taken.has(id); n++) id = `${slug(row.name)}-${n}`;
+    taken.add(id);
+    return { ...row, id, sort: (sort += 10) };
+  });
+  try {
+    chk(await sb.from('shop_items').insert(rows));
+    await loadItems(); render();
+    toast(`Added ${rows.length} trophies, hidden. Give each a price and photos, then switch it on.`);
+  } catch (err) { toast(friendly(err), true); }
+}
+
 function renderShop() {
   $('#main').innerHTML = `
     <div class="adm-head"><div><h1>Shop trophies</h1>
@@ -601,10 +657,16 @@ function renderShop() {
         <div class="item__b"><div><h3>${esc(it.name)}</h3><p>${esc(it.line || it.category)}</p></div><b>${p != null ? peso(p) : '—'}</b></div>
       </button>`;
     }).join('')}</div>`
-    : '<div class="adm-empty">No trophies yet. Add the first one.</div>'}`;
+    : '<div class="adm-empty">No trophies yet. Add the first one.</div>'}
+    ${catalogHtml()}`;
   $('#add').addEventListener('click', () => openItem({ id: null, name: '', line: '', category: 'Trophy', price: null, design: null, images: [], published: true, sort: (S.items.at(-1)?.sort ?? 0) + 10 }));
-  $$('.item').forEach(b => b.addEventListener('click', () => openItem(S.items.find(i => i.id === b.dataset.id))));
-  bakeStills(S.items);
+  $$('.item:not([data-cat])').forEach(b => b.addEventListener('click', () => openItem(S.items.find(i => i.id === b.dataset.id))));
+  $$('.item[data-cat]').forEach(b => b.addEventListener('click', () => {
+    const there = inShop(b.dataset.cat);
+    openItem(there.length ? there[0] : { ...catalogItem(b.dataset.cat), sort: (S.items.at(-1)?.sort ?? 0) + 10 });
+  }));
+  $('#addAll')?.addEventListener('click', addAllToShop);
+  bakeStills([...S.items, ...catKeys().map(k => ({ ...catalogItem(k), id: `cat-${k}` }))]);
 }
 
 function openItem(orig) {
