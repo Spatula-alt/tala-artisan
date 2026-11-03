@@ -215,88 +215,195 @@ function pieces(shape) {
    point at the nearest traced shape, so a saved design or a shop card still
    opens: arch Sun Arch, plaque Certificate, shield Tulip, oval Oval, facet
    Faceted Round, monolith Crystal, wave Scallop Sail. 300 tall, y down. */
-const SUNARCH_BODY = `M2.2 64.9 L1.6 65.8 L2.2 66.6 L17.2 70.1 L18.0 71.0 L10.7 85.7 L4.6 116.4 L1.5 162.2 L0.0 208.1 L4.6 254.1 L16.9 299.7 L227.8 299.7 L228.1 177.6 L225.0 116.3 L215.8 67.3 L194.4 32.1 L163.8 9.2 L128.8 0.0 L87.3 9.2 L69.2 18.4 L68.4 17.7 L65.1 3.7 L64.2 3.1 L58.8 23.9 L52.0 27.6 L44.4 35.5 L21.1 21.3 L20.0 21.4 L19.8 22.6 L34.3 46.3 L26.1 55.1 L23.4 60.0 Z`;
-const SUNARCH_ACCENTS = [`M51.4 34.7 L46.4 37.2 L20.4 21.9 L20.3 22.5 L35.7 48.0 L33.2 52.9 L31.5 58.2 L2.2 65.8 L2.5 66.2 L17.4 69.6 L18.1 70.3 L31.5 73.4 L33.2 78.7 L35.7 83.6 L17.7 112.3 L46.4 94.4 L51.4 96.9 L56.7 98.6 L64.3 131.6 L71.9 98.6 L77.2 96.9 L82.1 94.4 L110.8 112.3 L92.8 83.6 L95.4 78.7 L97.1 73.4 L130.1 65.8 L97.1 58.2 L95.4 52.9 L92.8 48.0 L110.8 19.3 L82.1 37.2 L77.2 34.7 L71.9 33.0 L64.5 3.9 L56.7 33.0 Z`];
-const SUNARCH_DECAL = { x: 0.124, y: 0.321, w: 0.571, h: 0.546 };
+const SUNARCH_BODY = `M0.6 64.9 L0.0 65.8 L0.6 66.6 L16.2 70.2 L17.0 71.1 L10.4 85.7 L5.3 112.4 L2.7 139.3 L2.7 169.9 L3.8 200.5 L10.3 261.7 L16.0 288.5 L22.7 299.7 L226.2 299.7 L226.5 177.6 L223.4 116.3 L214.2 67.3 L192.8 32.1 L162.2 9.2 L127.2 0.0 L85.7 9.2 L67.7 18.4 L66.8 17.7 L63.6 3.7 L62.6 3.1 L57.2 23.9 L50.4 27.6 L42.8 35.5 L19.5 21.3 L18.4 21.4 L18.2 22.6 L32.7 46.3 L24.5 55.0 L22.0 60.0 Z`;
+const SUNARCH_ACCENTS = [`M49.8 34.7 L44.9 37.2 L18.8 21.9 L18.8 22.5 L34.1 48.0 L31.6 52.9 L29.9 58.2 L0.6 65.8 L0.9 66.2 L16.4 69.8 L17.1 70.4 L29.9 73.4 L31.6 78.7 L34.1 83.6 L16.2 112.3 L44.9 94.4 L49.8 96.9 L55.1 98.6 L62.7 131.6 L70.3 98.6 L75.6 96.9 L80.5 94.4 L109.2 112.3 L91.3 83.6 L93.8 78.7 L95.5 73.4 L128.5 65.8 L95.5 58.2 L93.8 52.9 L91.3 48.0 L109.2 19.3 L80.5 37.2 L75.6 34.7 L70.3 33.0 L62.9 3.9 L55.1 33.0 Z`];
+const SUNARCH_DECAL = { x: 0.117, y: 0.321, w: 0.571, h: 0.546 };
+const SUNARCH_ART = {"src": "img/shapes/sunarch.db784503.webp", "box": [-9.25, -9.21, 235.67, 309.18]};
+const SUNARCH_TILE = 'img/shapes/tile-sunarch.42e397e8.webp';
 
 const GEM_BODY = `M8.5 39.4 L4.2 67.6 L1.4 109.8 L0.0 152.1 L0.0 194.3 L4.2 236.7 L11.2 278.8 L21.0 299.7 L177.2 293.4 L192.5 294.1 L207.4 290.1 L220.3 281.8 L227.2 274.1 L232.4 265.1 L235.6 255.3 L236.4 240.0 L232.4 225.1 L227.2 216.1 L216.4 205.2 L204.1 198.3 L201.4 180.2 L200.0 152.1 L202.9 124.0 L207.1 95.7 L208.5 67.6 L207.1 39.5 L202.8 18.3 L194.5 5.8 L180.3 0.0 L163.5 2.8 L126.7 21.1 L109.9 18.3 L91.6 8.4 L70.5 2.8 L49.3 2.8 L31.2 5.6 L16.9 14.1 Z`;
 const GEM_ACCENTS = [`M202.6 198.2 L192.5 196.1 L182.2 196.1 L172.1 198.2 L162.7 202.4 L154.4 208.4 L147.5 216.1 L144.7 220.4 L140.5 229.8 L138.3 239.9 L138.3 250.2 L140.5 260.3 L144.7 269.7 L150.7 278.1 L158.4 285.0 L167.3 290.1 L172.1 292.0 L175.6 292.9 L192.4 293.6 L207.2 289.7 L220.0 281.4 L226.8 273.8 L232.0 264.9 L235.1 255.2 L235.9 240.0 L232.0 225.3 L226.8 216.4 L216.1 205.6 Z`];
 const GEM_DECAL = { x: -0.081, y: 0.59, w: 0.548, h: 0.493 };
+const GEM_ART = {"src": "img/shapes/gem.3cd17038.webp", "box": [-9.86, -9.89, 246.52, 309.89]};
+const GEM_TILE = 'img/shapes/tile-gem.959c81e4.webp';
 
 const GOLDSTAR_BODY = `M0.7 112.6 L0.3 114.1 L75.6 191.2 L57.4 299.8 L155.8 250.0 L253.4 299.9 L254.5 299.6 L234.9 191.2 L308.8 113.1 L204.4 96.7 L157.9 0.2 L156.5 0.5 L107.1 96.7 Z`;
 const GOLDSTAR_ACCENTS = [];
 const GOLDSTAR_DECAL = { x: 0.001, y: 0.449, w: 0.494, h: 0.377 };
+const GOLDSTAR_ART = {"src": "img/shapes/goldstar.c59e4461.webp", "box": [-9.86, -10.01, 318.64, 309.61]};
+const GOLDSTAR_TILE = 'img/shapes/tile-goldstar.091212d7.webp';
 
 const ROUND_BODY = `M225.8 299.7 L232.2 298.7 L238.3 294.2 L244.4 284.5 L252.0 275.5 L259.4 264.8 L275.0 234.4 L281.4 212.1 L282.7 197.4 L282.7 152.3 L281.4 132.6 L270.4 100.6 L257.0 73.6 L253.4 67.2 L242.4 52.6 L218.2 28.4 L202.2 17.7 L187.5 10.3 L175.2 5.7 L158.5 1.7 L142.8 0.0 L131.2 0.0 L110.8 2.7 L75.5 15.0 L57.2 26.7 L42.7 40.2 L30.0 54.6 L17.7 75.6 L10.0 94.9 L3.0 119.0 L0.0 146.7 L0.0 164.7 L2.0 190.4 L5.7 206.1 L10.0 219.4 L20.0 243.4 L35.7 268.5 L52.0 286.8 L55.7 296.5 L60.2 299.3 L64.8 300.0 Z`;
 const ROUND_ACCENTS = [];
 const ROUND_DECAL = { x: -0.003, y: 0.471, w: 0.812, h: 0.621 };
+const ROUND_ART = {"src": "img/shapes/round.6365b1a9.webp", "box": [-10.13, -10.46, 292.81, 310.13]};
+const ROUND_TILE = 'img/shapes/tile-round.de13f5f2.webp';
 
 const TABLET_BODY = `M0.0 298.9 L1.2 300.0 L185.9 299.5 L185.6 0.2 L24.8 0.0 L16.5 1.5 L12.4 3.3 L8.8 5.9 L3.3 12.4 L0.4 20.5 L0.0 24.9 Z`;
 const TABLET_ACCENTS = [];
 const TABLET_DECAL = { x: -0.001, y: 0.41, w: 0.709, h: 0.677 };
+const TABLET_ART = {"src": "img/shapes/tablet.803cb471.webp", "box": [-9.95, -10.24, 197.85, 311.71]};
+const TABLET_TILE = 'img/shapes/tile-tablet.029aa2e8.webp';
 
 const FIN_BODY = `M125.0 299.7 L131.0 298.7 L136.5 294.1 L145.9 276.2 L152.6 259.4 L162.6 220.3 L163.6 207.8 L166.7 190.6 L171.7 176.8 L173.0 162.6 L173.0 154.2 L169.3 138.7 L169.3 130.6 L171.3 119.2 L171.3 112.4 L166.7 97.2 L166.3 87.5 L163.6 73.7 L162.6 58.5 L156.3 29.8 L151.3 14.3 L146.9 5.2 L141.1 0.0 L137.4 0.0 L134.4 1.7 L83.3 52.1 L76.0 62.9 L56.1 83.3 L29.6 109.6 L16.2 120.0 L6.0 130.3 L1.7 137.4 L0.0 147.5 L0.3 159.3 L2.3 168.0 L12.0 199.4 L19.4 218.6 L25.4 240.2 L31.1 255.0 L36.8 281.0 L43.2 295.8 L46.3 298.7 L52.4 300.0 Z`;
 const FIN_ACCENTS = [];
 const FIN_DECAL = { x: 0.018, y: 0.443, w: 0.417, h: 0.425 };
+const FIN_ART = {"src": "img/shapes/fin.27182e40.webp", "box": [-10.67, -10.7, 184.35, 310.33]};
+const FIN_TILE = 'img/shapes/tile-fin.e6747f70.webp';
 
 const PENTAGON_BODY = `M0.3 124.6 L53.0 299.7 L231.7 299.5 L277.1 125.1 L133.3 0.2 L131.8 0.3 Z`;
 const PENTAGON_ACCENTS = [];
 const PENTAGON_DECAL = { x: 0.004, y: 0.383, w: 0.686, h: 0.617 };
+const PENTAGON_ART = {"src": "img/shapes/pentagon.a614e043.webp", "box": [-11.02, -8.86, 288.19, 309.65]};
+const PENTAGON_TILE = 'img/shapes/tile-pentagon.d792279e.webp';
 
 const HALFMOON_BODY = `M150.7 299.7 L155.5 299.0 L159.3 296.1 L161.4 288.0 L161.0 274.4 L159.3 265.3 L159.3 257.5 L161.4 243.9 L161.4 226.6 L159.3 213.1 L160.0 188.6 L161.4 176.8 L161.4 21.5 L160.0 12.0 L157.3 5.6 L153.4 1.4 L149.4 0.0 L140.0 3.4 L126.5 6.1 L110.3 11.5 L90.4 19.7 L61.5 38.0 L31.7 68.0 L21.2 82.2 L11.5 100.2 L8.4 106.6 L2.7 124.2 L0.0 148.3 L0.0 184.6 L4.7 210.7 L12.1 231.4 L20.2 245.9 L36.0 270.3 L49.2 283.6 L56.6 294.4 L59.8 297.6 L67.9 300.0 Z`;
 const HALFMOON_ACCENTS = [];
 const HALFMOON_DECAL = { x: 0.009, y: 0.458, w: 0.493, h: 0.502 };
+const HALFMOON_ART = {"src": "img/shapes/halfmoon.add9dc26.webp", "box": [-11.07, -10.82, 171.28, 311.41]};
+const HALFMOON_TILE = 'img/shapes/tile-halfmoon.467b38ac.webp';
 
 const STARPLAQUE_BODY = `M0.4 121.5 L0.1 122.8 L61.7 299.8 L274.7 299.5 L326.8 127.4 L168.7 0.2 L167.3 0.2 Z`;
-const STARPLAQUE_ACCENTS = [`M15.8 125.2 L15.0 126.2 L15.1 127.3 L33.3 153.3 L45.7 174.3 L56.1 195.5 L62.0 209.8 L69.2 231.2 L73.0 245.7 L76.9 267.5 L78.5 282.0 L79.2 295.2 L80.6 296.5 L102.5 293.4 L125.4 291.1 L148.0 289.6 L170.2 289.2 L192.1 289.7 L213.7 291.2 L234.9 293.7 L254.0 296.8 L255.0 296.5 L255.6 295.3 L255.0 286.1 L255.1 274.9 L256.3 263.0 L260.0 244.4 L265.9 224.8 L274.2 204.2 L284.7 182.6 L297.5 160.0 L311.8 137.4 L310.8 135.8 L286.3 128.2 L262.4 118.2 L240.9 106.6 L221.7 93.2 L204.9 78.1 L190.5 61.3 L182.2 49.0 L175.0 36.1 L169.8 24.7 L168.5 23.9 L167.3 24.4 L159.0 35.9 L148.7 48.4 L137.7 60.2 L120.3 76.1 L101.5 90.0 L81.5 101.9 L60.3 111.8 L37.7 119.7 Z M30.9 131.9 L48.7 126.7 L71.5 117.8 L86.4 110.6 L107.1 98.3 L120.4 88.7 L138.9 73.0 L150.7 61.1 L166.8 42.1 L177.8 60.6 L187.3 73.4 L203.2 90.4 L215.7 101.2 L235.4 115.0 L250.6 123.5 L274.4 134.3 L296.9 142.2 L284.3 162.7 L272.1 185.3 L265.0 200.3 L256.5 221.3 L252.0 235.4 L247.4 255.1 L245.6 268.2 L245.0 285.1 L229.0 282.8 L207.4 280.7 L170.3 279.2 L132.2 280.5 L109.1 282.6 L88.8 285.2 L86.8 266.0 L82.7 243.6 L78.8 228.3 L71.4 206.3 L65.3 191.5 L58.2 176.7 L46.2 155.1 Z`];
-const STARPLAQUE_DECAL = { x: 0.003, y: 0.329, w: 0.602, h: 0.46 };
+const STARPLAQUE_ACCENTS = [];
+const STARPLAQUE_DECAL = { x: -0.004, y: 0.383, w: 0.822, h: 0.628 };
+const STARPLAQUE_ART = {"src": "img/shapes/starplaque.099f9fd9.webp", "box": [-12.81, -12.9, 339.65, 310.79]};
+const STARPLAQUE_TILE = 'img/shapes/tile-starplaque.c2a636c8.webp';
 
 const TEARDROP_BODY = `M161.7 299.7 L166.3 299.0 L170.5 295.5 L176.1 270.7 L176.5 214.2 L174.5 194.5 L170.2 173.4 L159.9 139.3 L155.2 128.3 L136.9 91.8 L129.0 79.1 L113.0 59.0 L90.2 36.1 L82.9 30.4 L65.0 18.7 L44.7 8.7 L20.4 1.0 L12.5 0.0 L7.5 0.0 L4.5 1.0 L1.3 5.2 L1.3 11.5 L3.0 16.9 L11.6 31.3 L13.6 37.3 L19.6 64.0 L19.9 88.5 L18.9 95.8 L14.3 111.5 L12.6 126.6 L2.7 155.0 L0.3 176.8 L0.3 213.2 L2.3 225.3 L7.3 243.0 L4.7 263.0 L4.7 278.4 L2.7 288.8 L2.7 293.1 L3.7 295.8 L6.8 298.7 L12.8 300.0 Z`;
 const TEARDROP_ACCENTS = [];
 const TEARDROP_DECAL = { x: 0.026, y: 0.312, w: 0.489, h: 0.498 };
+const TEARDROP_ART = {"src": "img/shapes/teardrop.a891a575.webp", "box": [-10.46, -11.47, 186.95, 310.46]};
+const TEARDROP_TILE = 'img/shapes/tile-teardrop.4028d23b.webp';
 
 const FACETED_BODY = `M271.3 299.7 L275.3 298.0 L283.1 290.2 L284.8 284.8 L293.8 275.8 L295.1 271.2 L301.1 264.8 L302.1 260.8 L304.8 257.5 L305.5 253.8 L308.5 250.2 L308.8 243.8 L311.8 239.8 L312.5 232.8 L315.5 229.2 L315.8 219.2 L319.2 214.5 L319.2 202.5 L321.2 197.2 L321.2 148.8 L319.2 143.5 L318.8 137.5 L315.8 133.5 L315.5 123.8 L312.5 119.8 L311.8 112.8 L308.8 109.2 L308.5 102.8 L305.8 99.5 L304.8 95.5 L301.8 91.5 L301.1 84.5 L295.1 78.2 L293.8 73.5 L281.1 60.8 L279.5 55.5 L266.8 42.8 L265.5 38.2 L260.6 36.7 L251.6 27.7 L247.0 26.3 L240.6 20.3 L236.6 19.3 L233.9 17.0 L229.3 15.7 L225.3 12.7 L221.9 12.0 L218.9 9.3 L211.6 8.7 L207.9 5.7 L201.6 5.3 L196.9 2.0 L188.3 2.0 L182.9 0.0 L145.2 0.0 L139.9 2.0 L117.2 2.0 L112.6 5.3 L102.5 5.7 L98.9 8.7 L92.9 9.0 L87.9 12.3 L83.9 13.3 L78.2 19.0 L73.9 20.0 L70.9 22.7 L67.2 23.3 L57.2 33.0 L52.5 34.3 L37.7 49.2 L36.7 53.5 L34.0 56.5 L33.3 60.2 L27.3 66.5 L26.0 71.2 L20.0 77.5 L18.7 82.2 L16.3 84.8 L15.7 88.5 L9.3 95.2 L9.0 104.8 L5.3 111.5 L5.3 133.5 L2.0 138.5 L2.0 153.8 L0.0 159.5 L0.0 165.2 L2.0 170.8 L2.0 182.8 L5.3 187.5 L5.3 206.2 L9.0 212.8 L9.0 221.2 L12.3 226.2 L12.7 232.5 L15.3 235.8 L16.3 239.8 L18.7 242.5 L20.3 247.8 L23.0 251.2 L23.3 253.8 L25.7 256.5 L27.3 261.8 L33.0 267.5 L34.3 272.2 L43.0 280.8 L45.0 286.5 L53.7 295.5 L53.7 298.8 L56.2 300.0 Z`;
 const FACETED_ACCENTS = [];
 const FACETED_DECAL = { x: -0.006, y: 0.439, w: 0.909, h: 0.695 };
+const FACETED_ART = {"src": "img/shapes/faceted.1b9bb08d.webp", "box": [-12.17, -12.17, 333.33, 312.17]};
+const FACETED_TILE = 'img/shapes/tile-faceted.09dd959d.webp';
 
 const STARSIDE_BODY = `M0.5 86.3 L0.6 88.3 L39.4 113.2 L49.2 148.9 L49.3 230.1 L48.0 299.6 L190.1 299.7 L193.5 68.3 L113.2 80.2 L112.8 78.3 L148.0 31.3 L148.1 29.9 L146.8 29.4 L82.0 43.2 L54.2 0.6 L53.1 0.0 L52.0 1.0 L42.7 61.1 Z`;
 const STARSIDE_ACCENTS = [];
 const STARSIDE_DECAL = { x: 0.033, y: 0.349, w: 0.483, h: 0.615 };
+const STARSIDE_ART = {"src": "img/shapes/starside.7c7b8758.webp", "box": [-9.22, -10.25, 203.57, 309.75]};
+const STARSIDE_TILE = 'img/shapes/tile-starside.3d472a3f.webp';
 
 const CROWNPANEL_BODY = `M13.3 270.2 L25.4 300.0 L177.6 299.5 L190.6 270.2 L200.5 228.8 L205.5 178.9 L205.5 129.3 L203.9 79.5 L197.2 33.1 L185.4 0.2 L29.6 2.2 L14.9 33.3 L5.0 79.6 L1.7 129.3 L0.0 179.1 L5.0 228.7 Z`;
 const CROWNPANEL_ACCENTS = [];
 const CROWNPANEL_DECAL = { x: -0.003, y: 0.481, w: 0.685, h: 0.654 };
+const CROWNPANEL_ART = {"src": "img/shapes/crownpanel.8676cb78.webp", "box": [-9.95, -9.95, 215.47, 309.95]};
+const CROWNPANEL_TILE = 'img/shapes/tile-crownpanel.fd4420a2.webp';
 
 const CERTIFICATE_BODY = `M0.5 0.0 L0.1 299.7 L216.9 299.9 L217.0 0.3 Z`;
 const CERTIFICATE_ACCENTS = [];
 const CERTIFICATE_DECAL = { x: -0.0, y: 0.482, w: 0.835, h: 0.85 };
+const CERTIFICATE_ART = {"src": "img/shapes/certificate.a3c157bc.webp", "box": [-9.57, -9.68, 226.91, 309.01]};
+const CERTIFICATE_TILE = 'img/shapes/tile-certificate.90135142.webp';
 
 const SAIL_BODY = `M174.3 299.7 L178.9 298.7 L191.0 292.0 L205.3 282.0 L212.7 274.6 L217.5 271.1 L226.6 262.1 L230.7 256.6 L234.2 254.4 L241.3 244.7 L242.6 241.0 L247.3 234.4 L254.3 221.3 L262.3 200.3 L263.0 195.9 L265.3 190.9 L265.3 186.6 L268.0 176.2 L268.0 169.2 L270.7 162.9 L271.7 152.8 L270.7 129.8 L268.0 121.8 L268.0 115.1 L265.3 107.4 L265.3 103.1 L262.6 96.7 L262.3 92.7 L260.0 88.7 L258.3 81.7 L251.3 66.3 L233.9 37.6 L214.0 15.0 L210.7 13.0 L201.7 4.0 L195.0 0.0 L193.3 0.0 L190.8 1.8 L173.4 25.9 L151.7 59.6 L147.4 64.3 L141.7 74.0 L133.3 85.4 L127.0 96.7 L120.0 105.4 L117.0 111.1 L104.6 127.8 L102.3 132.5 L97.9 137.1 L87.5 153.8 L80.2 164.2 L76.5 167.9 L65.5 185.6 L49.8 207.3 L48.1 211.0 L7.0 268.8 L0.0 280.8 L0.7 283.5 L3.5 286.3 L17.5 294.0 L22.6 299.3 L24.2 300.0 Z`;
 const SAIL_ACCENTS = [];
 const SAIL_DECAL = { x: 0.145, y: 0.481, w: 0.439, h: 0.42 };
+const SAIL_ART = {"src": "img/shapes/sail.00a7b0c6.webp", "box": [-9.04, -9.37, 281.74, 310.07]};
+const SAIL_TILE = 'img/shapes/tile-sail.a8ed24e8.webp';
 
 const CRYSTAL_BODY = `M0.0 299.5 L180.7 299.7 L180.5 10.6 L17.3 0.0 L9.8 1.5 L3.7 5.3 L0.0 12.2 Z`;
 const CRYSTAL_ACCENTS = [];
 const CRYSTAL_DECAL = { x: 0.002, y: 0.424, w: 0.687, h: 0.7 };
+const CRYSTAL_ART = {"src": "img/shapes/crystal.d03a9299.webp", "box": [-9.75, -9.0, 189.75, 309.0]};
+const CRYSTAL_TILE = 'img/shapes/tile-crystal.6732f7fb.webp';
 
 const EGG_BODY = `M210.0 299.7 L214.0 298.3 L218.5 292.5 L226.2 276.8 L230.8 263.2 L234.5 251.5 L237.8 232.8 L238.8 212.2 L237.8 177.2 L236.1 165.2 L228.2 131.5 L218.8 103.8 L203.2 75.2 L183.5 46.5 L171.7 33.7 L149.7 15.3 L133.1 6.7 L121.4 2.3 L112.1 0.3 L95.1 0.0 L84.4 1.0 L69.8 5.3 L59.8 10.3 L45.1 20.3 L37.6 27.8 L29.6 37.8 L21.0 51.2 L18.3 56.8 L10.3 77.5 L3.7 102.2 L1.0 118.8 L0.0 132.5 L0.0 165.8 L1.0 177.8 L4.7 198.2 L9.3 216.8 L19.3 244.8 L30.6 266.5 L36.3 275.2 L49.6 293.5 L54.5 298.3 L57.5 299.7 Z`;
 const EGG_ACCENTS = [];
 const EGG_DECAL = { x: 0.006, y: 0.417, w: 0.652, h: 0.586 };
+const EGG_ART = {"src": "img/shapes/egg.4744a295.webp", "box": [-10.03, -10.03, 248.84, 310.03]};
+const EGG_TILE = 'img/shapes/tile-egg.4abbf9c1.webp';
 
 const WING_BODY = `M0.3 85.1 L8.4 299.5 L122.3 299.9 L130.9 0.4 L129.7 0.1 Z`;
 const WING_ACCENTS = [];
 const WING_DECAL = { x: -0.018, y: 0.486, w: 0.408, h: 0.445 };
+const WING_ART = {"src": "img/shapes/wing.6036f2f5.webp", "box": [-9.66, -9.8, 140.74, 309.0]};
+const WING_TILE = 'img/shapes/tile-wing.6e0ffee7.webp';
 
 const TULIP_BODY = `M124.3 299.7 L127.3 299.0 L130.5 294.8 L143.8 254.4 L150.1 229.0 L153.4 207.3 L153.4 199.6 L156.4 181.9 L156.8 135.5 L153.4 112.1 L153.4 99.7 L145.4 53.0 L137.5 19.2 L134.1 9.5 L130.3 6.7 L124.0 7.0 L105.3 14.0 L92.4 15.7 L83.7 15.7 L67.4 13.0 L53.1 7.7 L41.1 0.3 L33.8 0.3 L30.3 2.5 L27.0 8.9 L20.0 28.9 L17.6 40.3 L13.6 52.6 L12.6 60.0 L7.7 79.3 L4.3 99.1 L0.0 146.5 L0.0 180.6 L2.7 202.6 L9.0 237.7 L12.6 249.1 L17.0 268.1 L26.0 294.8 L28.5 298.3 L31.1 299.7 Z`;
 const TULIP_ACCENTS = [];
 const TULIP_DECAL = { x: -0.001, y: 0.455, w: 0.496, h: 0.505 };
+const TULIP_ART = {"src": "img/shapes/tulip.ba98b76f.webp", "box": [-9.84, -8.97, 167.28, 309.84]};
+const TULIP_TILE = 'img/shapes/tile-tulip.238b87ec.webp';
+
+const BKWING_BODY = `M108.0 300.0 L222.1 299.3 L224.6 297.2 L224.9 290.5 L197.2 179.8 L193.2 168.1 L192.2 159.7 L188.9 146.3 L184.9 134.9 L182.9 123.6 L183.9 120.6 L186.7 117.4 L209.4 100.3 L220.1 94.3 L239.9 77.4 L242.9 71.4 L242.9 66.7 L241.9 64.0 L239.8 61.9 L237.1 60.9 L230.1 60.5 L221.7 58.2 L214.7 57.5 L197.7 52.8 L174.4 52.5 L168.4 50.8 L163.2 46.3 L160.5 42.0 L153.8 16.9 L149.8 5.5 L146.7 1.7 L140.7 0.0 L129.0 1.3 L122.6 5.0 L115.6 6.7 L112.6 8.4 L99.8 24.2 L96.4 31.9 L91.1 38.6 L88.1 45.7 L83.3 49.5 L79.9 50.5 L71.6 50.5 L63.2 52.5 L52.9 52.5 L29.2 57.9 L22.5 58.5 L12.5 61.9 L3.8 66.9 L1.3 69.4 L0.0 72.7 L0.0 76.4 L1.3 79.8 L4.8 82.9 L24.5 94.3 L30.9 99.7 L42.9 106.7 L45.7 109.9 L47.1 114.2 L44.7 121.2 L38.7 130.3 L31.4 145.3 L23.7 154.7 L22.0 158.0 L18.7 168.4 L18.4 172.1 L19.4 174.7 L22.2 177.6 L28.9 179.6 L33.5 177.3 L46.1 164.4 L65.7 131.9 L69.2 129.1 L73.6 128.8 L78.6 131.4 L87.3 139.8 L94.3 144.5 L100.6 150.2 L110.3 154.8 L119.1 163.7 L123.1 169.4 L130.6 175.3 L138.2 182.8 L142.8 189.8 L160.2 207.5 L164.2 214.5 L168.9 226.3 L168.5 231.9 L165.0 236.5 L160.7 238.1 L155.7 238.1 L147.3 235.8 L127.6 235.5 L121.0 236.5 L117.8 239.0 L113.8 251.7 L110.1 273.7 L102.1 295.8 L102.4 297.8 L103.6 299.0 Z`;
+const BKWING_ACCENTS = [];
+const BKWING_DECAL = { x: -0.046, y: 0.691, w: 0.273, h: 0.261 };
+const BKWING_ART = {"src": "img/shapes/bkwing.e81ad521.webp", "box": [-9.73, -10.4, 252.67, 309.4]};
+const BKWING_TILE = 'img/shapes/tile-bkwing.6235cb0b.webp';
+
+const TORCH_BODY = `M84.3 299.7 L95.1 298.3 L96.3 297.2 L91.2 295.3 L87.3 292.6 L83.5 288.4 L81.5 284.1 L80.8 268.7 L78.2 261.3 L77.6 252.3 L75.6 245.9 L74.6 221.5 L75.6 217.5 L79.9 210.1 L78.5 202.7 L78.9 197.7 L84.1 189.0 L90.7 168.9 L91.4 160.2 L94.3 150.8 L94.7 137.1 L97.6 127.7 L97.6 121.4 L91.4 108.3 L91.0 101.6 L88.1 92.2 L87.4 83.5 L82.5 65.1 L83.8 53.1 L78.5 44.0 L74.9 33.0 L75.3 20.6 L66.7 3.2 L62.9 0.0 L59.7 0.0 L50.1 10.0 L46.2 12.4 L35.0 10.4 L28.8 10.7 L13.6 17.7 L6.9 23.9 L1.3 35.0 L0.7 51.4 L3.3 56.4 L11.8 65.8 L12.5 70.8 L10.5 75.5 L5.9 82.2 L2.0 93.9 L0.3 102.0 L0.0 144.1 L2.0 157.9 L4.9 167.2 L4.3 178.0 L11.2 188.7 L14.8 199.7 L15.1 229.9 L17.7 238.6 L17.4 242.9 L13.8 248.6 L12.2 253.3 L12.8 266.0 L15.1 275.7 L14.8 280.7 L11.2 289.5 L7.6 294.8 L7.2 297.5 L8.7 299.0 L13.0 300.0 Z`;
+const TORCH_ACCENTS = [];
+const TORCH_DECAL = { x: 0.007, y: 0.568, w: 0.254, h: 0.323 };
+const TORCH_ART = {"src": "img/shapes/torch.53aecf54.webp", "box": [-11.41, -12.75, 107.67, 311.41]};
+const TORCH_TILE = 'img/shapes/tile-torch.422bf23e.webp';
+
+const BLUERING_BODY = `M256.6 299.7 L263.3 298.0 L274.0 289.3 L292.5 268.5 L306.2 247.8 L314.8 231.2 L316.5 222.8 L321.9 208.2 L322.5 192.8 L323.9 184.2 L323.9 156.8 L317.5 120.5 L317.2 114.2 L306.2 91.8 L296.5 75.8 L284.5 62.2 L276.0 54.7 L262.0 39.7 L245.3 27.3 L231.0 19.7 L221.6 13.0 L208.0 7.3 L192.6 2.3 L175.3 0.0 L120.6 0.3 L94.6 8.3 L82.5 14.3 L61.5 27.3 L50.2 37.0 L36.4 50.8 L27.7 60.8 L19.7 72.8 L15.3 81.5 L12.3 90.5 L7.0 99.8 L1.0 126.5 L0.0 144.5 L1.7 170.8 L1.0 180.8 L2.3 186.8 L6.3 196.5 L9.0 207.8 L21.0 237.5 L27.3 245.5 L33.7 256.2 L44.0 266.8 L57.0 283.5 L57.4 287.8 L52.7 293.8 L52.0 297.5 L53.9 299.0 L59.5 300.0 Z`;
+const BLUERING_ACCENTS = [];
+const BLUERING_DECAL = { x: 0.032, y: 0.441, w: 0.87, h: 0.665 };
+const BLUERING_ART = {"src": "img/shapes/bluering.5ec05018.webp", "box": [-10.04, -9.37, 333.22, 309.37]};
+const BLUERING_TILE = 'img/shapes/tile-bluering.939eb524.webp';
+
+const MOONSTARS_BODY = `M64.0 300.0 L166.4 299.3 L168.6 297.2 L166.2 287.8 L166.2 270.7 L164.9 264.4 L164.9 254.7 L163.6 248.7 L163.6 231.3 L164.6 226.9 L168.2 219.6 L168.2 214.5 L166.2 207.2 L166.2 196.5 L171.2 182.4 L168.2 173.1 L168.2 168.1 L168.9 151.7 L171.9 141.0 L167.2 132.3 L166.2 128.3 L166.2 99.8 L166.9 96.8 L170.6 90.1 L171.6 83.8 L171.9 74.7 L170.9 69.4 L171.6 27.9 L169.6 16.9 L169.6 6.2 L165.7 1.3 L162.4 0.0 L158.8 0.0 L146.8 0.7 L127.8 5.7 L104.6 14.4 L84.9 24.1 L63.0 39.5 L46.9 55.7 L36.9 68.7 L27.3 82.1 L16.0 104.8 L7.3 130.6 L6.3 141.3 L4.3 148.0 L4.0 155.4 L1.7 164.0 L1.3 179.8 L2.3 190.1 L0.3 200.8 L0.0 210.9 L1.0 221.9 L7.0 236.6 L8.6 243.0 L11.6 248.3 L14.1 250.5 L19.8 251.5 L22.1 252.8 L37.9 266.1 L41.6 276.8 L47.0 282.6 L55.2 288.5 L57.2 291.5 L58.2 296.8 L59.7 298.7 Z`;
+const MOONSTARS_ACCENTS = [];
+const MOONSTARS_DECAL = { x: 0.007, y: 0.414, w: 0.476, h: 0.519 };
+const MOONSTARS_ART = {"src": "img/shapes/moonstars.f135b130.webp", "box": [-11.6, -9.99, 181.87, 311.6]};
+const MOONSTARS_TILE = 'img/shapes/tile-moonstars.024117b5.webp';
+
+const STARROUND_BODY = `M251.0 299.7 L255.7 298.3 L260.5 292.2 L283.5 269.2 L289.9 259.5 L295.2 253.8 L299.9 246.2 L307.6 236.8 L309.9 229.2 L314.9 218.8 L320.6 198.2 L320.9 151.8 L319.6 147.5 L315.7 145.0 L279.0 144.7 L274.4 143.0 L270.2 138.8 L269.5 134.8 L271.2 131.8 L277.0 127.3 L287.4 123.0 L289.6 120.2 L289.6 118.2 L286.2 110.8 L280.2 104.2 L277.9 100.2 L277.2 96.8 L277.9 80.8 L277.2 79.5 L273.7 78.3 L268.4 80.7 L263.0 79.7 L246.0 63.3 L238.3 58.7 L234.2 54.5 L231.5 50.2 L228.5 41.8 L228.8 33.2 L231.8 24.2 L231.8 8.8 L230.8 5.5 L228.7 3.7 L223.7 4.3 L217.7 7.7 L206.0 18.3 L195.6 24.7 L191.6 25.0 L180.6 20.0 L175.3 18.7 L169.0 14.3 L160.0 11.0 L151.3 3.3 L147.3 1.0 L142.6 0.0 L136.6 0.3 L122.6 2.7 L101.6 9.7 L64.2 28.7 L51.5 41.0 L44.5 45.3 L41.7 48.2 L37.7 54.8 L24.7 68.5 L21.3 77.5 L16.7 83.8 L10.3 96.5 L2.7 119.2 L2.0 138.2 L0.0 149.8 L0.0 167.5 L2.0 179.2 L2.0 191.5 L7.0 210.8 L13.7 223.8 L17.0 233.8 L38.7 266.5 L49.9 278.0 L57.5 282.7 L60.7 285.8 L61.7 287.8 L61.7 291.2 L59.4 296.2 L59.7 297.8 L61.9 299.3 L65.5 300.0 Z`;
+const STARROUND_ACCENTS = [];
+const STARROUND_DECAL = { x: 0.031, y: 0.395, w: 0.802, h: 0.613 };
+const STARROUND_ART = {"src": "img/shapes/starround.2be97db7.webp", "box": [-12.03, -12.03, 332.94, 312.03]};
+const STARROUND_TILE = 'img/shapes/tile-starround.71475787.webp';
+
+const COLOURROUND_BODY = `M227.8 299.7 L233.8 298.0 L241.8 291.0 L257.8 280.7 L262.0 276.5 L266.3 269.5 L275.0 260.2 L290.7 229.2 L298.0 203.8 L298.3 187.2 L300.0 177.8 L300.0 168.8 L298.3 159.8 L298.0 149.2 L295.7 142.5 L294.7 135.8 L289.7 121.5 L288.0 113.2 L283.7 106.2 L281.3 99.5 L277.3 93.5 L275.3 87.5 L268.7 77.2 L260.0 67.8 L253.7 58.5 L228.8 33.7 L213.8 22.3 L177.8 5.7 L163.2 2.0 L146.8 0.0 L112.8 0.0 L97.8 2.3 L77.8 9.0 L67.5 14.0 L57.5 22.0 L41.5 32.3 L35.7 38.2 L25.0 54.5 L18.7 61.8 L8.3 85.8 L1.7 111.5 L1.7 122.2 L0.0 131.5 L0.0 143.5 L1.7 152.8 L2.0 169.5 L4.3 176.2 L5.7 184.2 L12.0 203.2 L27.7 234.5 L35.3 245.8 L49.0 259.8 L56.3 271.5 L56.3 274.8 L55.0 277.5 L50.8 281.3 L35.5 291.3 L32.3 295.5 L32.7 298.2 L37.8 300.0 Z`;
+const COLOURROUND_ACCENTS = [];
+const COLOURROUND_DECAL = { x: 0.055, y: 0.417, w: 0.796, h: 0.608 };
+const COLOURROUND_ART = {"src": "img/shapes/colourround.8fbbfbd1.webp", "box": [-10.76, -10.76, 310.76, 310.76]};
+const COLOURROUND_TILE = 'img/shapes/tile-colourround.a2d9106c.webp';
+
+const FLAME_BODY = `M144.7 299.7 L149.0 298.3 L149.8 294.5 L139.2 279.1 L132.6 265.8 L126.3 246.4 L122.0 236.8 L121.3 224.4 L124.3 217.7 L130.8 211.2 L139.0 205.6 L145.8 198.7 L151.8 188.4 L153.8 182.4 L155.5 167.0 L153.1 147.3 L144.2 132.3 L131.6 119.3 L129.3 115.0 L129.9 111.3 L134.9 99.3 L147.8 81.9 L148.8 77.9 L147.0 75.8 L145.0 75.1 L126.8 74.4 L105.9 67.4 L97.0 65.4 L75.4 51.7 L63.0 39.2 L60.0 32.2 L52.0 20.2 L44.1 2.5 L39.6 0.0 L34.6 0.7 L29.2 5.5 L23.5 17.5 L20.2 35.2 L20.2 51.9 L22.9 62.9 L23.2 81.6 L27.8 95.9 L28.8 107.0 L33.1 120.0 L34.1 128.3 L39.1 146.7 L39.8 167.4 L44.4 184.0 L45.1 196.4 L47.4 204.7 L47.4 252.8 L45.7 257.5 L43.3 260.3 L38.3 263.6 L33.6 265.3 L25.7 264.3 L8.5 255.3 L4.1 255.6 L1.3 257.8 L0.0 262.1 L0.3 265.8 L6.6 285.5 L5.0 294.2 L5.3 297.5 L7.5 299.3 L10.4 300.0 Z`;
+const FLAME_ACCENTS = [];
+const FLAME_DECAL = { x: 0.018, y: 0.508, w: 0.264, h: 0.337 };
+const FLAME_ART = {"src": "img/shapes/flame.020226be.webp", "box": [-9.71, -9.71, 164.83, 309.38]};
+const FLAME_TILE = 'img/shapes/tile-flame.8153d582.webp';
+
+const STARSTEM_BODY = `M70.2 300.0 L230.9 299.3 L232.7 297.5 L232.7 294.5 L230.7 288.1 L215.1 250.4 L211.1 234.7 L199.4 208.6 L192.4 186.6 L182.7 164.2 L180.0 155.8 L180.0 152.2 L181.7 148.8 L194.9 135.6 L202.6 130.6 L232.4 101.7 L233.1 96.4 L231.2 93.9 L229.6 93.2 L222.9 92.5 L209.6 87.9 L200.2 86.9 L186.6 82.2 L180.2 81.8 L173.2 79.5 L165.5 78.8 L157.5 74.8 L152.4 68.7 L134.7 33.2 L131.7 24.2 L122.0 5.2 L117.5 0.7 L115.2 0.0 L111.9 0.7 L108.7 4.2 L96.7 28.2 L95.0 33.9 L85.0 52.3 L81.4 61.6 L76.2 67.1 L66.9 71.2 L8.8 71.2 L4.8 72.2 L2.5 73.8 L0.0 78.3 L0.0 80.3 L2.0 84.4 L18.0 100.7 L21.7 106.7 L40.3 125.4 L50.3 138.5 L52.0 142.1 L52.3 157.2 L49.7 167.2 L49.3 175.9 L44.3 193.6 L44.0 208.0 L42.0 214.3 L42.7 217.7 L45.8 219.8 L53.8 219.2 L76.5 207.8 L90.2 203.5 L97.2 199.1 L109.5 194.1 L114.2 193.4 L118.2 195.4 L140.5 217.5 L164.7 241.7 L168.0 247.0 L167.4 251.7 L162.2 257.6 L149.2 264.9 L133.9 270.9 L126.2 271.6 L111.2 276.6 L100.5 277.3 L90.9 281.6 L83.5 283.0 L76.5 286.6 L67.2 294.0 L65.7 295.8 L65.7 298.2 Z`;
+const STARSTEM_ACCENTS = [];
+const STARSTEM_DECAL = { x: -0.102, y: 0.576, w: 0.376, h: 0.287 };
+const STARSTEM_ART = {"src": "img/shapes/starstem.c9152797.webp", "box": [-9.97, -9.97, 244.37, 309.3]};
+const STARSTEM_TILE = 'img/shapes/tile-starstem.0850b3e7.webp';
+
+const CLEARROUND_BODY = `M44.9 300.0 L295.2 299.3 L297.1 297.8 L298.1 290.8 L303.1 285.2 L306.4 279.2 L313.4 271.2 L317.7 262.2 L322.4 256.2 L328.1 245.2 L331.4 234.8 L336.1 225.2 L336.8 218.8 L339.4 211.8 L341.4 198.5 L341.4 162.2 L339.4 148.8 L336.8 141.8 L336.1 132.2 L332.4 121.2 L317.4 90.8 L302.4 68.2 L279.5 45.3 L272.2 41.0 L265.2 34.7 L255.2 28.0 L245.2 23.0 L238.5 18.0 L232.1 15.0 L216.4 10.3 L206.1 5.3 L196.4 4.7 L189.4 2.0 L178.4 0.3 L139.7 0.0 L126.3 2.0 L119.7 4.7 L113.0 5.3 L102.0 9.0 L70.6 24.7 L58.2 33.0 L42.4 48.8 L38.0 56.2 L24.7 70.5 L8.7 102.8 L5.3 113.2 L4.7 122.8 L2.0 129.5 L1.7 138.5 L0.0 146.2 L0.0 172.8 L1.7 180.5 L2.0 192.8 L4.7 199.5 L5.7 207.2 L11.0 218.5 L12.0 226.2 L15.0 232.5 L19.7 238.5 L25.0 249.2 L32.4 260.2 L47.4 275.5 L49.1 278.8 L49.1 282.8 L47.7 285.5 L40.7 293.8 L40.7 298.2 Z`;
+const CLEARROUND_ACCENTS = [];
+const CLEARROUND_DECAL = { x: -0.006, y: 0.441, w: 0.924, h: 0.706 };
+const CLEARROUND_ART = {"src": "img/shapes/clearround.bc2ec05b.webp", "box": [-10.99, -10.99, 352.43, 310.99]};
+const CLEARROUND_TILE = 'img/shapes/tile-clearround.121850d8.webp';
+
+const CAT_BODY = `M2.8 300.0 L142.9 299.7 L144.4 298.5 L134.3 295.3 L132.1 293.2 L131.8 289.8 L132.8 285.5 L133.8 254.8 L134.8 251.5 L134.8 231.8 L136.1 225.5 L136.1 213.8 L137.1 210.5 L137.1 191.2 L138.4 184.8 L138.4 163.5 L140.4 150.8 L140.4 132.2 L141.7 125.8 L141.7 114.2 L142.7 111.2 L142.7 93.5 L140.6 90.7 L137.9 89.3 L123.6 88.7 L120.5 85.5 L120.1 78.2 L121.5 71.8 L121.5 58.5 L122.4 55.2 L122.4 44.8 L123.4 41.5 L123.4 35.2 L122.3 33.3 L109.6 31.3 L92.3 31.3 L79.7 29.0 L72.2 22.2 L55.4 2.0 L51.4 0.0 L48.1 0.3 L44.1 2.7 L26.6 20.2 L22.0 27.2 L11.0 37.2 L8.3 42.2 L8.3 45.5 L10.0 49.2 L25.3 65.8 L32.9 76.8 L33.3 97.2 L31.9 103.8 L31.9 118.8 L30.9 122.2 L30.9 155.5 L29.6 164.5 L29.6 172.5 L28.6 175.8 L28.6 204.8 L27.6 209.5 L27.6 222.8 L26.3 229.5 L25.3 275.8 L24.6 278.5 L21.8 281.3 L7.8 288.3 L5.0 293.8 L0.0 298.5 Z`;
+const CAT_ACCENTS = [];
+const CAT_DECAL = { x: 0.03, y: 0.409, w: 0.348, h: 0.443 };
+const CAT_ART = {"src": "img/shapes/cat.2e6f6259.webp", "box": [-9.85, -9.45, 154.12, 309.45]};
+const CAT_TILE = 'img/shapes/tile-cat.168dc8b6.webp';
+
+const LIONROUND_BODY = `M398.6 299.7 L400.9 299.0 L402.4 296.8 L405.4 283.8 L405.4 269.5 L402.4 254.8 L398.1 243.8 L387.1 227.5 L382.2 224.0 L372.1 213.8 L369.6 209.7 L356.2 201.0 L348.9 201.0 L341.5 203.7 L334.7 209.5 L334.4 212.5 L338.7 221.2 L343.2 225.7 L355.6 232.0 L364.9 232.3 L367.2 233.3 L374.4 240.2 L381.4 249.5 L385.8 262.2 L385.8 271.5 L387.1 275.5 L385.8 282.2 L385.8 289.5 L382.2 294.0 L378.9 294.3 L376.1 291.2 L374.7 277.5 L371.4 268.2 L371.7 262.5 L368.1 257.8 L362.4 246.8 L356.2 240.7 L347.5 236.3 L338.5 236.0 L335.5 237.3 L328.2 244.3 L324.5 245.0 L318.3 239.5 L317.0 231.5 L309.3 211.8 L313.7 198.5 L313.7 190.8 L315.7 184.2 L315.7 152.8 L313.7 146.2 L313.7 136.5 L312.0 132.5 L311.7 126.8 L308.3 119.5 L306.0 109.5 L301.7 101.2 L300.3 96.5 L297.3 92.2 L296.3 88.5 L293.3 84.5 L289.0 75.5 L285.0 71.2 L283.0 67.5 L258.4 43.0 L254.8 41.0 L240.8 29.3 L215.7 17.0 L206.1 11.0 L194.4 8.0 L190.0 5.0 L184.4 4.7 L171.7 1.3 L160.0 0.0 L129.0 0.0 L116.3 3.0 L110.6 3.0 L93.3 8.7 L86.3 12.0 L81.6 12.7 L73.6 18.3 L67.6 20.7 L51.6 31.3 L29.0 53.5 L16.7 71.8 L14.0 79.2 L7.0 92.8 L1.0 113.5 L1.0 121.8 L0.0 125.2 L0.0 163.8 L1.3 173.5 L3.0 178.2 L3.0 182.2 L6.3 191.2 L8.7 201.2 L13.7 211.2 L14.3 214.5 L20.0 225.8 L27.7 237.5 L32.0 243.8 L37.7 249.8 L43.0 258.5 L58.2 273.7 L68.6 280.3 L70.1 282.8 L69.1 285.5 L65.6 287.7 L59.9 286.0 L28.5 285.3 L25.7 287.2 L17.7 296.2 L16.7 297.8 L17.2 299.3 L19.2 300.0 Z`;
+const LIONROUND_ACCENTS = [];
+const LIONROUND_DECAL = { x: -0.105, y: 0.498, w: 0.843, h: 0.644 };
+const LIONROUND_ART = {"src": "img/shapes/lionround.eb7fb3ea.webp", "box": [-10.01, -10.01, 415.45, 310.01]};
+const LIONROUND_TILE = 'img/shapes/tile-lionround.c7f8173a.webp';
+
+const HANDS_BODY = `M0.0 137.4 L4.2 156.3 L14.0 181.6 L30.7 210.9 L50.4 232.0 L52.9 252.9 L49.3 299.8 L97.9 299.5 L98.3 211.8 L116.7 214.7 L135.4 214.7 L153.8 211.5 L164.4 208.1 L165.2 209.2 L158.8 227.8 L160.6 299.4 L161.5 300.0 L198.0 299.7 L196.6 253.0 L198.8 227.7 L205.1 213.1 L219.9 200.5 L236.7 181.4 L249.2 160.5 L255.4 139.5 L253.2 128.9 L247.0 124.9 L232.7 121.9 L233.6 107.6 L233.2 98.1 L229.9 79.8 L227.1 70.7 L219.2 53.8 L214.1 45.8 L202.1 31.5 L195.1 25.1 L179.9 14.4 L162.9 6.5 L153.8 3.7 L135.4 0.4 L116.6 0.4 L98.2 3.7 L89.2 6.5 L72.3 14.4 L56.9 25.1 L50.0 31.5 L37.9 45.9 L28.5 62.1 L22.1 79.8 L18.9 98.1 L18.9 116.9 L21.7 134.5 L20.4 134.8 L15.1 129.1 L7.4 124.2 L1.4 127.8 Z`;
+const HANDS_ACCENTS = [];
+const HANDS_DECAL = { x: 0.005, y: 0.582, w: 0.624, h: 0.477 };
+const HANDS_ART = {"src": "img/shapes/hands.d100c208.webp", "box": [-10.1, -9.25, 265.53, 310.08]};
+const HANDS_TILE = 'img/shapes/tile-hands.8356e6de.webp';
 
 export const LAYERED = {
-  arch:       { name: 'Sun Arch',    body: SUNARCH_BODY,    accents: SUNARCH_ACCENTS,    decal: SUNARCH_DECAL },
-  gem:        { name: 'Gem',         body: GEM_BODY,        accents: GEM_ACCENTS,        decal: GEM_DECAL },
-  /* the catalogue prints this star in red on a clear pentagon; here its rim is
-     the gold piece -- a ring, so the accent has a hole and the sticker sits in it */
-  starplaque: { name: 'Star Plaque', body: STARPLAQUE_BODY, accents: STARPLAQUE_ACCENTS, decal: STARPLAQUE_DECAL },
+  arch: { name: 'Sun Arch', body: SUNARCH_BODY, accents: SUNARCH_ACCENTS, decal: SUNARCH_DECAL },
+  gem:  { name: 'Gem',      body: GEM_BODY,     accents: GEM_ACCENTS,     decal: GEM_DECAL },
 };
 /* the accent layer is a second cut and a second sheet: about 30% more */
 const LAYERED_COST = 1.3;
@@ -1369,7 +1476,7 @@ export function figureDetail(key, variant, asLine = false) {
    hair and kit in colour, over a silhouette with white details. */
 export function figureArt(key, variant) {
   const f = FIGURES[key];
-  if (!f) return null;
+  if (!f) return SHAPES[key]?.art || null;     // a catalogue piece: its own photo
   if (!f.paths) return f.art || null;
   const i = variant == null ? (VARIANT[key] || 0) : variant;
   return (f.arts && f.arts[Math.min(Math.max(i, 0), f.paths.length - 1)]) || null;
@@ -1384,11 +1491,14 @@ const ART_TEX = new Map();
    copy of assets/img/figures instead. */
 let ART_BASE = null;
 export function setArtBase(url) { ART_BASE = url; }
+const ART_READY = new Map();
 function artTexture(art) {
   let tx = ART_TEX.get(art.src);
   if (!tx) {
+    let done;
+    ART_READY.set(art.src, new Promise(r => { done = r; }));
     tx = new THREE.TextureLoader().load(ART_BASE ? ART_BASE + art.src : new URL('../' + art.src, import.meta.url).href,
-      () => window.dispatchEvent(new Event('tala:art')));
+      () => { done(); window.dispatchEvent(new Event('tala:art')); }, undefined, () => done());
     tx.colorSpace = THREE.SRGBColorSpace;
     tx.anisotropy = 8;
     tx.userData.shared = true;
@@ -1397,9 +1507,20 @@ function artTexture(art) {
   return tx;
 }
 
+/* Resolves once the print a trophy carries has loaded (at once if it has none),
+   for a still that is taken once and kept, like the shop's. */
+export function artReady(cfg) {
+  const art = figureArt(cfg.shape, cfg.variant);
+  if (!art) return Promise.resolve();
+  artTexture(art);
+  return ART_READY.get(art.src) || Promise.resolve();
+}
+
 /* What the order sheet says about the print, or null. */
 export function printNote(cfg) {
-  if (figureArt(cfg.shape, cfg.variant)) return 'Printed in full colour on the front: a fashion illustration, no face';
+  if (figureArt(cfg.shape, cfg.variant)) return FIGURES[cfg.shape]
+    ? 'Printed in full colour on the front: a fashion illustration, no face'
+    : 'Printed in full colour on the front: the design in its catalogue picture';
   if (!figureDetail(cfg.shape, cfg.variant)) return null;
   const mat = MATERIALS[cfg.material] || MATERIALS.blue;
   return printInk(mat) === PRINT_WHITE
@@ -1464,26 +1585,76 @@ function traced(body) {
   return (w, h) => pathToShape(body, w, h);
 }
 
+/* a piece whose front carries a print: the customer's sticker is its name plate, on the base */
+const ON_BASE = { onBase: true };
+
 export const SHAPES = {
-  plaque:     { label: 'Certificate', group: 'Classic', build: traced(CERTIFICATE_BODY), base: 0.94, decal: CERTIFICATE_DECAL, note: 'A tall rectangle. The biggest sticker, for certificates and corporate awards.' },
-  monolith:   { label: 'Crystal', group: 'Classic', build: traced(CRYSTAL_BODY), base: 0.96, decal: CRYSTAL_DECAL, note: 'A crystal block. Plain and classic.' },
-  tablet:     { label: 'Tablet', group: 'Classic', build: traced(TABLET_BODY), base: 0.96, decal: TABLET_DECAL, note: 'An upright tablet. A clean all-rounder.' },
-  arch:       { label: 'Sun Arch', group: 'Classic', build: styled('arch'), base: 1.04, decal: LAYERED.arch.decal, note: 'An arch with the Philippine sun in gold. For school and town awards.' },
-  crownpanel: { label: 'Crown Panel', group: 'Classic', build: traced(CROWNPANEL_BODY), base: 1.00, decal: CROWNPANEL_DECAL, note: 'A barrel-sided panel. For appreciation and service awards.' },
-  shield:     { label: 'Tulip', group: 'Classic', build: traced(TULIP_BODY), base: 1.02, decal: TULIP_DECAL, note: 'A tulip crest. Suits quiz bees and academic contests.' },
-  pentagon:   { label: 'Pentagon', group: 'Classic', build: traced(PENTAGON_BODY), base: 1.00, decal: PENTAGON_DECAL, note: 'A five-sided plaque. Strong and modern.' },
-  round:      { label: 'Round', group: 'Rounds', build: traced(ROUND_BODY), base: 1.02, decal: ROUND_DECAL, note: 'A full disc. Pairs with a round sticker.' },
-  oval:       { label: 'Oval', group: 'Rounds', build: traced(EGG_BODY), base: 1.04, decal: EGG_DECAL, note: 'An egg-shaped oval. Soft and elegant.' },
-  facet:      { label: 'Faceted Round', group: 'Rounds', build: traced(FACETED_BODY), base: 1.04, decal: FACETED_DECAL, note: 'A disc with facets cut round its edge, like crystal.' },
-  gem:        { label: 'Gem', group: 'Rounds', build: styled('gem'), base: 1.04, decal: LAYERED.gem.decal, note: 'A gem with a gold medallion. A showpiece for corporate nights.' },
-  goldstar:   { label: 'Gold Star', group: 'Stars', build: traced(GOLDSTAR_BODY), base: 1.06, decal: GOLDSTAR_DECAL, note: 'A big five-point star. Cut it in gold mirror for the classic look.' },
-  starplaque: { label: 'Star Plaque', group: 'Stars', build: styled('starplaque'), base: 1.02, decal: LAYERED.starplaque.decal, note: 'A pentagon with a gold star rim on the front. For champions and star performers.' },
-  starside:   { label: 'Star & Plaque', group: 'Stars', build: traced(STARSIDE_BODY), base: 1.04, decal: STARSIDE_DECAL, note: 'A star on a stem beside its plaque. For outstanding performers.' },
-  wave:       { label: 'Scallop Sail', group: 'Curves', build: traced(SAIL_BODY), base: 1.04, decal: SAIL_DECAL, note: 'A half-moon sail. Contemporary and light.' },
-  wing:       { label: 'Wing', group: 'Curves', build: traced(WING_BODY), base: 1.00, decal: WING_DECAL, note: 'An angled wing. For leadership and service awards.' },
-  fin:        { label: 'Fin', group: 'Curves', build: traced(FIN_BODY), base: 1.00, decal: FIN_DECAL, note: 'A tall fin with a pointed top.' },
-  halfmoon:   { label: 'Half Moon', group: 'Curves', build: traced(HALFMOON_BODY), base: 1.00, decal: HALFMOON_DECAL, note: 'A half moon, straight on one side. A modern classic.' },
-  teardrop:   { label: 'Teardrop', group: 'Curves', build: traced(TEARDROP_BODY), base: 1.02, decal: TEARDROP_DECAL, note: 'A tall teardrop. Graceful and modern.' },
+  /* The owner's catalogue pictures, all of them, sorted: each piece is cut to
+     its photo's outline and printed with the photo, and stands on our base
+     with the name plate on its front ("the base of the trophy is from Tala
+     Artisan, and yet the stickers copy it too from the image"). */
+  plaque:     { label: 'Certificate', group: 'Classic', build: traced(CERTIFICATE_BODY), base: 0.94, decal: ON_BASE, panel: true, art: CERTIFICATE_ART, tile: CERTIFICATE_TILE,
+                note: 'A certificate plaque, printed in full colour as in the catalogue picture.' },
+  monolith:   { label: 'Crystal', group: 'Classic', build: traced(CRYSTAL_BODY), base: 0.96, decal: ON_BASE, panel: true, art: CRYSTAL_ART, tile: CRYSTAL_TILE,
+                note: 'A clear crystal block with a slanted top.' },
+  tablet:     { label: 'Tablet', group: 'Classic', build: traced(TABLET_BODY), base: 0.96, decal: ON_BASE, panel: true, art: TABLET_ART, tile: TABLET_TILE,
+                note: 'An upright tablet, one corner rounded.' },
+  crownpanel: { label: 'Crown Panel', group: 'Classic', build: traced(CROWNPANEL_BODY), base: 1.00, decal: ON_BASE, panel: true, art: CROWNPANEL_ART, tile: CROWNPANEL_TILE,
+                note: 'A barrel-sided panel with three stars. For appreciation awards.' },
+  pentagon:   { label: 'Pentagon', group: 'Classic', build: traced(PENTAGON_BODY), base: 1.00, decal: ON_BASE, panel: true, art: PENTAGON_ART, tile: PENTAGON_TILE,
+                note: 'A five-sided plaque.' },
+  arch:       { label: 'Sun Arch', group: 'Classic', build: styled('arch'), base: 1.04, decal: ON_BASE, panel: true, art: SUNARCH_ART, tile: SUNARCH_TILE,
+                note: 'An arch with the Philippine sun. With gold, the sun is cut again in gold mirror.' },
+  shield:     { label: 'Tulip', group: 'Classic', build: traced(TULIP_BODY), base: 1.02, decal: ON_BASE, panel: true, art: TULIP_ART, tile: TULIP_TILE,
+                note: 'A tulip crest.' },
+  cat:        { label: 'Diamond Tower', group: 'Classic', build: traced(CAT_BODY), base: 1.04, decal: ON_BASE, panel: true, art: CAT_ART, tile: CAT_TILE,
+                note: 'A tall panel crowned with a diamond.' },
+  bkwing:     { label: 'Wing Frame', group: 'Classic', build: traced(BKWING_BODY), base: 1.06, decal: ON_BASE, panel: true, art: BKWING_ART, tile: BKWING_TILE,
+                note: 'A clear wing on a dark frame.' },
+  round:      { label: 'Round', group: 'Rounds', build: traced(ROUND_BODY), base: 1.02, decal: ON_BASE, panel: true, art: ROUND_ART, tile: ROUND_TILE,
+                note: 'A full disc.' },
+  bluering:   { label: 'Ring Round', group: 'Rounds', build: traced(BLUERING_BODY), base: 1.04, decal: ON_BASE, panel: true, art: BLUERING_ART, tile: BLUERING_TILE,
+                note: 'A disc with a coloured ring.' },
+  colourround:{ label: 'Colour Round', group: 'Rounds', build: traced(COLOURROUND_BODY), base: 1.04, decal: ON_BASE, panel: true, art: COLOURROUND_ART, tile: COLOURROUND_TILE,
+                note: 'A disc with a rainbow rim.' },
+  clearround: { label: 'Clear Round', group: 'Rounds', build: traced(CLEARROUND_BODY), base: 1.04, decal: ON_BASE, panel: true, art: CLEARROUND_ART, tile: CLEARROUND_TILE,
+                note: 'A clear disc.' },
+  facet:      { label: 'Faceted Round', group: 'Rounds', build: traced(FACETED_BODY), base: 1.04, decal: ON_BASE, panel: true, art: FACETED_ART, tile: FACETED_TILE,
+                note: 'A disc with facets cut round its edge, like crystal.' },
+  lionround:  { label: 'Lion Round', group: 'Rounds', build: traced(LIONROUND_BODY), base: 1.08, decal: ON_BASE, panel: true, art: LIONROUND_ART, tile: LIONROUND_TILE,
+                note: 'A disc with a lion at its foot.' },
+  oval:       { label: 'Oval', group: 'Rounds', build: traced(EGG_BODY), base: 1.04, decal: ON_BASE, panel: true, art: EGG_ART, tile: EGG_TILE,
+                note: 'An egg-shaped oval. Soft and elegant.' },
+  gem:        { label: 'Gem', group: 'Rounds', build: styled('gem'), base: 1.04, decal: ON_BASE, panel: true, art: GEM_ART, tile: GEM_TILE,
+                note: 'A gem with a medallion. With gold, the medallion is cut again in gold mirror.' },
+  hands:      { label: 'Hands & Disc', group: 'Rounds', build: traced(HANDS_BODY), base: 1.08, decal: ON_BASE, panel: true, art: HANDS_ART, tile: HANDS_TILE,
+                note: 'A disc held up in two hands.' },
+  goldstar:   { label: 'Gold Star', group: 'Stars', build: traced(GOLDSTAR_BODY), base: 1.06, decal: ON_BASE, panel: true, art: GOLDSTAR_ART, tile: GOLDSTAR_TILE,
+                note: 'A big five-point star.' },
+  starstem:   { label: 'Shooting Star', group: 'Stars', build: traced(STARSTEM_BODY), base: 1.04, decal: ON_BASE, panel: true, art: STARSTEM_ART, tile: STARSTEM_TILE,
+                note: 'A star on a sweeping stem.' },
+  starplaque: { label: 'Star Plaque', group: 'Stars', build: traced(STARPLAQUE_BODY), base: 1.02, decal: ON_BASE, panel: true, art: STARPLAQUE_ART, tile: STARPLAQUE_TILE,
+                note: 'A pentagon with a star on its face.' },
+  starround:  { label: 'Star Round', group: 'Stars', build: traced(STARROUND_BODY), base: 1.06, decal: ON_BASE, panel: true, art: STARROUND_ART, tile: STARROUND_TILE,
+                note: 'A disc with stars breaking out of it.' },
+  starside:   { label: 'Star & Plaque', group: 'Stars', build: traced(STARSIDE_BODY), base: 1.04, decal: ON_BASE, panel: true, art: STARSIDE_ART, tile: STARSIDE_TILE,
+                note: 'A star on a stem beside its plaque.' },
+  moonstars:  { label: 'Moon & Stars', group: 'Stars', build: traced(MOONSTARS_BODY), base: 1.04, decal: ON_BASE, panel: true, art: MOONSTARS_ART, tile: MOONSTARS_TILE,
+                note: 'A half moon with gold stars.' },
+  wave:       { label: 'Scallop Sail', group: 'Curves', build: traced(SAIL_BODY), base: 1.04, decal: ON_BASE, panel: true, art: SAIL_ART, tile: SAIL_TILE,
+                note: 'A half-moon sail.' },
+  halfmoon:   { label: 'Half Moon', group: 'Curves', build: traced(HALFMOON_BODY), base: 1.00, decal: ON_BASE, panel: true, art: HALFMOON_ART, tile: HALFMOON_TILE,
+                note: 'A half moon, straight on one side.' },
+  wing:       { label: 'Wing', group: 'Curves', build: traced(WING_BODY), base: 1.00, decal: ON_BASE, panel: true, art: WING_ART, tile: WING_TILE,
+                note: 'An angled wing.' },
+  fin:        { label: 'Fin', group: 'Curves', build: traced(FIN_BODY), base: 1.00, decal: ON_BASE, panel: true, art: FIN_ART, tile: FIN_TILE,
+                note: 'A tall fin with a pointed top.' },
+  teardrop:   { label: 'Teardrop', group: 'Curves', build: traced(TEARDROP_BODY), base: 1.02, decal: ON_BASE, panel: true, art: TEARDROP_ART, tile: TEARDROP_TILE,
+                note: 'A tall teardrop with a crystal ball at its foot.' },
+  flame:      { label: 'Flame', group: 'Curves', build: traced(FLAME_BODY), base: 1.02, decal: ON_BASE, panel: true, art: FLAME_ART, tile: FLAME_TILE,
+                note: 'A flame with a round seal.' },
+  torch:      { label: 'Torch', group: 'Curves', build: traced(TORCH_BODY), base: 1.00, decal: ON_BASE, panel: true, art: TORCH_ART, tile: TORCH_TILE,
+                note: 'A tall torch held up high.' },
   lady:     { group: 'Figures', label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
   gown:     { group: 'Figures', label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
   gent:     { group: 'Figures', label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
@@ -2355,7 +2526,7 @@ function fitFigure(shape, w, h, variant) {
 export function standingHeight(cfg) {
   const shape = SHAPES[cfg.shape] || SHAPES.arch;
   const size = SIZES[cfg.size] || SIZES.m;
-  if (!shape.decal.onBase) return size.total;
+  if (!shape.decal.onBase || shape.panel) return size.total;
   const bh = size.baseH * 1.35;
   return bh + fitFigure(shape, size.w, size.total - bh, cfg.variant).h;
 }
@@ -2381,9 +2552,10 @@ export function buildTrophy(cfg) {
      past it -- see fitFigure. Pieces that are not figures keep the old rule
      below: the base widens to reach anything that touches down. */
   let cut, bx = 0, bw = baseWidth(w);
-  if (onBase) ({ cut, h, bx } = fitFigure(shape, w, h, cfg.variant));
+  const figure = onBase && !shape.panel;    // a printed panel is not fitted like a figure
+  if (figure) ({ cut, h, bx } = fitFigure(shape, w, h, cfg.variant));
   else cut = shape.build(w, h, cfg.variant);
-  if (cut && !onBase) {
+  if (cut && !figure) {
     const pts = pieces(cut).flatMap(r => r.getPoints(240));
     const ys = pts.map(p => p.y);
     const bot = Math.min(...ys), span = Math.max(...ys) - bot;
@@ -2420,7 +2592,7 @@ export function buildTrophy(cfg) {
      down onto it, so a toe or a hem that nearly touches stands on a shelf that
      deep: a light strip showed beside the Lady's shoe, along the gown's hem and
      behind the runner's back toe until the figure sank by that much as well. */
-  blade.position.y = baseTop - h * 0.015 - (onBase ? h * 0.0045 + bevel * 1.5 : 0);
+  blade.position.y = baseTop - h * 0.015 - (figure ? h * 0.0045 + bevel * 1.5 : 0);
   blade.position.x = -bx;                   // the feet on the centre line
   blade.name = 'blade';
   group.add(blade);
@@ -2556,7 +2728,7 @@ export function buildTrophy(cfg) {
   }
 
   /* sticker — on the blade, or on the base front for the figures */
-  const d = layeredOn(cfg.shape, cfg.variant) ? LAYERED[cfg.shape].decal : shape.decal;
+  const d = !shape.decal.onBase && layeredOn(cfg.shape, cfg.variant) ? LAYERED[cfg.shape].decal : shape.decal;
   let dw, dh, pos, rotX = 0;
 
   if (d.onBase) {

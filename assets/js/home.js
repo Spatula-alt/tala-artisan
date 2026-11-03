@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611031549';
-import { buildTrophy, disposeGroup, price, peso } from './trophy.js?v=202611031549';
+import { createViewer, webglAvailable } from './viewer.js?v=202611031751';
+import { buildTrophy, disposeGroup, price, peso, artReady } from './trophy.js?v=202611031751';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -116,6 +116,8 @@ async function bakeThumbnails() {
     // Frosted engraving needs a dark ground or the piece reads as empty.
     if (cfg.material === 'clear' || cfg.material === 'white') card.querySelector('.viz')?.classList.add('is-dark');
 
+    // a printed piece: wait for its print, or the still is taken bare (4 s at most)
+    await Promise.race([artReady(cfg), new Promise(r => setTimeout(r, 4000))]);
     const model = buildTrophy(cfg);
     viewer.scene.add(model);
     viewer.frameObject(model);
