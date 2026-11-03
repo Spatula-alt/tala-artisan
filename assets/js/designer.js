@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611031824';
+import { createViewer, webglAvailable } from './viewer.js?v=202611032203';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611031824';
+} from './trophy.js?v=202611032203';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -91,7 +91,9 @@ function materialSwatch(spec) {
 const finishSwatch = f => f.metal
   ? `linear-gradient(135deg,${hex(f.color)},#ffffff 45%,${hex(f.color)})`
   : hex(f.color);
-const schemeSwatch = s => `linear-gradient(135deg,${s.bg},${s.bg2 || s.bg})`;
+const schemeSwatch = s => s.print
+  ? `radial-gradient(circle,${s.ink} 0 32%,${s.ink === '#FFFFFF' ? '#56606c' : '#e8e4dc'} 35%)`   // ink on the acrylic
+  : `linear-gradient(135deg,${s.bg},${s.bg2 || s.bg})`;
 
 /* ───────────────────────── 3D ───────────────────────── */
 
@@ -327,7 +329,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031824'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611032203'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -675,13 +677,17 @@ function buildTiles() {
       }
       cfg.shape = k; cfg.variant = 0; cfg.place = null; setVariant(k, 0);
       if (MATERIALS[SHAPES[k].sheet]) cfg.material = SHAPES[k].sheet;
+      if (SHAPES[k].ink) cfg.scheme = SHAPES[k].ink;          // a design's wording is printed on it
       poseTiles(); custom(); rebuild();
     },
     (k, v) => {
       const d = k === 'custom' ? (outlineReady && outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }) || FIG_CUSTOM)
                              : outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
       const gd = k === 'custom' ? '' : goldPath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
-      const art = k === 'custom' ? '' : tileArt(k, { x: 1, y: 3, w: 38, h: 39 });
+      // a design's tile is a picture of it, finishes and all; tileArt draws one if there is none
+      const art = k === 'custom' ? '' : v.tile
+        ? `<image href="assets/${v.tile}" x="1" y="3" width="38" height="39" preserveAspectRatio="xMidYMax meet"/>`
+        : tileArt(k, { x: 1, y: 3, w: 38, h: 39 });
       return `<svg viewBox="0 0 40 50" aria-hidden="true"${art ? ' class="ph"' : ''}>${art || `<path d="${d}" fill-rule="evenodd"/>`}` +
              (gd ? `<path class="gold" d="${gd}" fill-rule="evenodd"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
