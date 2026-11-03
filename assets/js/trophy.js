@@ -715,10 +715,9 @@ export const DESIGNS = {
 };
 /* </designs> */
 
-/* What a design's layers add to its price. Each is another sheet and another
-   cut, but the owner sets the prices: until they choose a layer price, a
-   design costs what its single-sheet shape did. (0.12 a layer, capped at
-   +50%, raised the shop's cards about 12% -- not done unasked.) */
+/* What a design's layers add to its price: nothing. The owner (4 Nov): "don't
+   add up prices even if it has layering" -- a layered design costs what a plain
+   cut of the same size does. */
 const LAYER_PRICE = 0;
 function designCost(key) {
   const D = DESIGNS[key];
