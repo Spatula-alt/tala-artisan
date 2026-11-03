@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611032203';
-import { buildTrophy, disposeGroup, price, peso, artReady } from './trophy.js?v=202611032203';
+import { createViewer, webglAvailable } from './viewer.js?v=202611032355';
+import { buildTrophy, disposeGroup, price, peso, artReady } from './trophy.js?v=202611032355';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -161,7 +161,7 @@ async function assembleOnScroll(sel, live) {
   const base = model.getObjectByName('base'), blade = model.getObjectByName('blade');
   const sticker = model.getObjectByName('sticker');
   if (!base || !blade || !sticker || !viewer.setView) return;
-  const wings = model.children.filter(o => /^accent\d+$/.test(o.name));
+  const wings = model.children.filter(o => /^(accent|layer)\d+$/.test(o.name));   // a design's layers
   const h = model.userData.height || 20;
   const w = model.userData.dims?.w || 6;
 
