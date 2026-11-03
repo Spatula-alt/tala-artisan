@@ -4,15 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611031751';
+import { createViewer, webglAvailable } from './viewer.js?v=202611031824';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
-  quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
+  quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611031751';
+} from './trophy.js?v=202611031824';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -327,7 +327,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031751'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031824'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -617,10 +617,6 @@ const custom = () => { cfg._occasion = null; };
 /* Some cut shapes are offered in more than one pose. The row only appears when
    the chosen shape has any, and each tile draws ITS OWN pose rather than the
    one currently selected — hence the third argument to outlinePath. */
-/* A catalogue piece's tile: its own photo, cut out, in the same box the
-   outlines are fitted to, so a With gold tile's gold lands on it. */
-const tilePhoto = src => `<image href="assets/${src}" x="1" y="3" width="38" height="39" preserveAspectRatio="xMidYMax meet"/>`;
-
 function poseTiles() {
   const row = $('#poseRow');
   const names = variantsOf(cfg.shape);
@@ -656,8 +652,7 @@ function poseTiles() {
     (k, v) => {
       const d = outlinePath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
       const gd = goldPath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
-      const tile = SHAPES[cfg.shape]?.tile;
-      return `<svg viewBox="0 0 40 50" aria-hidden="true"${tile ? ' class="ph"' : ''}>${tile ? tilePhoto(tile) : `<path d="${d}" fill-rule="evenodd"/>`}` +
+      return `<svg viewBox="0 0 40 50" aria-hidden="true"><path d="${d}" fill-rule="evenodd"/>` +
              (gd ? `<path class="gold" d="${gd}" fill-rule="evenodd"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
@@ -678,13 +673,16 @@ function buildTiles() {
         cutNote('Choose a picture below and we will cut the trophy to its shape.');
         return;
       }
-      cfg.shape = k; cfg.variant = 0; cfg.place = null; setVariant(k, 0); poseTiles(); custom(); rebuild();
+      cfg.shape = k; cfg.variant = 0; cfg.place = null; setVariant(k, 0);
+      if (MATERIALS[SHAPES[k].sheet]) cfg.material = SHAPES[k].sheet;
+      poseTiles(); custom(); rebuild();
     },
     (k, v) => {
       const d = k === 'custom' ? (outlineReady && outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }) || FIG_CUSTOM)
                              : outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
       const gd = k === 'custom' ? '' : goldPath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
-      return `<svg viewBox="0 0 40 50" aria-hidden="true"${v.tile ? ' class="ph"' : ''}>${v.tile ? tilePhoto(v.tile) : `<path d="${d}" fill-rule="evenodd"/>`}` +
+      const art = k === 'custom' ? '' : tileArt(k, { x: 1, y: 3, w: 38, h: 39 });
+      return `<svg viewBox="0 0 40 50" aria-hidden="true"${art ? ' class="ph"' : ''}>${art || `<path d="${d}" fill-rule="evenodd"/>`}` +
              (gd ? `<path class="gold" d="${gd}" fill-rule="evenodd"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
@@ -947,10 +945,9 @@ function sync() {
   // the figures carry their name plate on the base; the body stays bare
   // acrylic unless the customer gives us artwork for it
   const onBase = !!shape.decal.onBase;
-  set('stickerWhere', !onBase ? 'The sticker is applied to the front face of the acrylic.'
-    : shape.panel
-      ? 'This design is printed on the front as in its catalogue picture, so the name plate goes on the base. Drop in an image below and you can print it over the trophy instead.'
-      : 'This is a cut figure, so the name plate goes on the base. Drop in an image below and you can print it over the figure itself.');
+  set('stickerWhere', onBase
+    ? 'This is a cut figure, so the name plate goes on the base. Drop in an image below and you can print it over the figure itself.'
+    : 'The sticker is applied to the front face of the acrylic.');
 
   const tgtBlock = $('#photoTargetBlock');
   if (tgtBlock) tgtBlock.hidden = !onBase;
@@ -1044,9 +1041,9 @@ function specText() {
       + `${{ alpha: 'transparent PNG', plain: 'plain background removed', photo: 'photo background removed' }[(cfg.cutMode || '').replace('+hand', '')] || 'background removed'}`
       + `${(cfg.cutMode || '').includes('+hand') ? ', then edited by hand' : ''}), `
       + (cfg.cutPrint ? 'picture printed on the cut piece' : 'bare acrylic') + '. Please send the original file.') : null,
-    shape.decal.onBase ? r(shape.panel ? '  Front' : '  Figure', cfg.photoImg && cfg.photoTarget === 'figure'
+    shape.decal.onBase ? r('  Figure', cfg.photoImg && cfg.photoTarget === 'figure'
         ? 'customer image printed over the whole cut shape'
-        : shape.panel ? 'printed with the catalogue design' : 'bare acrylic') : null,
+        : 'bare acrylic') : null,
     cfg.photoImg ? r('  Photo', cfg.photoTarget === 'figure'
         ? 'customer supplied, printed over the whole cut shape — TO BE SENT'
         : `customer supplied, ${PHOTO_FITS[cfg.photoFit].label.toLowerCase()} — TO BE SENT`) : null,

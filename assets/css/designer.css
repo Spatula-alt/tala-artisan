@@ -63,7 +63,8 @@
 .opt svg{width:100%;height:38px}
 .opt svg path,.opt svg rect{fill:currentColor;opacity:.82}
 .opt svg path.gold{fill:#c9a24a;opacity:1}
-.opt svg.ph{height:76px}  /* a catalogue piece's own photo: big enough to see */
+.opt svg.ph{height:76px}  /* a layered design in its colours: big enough to see */
+.opt svg path.lay{opacity:1;stroke:rgba(0,0,0,.22);stroke-width:.22}
 .opts__group{grid-column:1/-1;margin:10px 2px 0;font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
 .opts__group:first-child{margin-top:0}
 .opt .sw{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.16);flex:none}
