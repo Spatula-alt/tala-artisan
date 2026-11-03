@@ -391,30 +391,30 @@ export function accentShapes(key, w, h, variant) {
    the depth buildTrophy sinks every blade into its base. So the feet stand ON
    the base, whole, and the tab is out of sight. 300 tall with the tab, y DOWN. */
 
-/* Every figure is a REALISTIC full-colour print: a studio photograph of a person,
-   cut to their own outline. The owner (3 Nov): "not cartoon style, more modern
-   and realistic ... professional and luxury ... not smiling", then "realistic
-   but luxury, not animated cartoon or low quality pictures", and then -- shown
-   a stern face and a faceless mannequin -- "a neutral face": calm and relaxed,
-   neither smiling nor stern. No free library had a matching set of real people
-   standing full length, so each one is made on this laptop's GPU by
-   figure-src/generate-figures.py (RealVisXL V5.0, whose licence allows
-   commercial use of the pictures), one look for the whole set: full length on
-   a plain backdrop, soft studio light, a calm neutral face. The picture files
-   are kept in figure-src/ai. cutout-figures.py lifts it off the backdrop and polish-figure.py
-   cuts it like any other source; each _ART is the picture and its corners in
-   the cut's frame. Sports kit is asked for plain, with no brand marks or
-   lettering: the first lot came back with stripes and swooshes.
+/* Every figure is a FLAT FASHION ILLUSTRATION WITH NO FACE, printed in full
+   colour and cut to its own outline. The owner on 3 Nov, step by step: "not
+   cartoon style, more modern and realistic ... professional and luxury", then
+   "a neutral face" (not a mannequin, not a stern stare), and finally, holding
+   up flat vector men in suits with blank faces: "make it not real faces, make
+   it like illustration with no face".
+   How a figure is made (each script's docstring has the detail):
+     generate-figures.py   a realistic studio photograph, made on this laptop's
+                           GPU (RealVisXL V5.0; its licence allows commercial use)
+     inpaint-marks.py      big brand marks painted out as fabric
+     cutout-figures.py     off the backdrop, small marks filled in
+     illustrate-figures.py flattened to a few clean planes, skin in three tones,
+                           the face an oval of flat skin under the hair
+     polish-figure.py      the cut and the print, as for any source
+   Each _ART is the picture and its corners in the cut's frame.
      Gentleman  black tuxedo, buttoning the jacket      GENT-2002
      Suit       charcoal suit, navy tie                 SUIT-2000
      Lady       red dress                               LADY-2000
      Gowns      0 Ball gown GOWN_BALL-5001, 1 Train GOWN_TRAIN-2000,
                 2 Evening GOWN_EVENING-2003, 3 Off-shoulder GOWN_SWEEP-2001
      Graduate   men GRAD-2003, women GRAD_W-5002
-   (NAME-seed is the file in figure-src/ai and the seed it was drawn with; the
-   wording has been tuned since, so a rerun gives a near copy, not the same one.)
-   Before this the figures were flat cartoon drawings from Pixabay, and before
-   that black silhouettes. Drawn 300 tall, y down. */
+   (NAME-seed is the photograph in figure-src/ai and the seed it was drawn with.)
+   Before this: realistic photographs with faces, flat cartoon drawings from
+   Pixabay, and black silhouettes. Drawn 300 tall, y down. */
 const GENT_TRACE = `M98.8 299.9 L88.6 299.9 L88.5 294.2 L83.7 293.4 L81.2 292.5 L79.6 291.4 L79.0 290.2 L78.9 289.2
   L78.4 288.4 L77.4 288.0 L75.9 288.1 L74.2 287.7 L72.2 286.9 L71.5 286.0 L71.1 282.2 L71.1 278.9
   L71.5 277.4 L72.6 275.3 L72.7 274.7 L71.3 271.2 L70.6 266.8 L70.6 257.1 L71.3 252.4 L71.3 250.6
@@ -720,7 +720,7 @@ const RUN_M_RUN_TRACE = `M64.7 299.9 L57.0 299.9 L56.9 293.7 L56.4 292.8 L55.0 2
   L21.3 87.5 L20.2 85.0 L19.4 81.4 L18.7 80.8 L18.2 81.1 L17.3 82.2 L9.1 90.1 L8.8 91.6
   L9.0 92.5 L10.2 94.6 L12.0 100.8 L12.8 102.5 L15.4 104.8 L16.6 106.2 L17.7 107.0 L19.6 107.8 Z`;
 
-const RUN_M_RUN_ART = {"src": "img/figures/run-m-run.7c934b84.webp", "box": [-5.71, -1.29, 105.93, 301.06]};
+const RUN_M_RUN_ART = {"src": "img/figures/run-m-run.d8ae1fe1.webp", "box": [-5.71, -1.29, 105.93, 301.06]};
 
 const RUN_W_SPRINT_TRACE = `M71.5 299.9 L60.3 299.9 L60.2 294.2 L58.9 293.6 L56.9 292.2 L55.6 290.4 L54.4 289.3 L53.3 287.5
   L52.9 278.5 L52.5 277.5 L52.8 276.4 L52.6 274.5 L51.4 271.5 L48.1 264.7 L48.1 263.2 L48.8 261.8
@@ -766,7 +766,7 @@ const RUN_W_SPRINT_TRACE = `M71.5 299.9 L60.3 299.9 L60.2 294.2 L58.9 293.6 L56.
   L14.3 81.2 L13.1 83.8 L12.8 86.5 L13.9 91.6 L14.4 99.6 L15.0 102.3 L16.0 104.7 L17.0 106.1
   L18.5 106.9 L22.1 107.5 L23.3 108.1 L27.7 112.7 L28.4 113.0 Z`;
 
-const RUN_W_SPRINT_ART = {"src": "img/figures/run-w-sprint.5cd59403.webp", "box": [0.69, -1.34, 99.27, 301.18]};
+const RUN_W_SPRINT_ART = {"src": "img/figures/run-w-sprint.ed770f5b.webp", "box": [0.69, -1.34, 99.27, 301.18]};
 
 const BOX_M_VICTORY_TRACE = `M92.7 299.9 L78.1 299.9 L78.0 294.3 L76.5 292.9 L75.9 291.4 L76.7 288.7 L76.4 283.4 L78.0 275.8
   L78.0 273.8 L78.5 270.5 L78.3 269.6 L78.3 266.6 L79.0 264.0 L78.8 261.0 L78.1 258.9 L77.8 255.9
@@ -811,7 +811,7 @@ const BOX_M_VICTORY_TRACE = `M92.7 299.9 L78.1 299.9 L78.0 294.3 L76.5 292.9 L75
   L93.7 268.0 L92.8 270.7 L93.7 274.2 L94.2 277.5 L95.4 281.7 L96.2 289.7 L95.8 291.9 L94.5 293.2
   L92.8 294.2 Z`;
 
-const BOX_M_VICTORY_ART = {"src": "img/figures/box-m-victory.4cd46f83.webp", "box": [1.84, -1.01, 98.11, 298.85]};
+const BOX_M_VICTORY_ART = {"src": "img/figures/box-m-victory.1ec7e584.webp", "box": [1.84, -1.01, 98.11, 298.85]};
 
 const BOX_M_CHAMPION_TRACE = `M20.8 299.9 L9.4 299.9 L9.3 294.3 L7.9 292.1 L7.6 290.0 L8.6 286.0 L9.6 284.0 L12.4 280.0
   L14.9 275.2 L16.0 272.2 L16.9 268.0 L18.0 262.7 L18.0 258.4 L17.7 257.7 L17.7 254.5 L17.5 253.8
@@ -851,7 +851,7 @@ const BOX_M_CHAMPION_TRACE = `M20.8 299.9 L9.4 299.9 L9.3 294.3 L7.9 292.1 L7.6 
   L30.6 276.5 L29.5 283.6 L28.8 285.2 L26.7 286.6 L26.2 287.2 L26.0 288.1 L26.0 290.5 L25.4 291.8
   L23.6 293.4 L21.0 294.2 Z`;
 
-const BOX_M_CHAMPION_ART = {"src": "img/figures/box-m-champion.73c62920.webp", "box": [-5.57, -1.21, 105.54, 298.26]};
+const BOX_M_CHAMPION_ART = {"src": "img/figures/box-m-champion.5858ebf7.webp", "box": [-5.57, -1.21, 105.54, 298.26]};
 
 const BOX_W_GUARD_TRACE = `M-8.4 299.9 L-22.1 299.9 L-22.2 294.2 L-25.0 292.9 L-25.1 292.1 L-24.3 289.4 L-22.1 286.8 L-21.2 286.1
   L-17.1 284.3 L-11.2 281.1 L-9.9 279.5 L-5.4 275.7 L-4.2 273.8 L-3.8 271.6 L-4.0 270.0 L-3.3 268.8
@@ -894,7 +894,7 @@ const BOX_W_GUARD_TRACE = `M-8.4 299.9 L-22.1 299.9 L-22.2 294.2 L-25.0 292.9 L-
   L13.3 272.5 L13.3 275.1 L14.2 279.1 L14.2 281.9 L13.8 283.0 L13.5 286.7 L12.8 287.7 L10.7 288.6
   L4.4 290.0 L1.9 289.7 L-2.1 290.7 L-3.6 291.5 L-5.4 293.0 L-8.3 294.2 Z`;
 
-const BOX_W_GUARD_ART = {"src": "img/figures/box-w-guard.e2404c03.webp", "box": [-26.18, -1.24, 126.38, 301.22]};
+const BOX_W_GUARD_ART = {"src": "img/figures/box-w-guard.7cfa14b4.webp", "box": [-26.18, -1.24, 126.38, 301.22]};
 
 const BOX_W_READY_TRACE = `M107.5 299.9 L-7.1 299.9 L-7.4 299.8 L-7.4 294.3 L-8.1 292.4 L-8.4 290.8 L-7.8 288.3 L-6.7 286.4
   L-5.0 284.6 L-3.6 283.8 L1.4 279.3 L2.8 276.9 L4.0 275.5 L4.4 274.1 L6.0 271.2 L6.7 265.6
@@ -944,7 +944,7 @@ const BOX_W_READY_TRACE = `M107.5 299.9 L-7.1 299.9 L-7.4 299.8 L-7.4 294.3 L-8.
   L17.6 95.3 L15.7 100.3 L14.0 108.0 L14.2 117.3 L13.2 123.7 L13.2 126.3 L13.6 127.3 L14.9 128.6
   L15.5 129.6 Z`;
 
-const BOX_W_READY_ART = {"src": "img/figures/box-w-ready.15f46291.webp", "box": [-9.58, -1.24, 109.39, 301.12]};
+const BOX_W_READY_ART = {"src": "img/figures/box-w-ready.50d46e57.webp", "box": [-9.58, -1.24, 109.39, 301.12]};
 
 const RUN_W_READY_TRACE = `M8.9 299.9 L-6.3 299.9 L-6.4 294.1 L-6.1 293.0 L-6.6 290.7 L-5.5 287.7 L-0.8 282.7 L1.2 279.1
   L1.4 277.1 L0.9 275.8 L2.3 274.2 L1.5 273.3 L4.4 272.5 L5.2 269.5 L8.1 266.6 L8.4 263.2
@@ -985,23 +985,23 @@ const RUN_W_READY_TRACE = `M8.9 299.9 L-6.3 299.9 L-6.4 294.1 L-6.1 293.0 L-6.6 
   L24.3 71.7 L23.6 72.1 L17.7 78.2 L13.2 84.1 L9.5 87.2 L8.8 88.4 L8.8 88.9 L11.6 95.7
   L12.7 100.0 L13.8 102.8 L15.3 105.7 L18.5 110.8 L21.2 113.8 L22.1 114.3 L23.2 114.6 Z`;
 
-const RUN_W_READY_ART = {"src": "img/figures/run-w-ready.023ff931.webp", "box": [-7.81, -1.25, 107.84, 301.09]};
+const RUN_W_READY_ART = {"src": "img/figures/run-w-ready.8a9099a9.webp", "box": [-7.81, -1.25, 107.84, 301.09]};
 
-const GENT_ART = {"src": "img/figures/gent.9504cd42.webp", "box": [-0.2, -1.32, 100.19, 300.97]};
+const GENT_ART = {"src": "img/figures/gent.ceea8d9d.webp", "box": [-0.2, -1.32, 100.19, 300.97]};
 
-const LADY_ART = {"src": "img/figures/lady.d0da63ad.webp", "box": [6.1, -1.3, 93.95, 301.06]};
+const LADY_ART = {"src": "img/figures/lady.28374702.webp", "box": [6.1, -1.3, 93.95, 301.06]};
 
-const SUIT_ART = {"src": "img/figures/suit.87a8f753.webp", "box": [5.78, -1.05, 94.47, 301.18]};
+const SUIT_ART = {"src": "img/figures/suit.f7ec4c81.webp", "box": [5.78, -1.05, 94.47, 301.18]};
 
-const GOWN_BALL_ART = {"src": "img/figures/gown-ball.fc6e1f23.webp", "box": [-47.2, -1.46, 147.16, 301.26]};
+const GOWN_BALL_ART = {"src": "img/figures/gown-ball.36bfd0c3.webp", "box": [-47.2, -1.46, 147.16, 301.26]};
 
-const GOWN_TRAIN_ART = {"src": "img/figures/gown-train.5342ed92.webp", "box": [-27.66, -1.37, 127.6, 296.57]};
+const GOWN_TRAIN_ART = {"src": "img/figures/gown-train.f523dae1.webp", "box": [-27.66, -1.37, 127.6, 296.57]};
 
-const GOWN_EVENING_ART = {"src": "img/figures/gown-evening.1586780c.webp", "box": [-6.7, -1.1, 106.76, 301.18]};
+const GOWN_EVENING_ART = {"src": "img/figures/gown-evening.5167b3fc.webp", "box": [-6.7, -1.1, 106.76, 301.18]};
 
-const GOWN_SWEEP_ART = {"src": "img/figures/gown-sweep.441f357c.webp", "box": [-23.23, -1.28, 123.34, 298.3]};
+const GOWN_SWEEP_ART = {"src": "img/figures/gown-sweep.4cc43855.webp", "box": [-23.23, -1.28, 123.34, 298.3]};
 
-const GRAD_ART = {"src": "img/figures/grad.c855f699.webp", "box": [-3.03, -1.16, 103.01, 301.23]};
+const GRAD_ART = {"src": "img/figures/grad.bf8783a7.webp", "box": [-3.03, -1.16, 103.01, 301.23]};
 
 const GRAD_W_TRACE = `M61.5 299.9 L45.4 299.9 L45.3 294.2 L42.8 292.9 L41.7 290.8 L41.4 274.8 L41.9 271.6 L40.5 268.7
   L40.8 263.3 L40.3 260.2 L33.6 234.6 L32.8 229.2 L32.4 228.1 L32.2 223.7 L31.9 222.8 L32.2 215.1
@@ -1030,7 +1030,7 @@ const GRAD_W_TRACE = `M61.5 299.9 L45.4 299.9 L45.3 294.2 L42.8 292.9 L41.7 290.
   L48.0 225.0 L48.3 225.9 L48.3 235.4 L48.0 236.1 L48.0 242.2 L47.8 243.2 L47.8 257.6 L48.3 261.7
   L50.2 265.8 L51.9 272.0 L52.2 272.4 Z`;
 
-const GRAD_W_ART = {"src": "img/figures/grad-w.e1b31ea9.webp", "box": [4.6, -1.24, 95.39, 300.97]};
+const GRAD_W_ART = {"src": "img/figures/grad-w.9a3037c3.webp", "box": [4.6, -1.24, 95.39, 300.97]};
 
 const BALL_W_READY_TRACE = `M106.4 299.9 L94.0 299.9 L93.9 294.2 L91.6 293.2 L90.0 292.1 L88.7 290.8 L87.2 288.2 L86.2 284.5
   L85.7 283.7 L84.8 282.9 L79.6 280.2 L78.1 279.2 L75.5 276.9 L74.8 275.8 L74.5 274.7 L74.8 273.2
@@ -1073,7 +1073,7 @@ const BALL_W_READY_TRACE = `M106.4 299.9 L94.0 299.9 L93.9 294.2 L91.6 293.2 L90
   L15.3 80.5 L16.9 76.7 L16.8 73.9 L16.6 73.2 L16.1 73.0 L14.4 74.6 L11.6 79.4 L4.5 95.8
   L4.0 97.5 L4.0 99.0 L8.7 109.3 L11.7 115.2 L14.5 119.4 L16.4 121.4 Z`;
 
-const BALL_W_READY_ART = {"src": "img/figures/ball-w-ready.8ca26657.webp", "box": [-8.88, -1.21, 108.84, 301.1]};
+const BALL_W_READY_ART = {"src": "img/figures/ball-w-ready.c459d292.webp", "box": [-8.88, -1.21, 108.84, 301.1]};
 
 const VOLLEY_W_READY_TRACE = `M93.8 299.9 L6.5 299.9 L6.3 299.8 L6.2 294.2 L-0.9 294.1 L-1.7 293.8 L-2.5 293.0 L-3.2 291.3
   L-2.9 285.9 L-2.6 284.5 L-1.2 281.0 L-0.7 278.9 L1.5 275.9 L1.4 274.7 L2.1 273.2 L1.6 270.7
@@ -1121,7 +1121,7 @@ const VOLLEY_W_READY_TRACE = `M93.8 299.9 L6.5 299.9 L6.3 299.8 L6.2 294.2 L-0.9
   L10.9 85.5 L8.4 88.9 L5.9 91.6 L5.0 92.3 L3.0 94.6 L2.4 95.9 L2.4 98.0 L3.8 102.3
   L4.5 105.2 L5.0 106.0 Z`;
 
-const VOLLEY_W_READY_ART = {"src": "img/figures/volley-w-ready.6c8820bd.webp", "box": [-11.24, -1.3, 111.24, 301.25]};
+const VOLLEY_W_READY_ART = {"src": "img/figures/volley-w-ready.7df0c379.webp", "box": [-11.24, -1.3, 111.24, 301.25]};
 
 const VOLLEY_M_READY_TRACE = `M10.8 299.9 L-4.7 299.9 L-4.8 294.2 L-5.3 292.9 L-5.3 289.7 L-4.8 287.9 L-3.6 286.1 L0.2 282.4
   L2.9 278.7 L3.6 277.5 L3.6 276.5 L3.1 274.8 L3.5 274.1 L4.5 273.5 L6.0 272.0 L6.5 270.6
@@ -1168,7 +1168,7 @@ const VOLLEY_M_READY_TRACE = `M10.8 299.9 L-4.7 299.9 L-4.8 294.2 L-5.3 292.9 L-
   L18.2 81.3 L15.3 83.1 L13.0 86.0 L11.3 87.8 L7.6 90.0 L6.8 91.0 L5.4 95.2 L5.2 97.3
   L5.2 100.0 L4.2 105.8 L4.4 106.6 Z`;
 
-const VOLLEY_M_READY_ART = {"src": "img/figures/volley-m-ready.592e4f2d.webp", "box": [-10.61, -1.08, 110.86, 301.13]};
+const VOLLEY_M_READY_ART = {"src": "img/figures/volley-m-ready.907530ad.webp", "box": [-10.61, -1.08, 110.86, 301.13]};
 
 const FOOT_M_BALL_TRACE = `M81.6 299.9 L65.9 299.9 L65.8 294.2 L64.2 293.6 L63.6 292.6 L63.6 290.8 L64.0 289.7 L65.5 287.4
   L67.9 284.8 L69.6 281.6 L70.0 280.1 L71.9 275.9 L71.8 275.0 L71.3 274.7 L69.7 274.8 L67.7 275.8
@@ -1209,7 +1209,7 @@ const FOOT_M_BALL_TRACE = `M81.6 299.9 L65.9 299.9 L65.8 294.2 L64.2 293.6 L63.6
   L88.2 273.9 L88.9 276.3 L88.9 279.8 L89.3 280.8 L89.3 283.4 L88.5 285.7 L85.8 290.4 L84.2 292.3
   L81.7 294.2 Z`;
 
-const FOOT_M_BALL_ART = {"src": "img/figures/foot-m-ball.ca3a9900.webp", "box": [-2.59, -1.45, 102.56, 301.32]};
+const FOOT_M_BALL_ART = {"src": "img/figures/foot-m-ball.de505c40.webp", "box": [-2.59, -1.45, 102.56, 301.32]};
 
 const FOOT_W_BALL_TRACE = `M43.7 299.9 L40.7 299.9 L33.5 298.3 L32.5 297.8 L31.3 296.7 L29.9 294.5 L28.6 293.9 L25.1 294.5
   L21.8 294.5 L19.8 295.1 L13.4 296.0 L9.8 296.9 L7.8 296.9 L6.6 297.3 L2.0 297.3 L0.9 296.9
@@ -1247,7 +1247,7 @@ const FOOT_W_BALL_TRACE = `M43.7 299.9 L40.7 299.9 L33.5 298.3 L32.5 297.8 L31.3
   L61.9 282.1 L61.5 283.1 L61.3 285.6 L60.6 287.5 L59.6 289.5 L59.0 290.3 L57.7 291.5 L55.5 294.2
   L53.5 296.3 L52.2 297.2 L48.8 298.8 Z`;
 
-const FOOT_W_BALL_ART = {"src": "img/figures/foot-w-ball.1f7ce887.webp", "box": [-9.22, -1.49, 109.37, 301.44]};
+const FOOT_W_BALL_ART = {"src": "img/figures/foot-w-ball.a6b3f43a.webp", "box": [-9.22, -1.49, 109.37, 301.44]};
 
 const BALL_M_READY_TRACE = `M28.0 299.9 L10.5 299.9 L10.2 299.8 L10.0 291.0 L11.1 287.1 L13.9 281.7 L16.3 274.2 L17.1 273.0
   L17.1 272.3 L15.9 270.5 L15.9 269.9 L17.1 268.8 L19.1 267.5 L20.3 264.1 L20.1 255.7 L19.7 253.5
@@ -1287,7 +1287,7 @@ const BALL_M_READY_TRACE = `M28.0 299.9 L10.5 299.9 L10.2 299.8 L10.0 291.0 L11.
   L30.6 272.3 L31.3 274.3 L31.7 276.4 L31.6 282.5 L32.2 285.7 L32.2 288.0 L31.7 289.1 L29.7 290.9
   L29.1 293.0 L28.1 294.2 Z`;
 
-const BALL_M_READY_ART = {"src": "img/figures/ball-m-ready.b5f085b6.webp", "box": [8.83, -1.21, 91.18, 300.58]};
+const BALL_M_READY_ART = {"src": "img/figures/ball-m-ready.fb5c4e19.webp", "box": [8.83, -1.21, 91.18, 300.58]};
 
 const FIGURES = {
   /* Each figure: its cut (`path`, or `paths` one per pose), the colour print
@@ -1454,7 +1454,7 @@ function artTexture(art) {
 
 /* What the order sheet says about the print, or null. */
 export function printNote(cfg) {
-  if (figureArt(cfg.shape, cfg.variant)) return 'Printed in full colour on the front: face, skin, hair and kit';
+  if (figureArt(cfg.shape, cfg.variant)) return 'Printed in full colour on the front: a fashion illustration, no face';
   if (!figureDetail(cfg.shape, cfg.variant)) return null;
   const mat = MATERIALS[cfg.material] || MATERIALS.blue;
   return printInk(mat) === PRINT_WHITE
@@ -1519,16 +1519,16 @@ export const SHAPES = {
   arch:     { label: 'Arch',      build: archShape,     base: 1.00, decal: { y: 0.45, w: 0.84, h: 0.52 }, note: 'The default. Fits the most text of any shape.' },
   plaque:   { label: 'Plaque',    build: styled('plaque', plaqueShape),   base: 0.94, decal: { y: 0.50, w: 0.88, h: 0.64 }, note: 'Rounded rectangle. Cheapest to cut, biggest sticker.' },
   shield:   { label: 'Shield',    build: styled('shield', shieldShape),   base: 1.06, decal: { y: 0.49, w: 0.82, h: 0.50 }, note: 'Traditional crest. Suits quiz bees and academic contests.' },
-  lady:     { label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Realistic full-colour print: a lady in a red dress and heels.' },
-  gown:     { label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a realistic full-colour print. Mutya, Mr & Ms and coronation nights.' },
-  gent:     { label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Realistic full-colour print: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
-  grad:     { label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Realistic full-colour print, men and women, in gown and cap. For recognition day.' },
-  ball:     { label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Realistic full-colour print, men and women, the ball in hand. The liga favourite.' },
-  suit:     { label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Realistic full-colour print: a man in a charcoal suit and tie. The partner to the Lady.' },
-  volley:   { label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Realistic full-colour print, men and women, the ball in hand. The school and liga favourite.' },
-  box:      { label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Realistic full-colour print, men and women. For boxing and arnis tournaments.' },
-  foot:     { label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Realistic full-colour print, men and women, the ball at their feet. Also used for futsal.' },
-  run:      { label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Realistic full-colour print, men and women. Covers track, fun runs and Palaro.' },
+  lady:     { label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
+  gown:     { label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
+  gent:     { label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
+  grad:     { label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, in gown and cap. For recognition day.' },
+  ball:     { label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The liga favourite.' },
+  suit:     { label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face: a man in a charcoal suit and tie. The partner to the Lady.' },
+  volley:   { label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The school and liga favourite.' },
+  box:      { label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. For boxing and arnis tournaments.' },
+  foot:     { label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball at their feet. Also used for futsal.' },
+  run:      { label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. Covers track, fun runs and Palaro.' },
   custom:   { label: 'Your art',  build: customShape,   base: 1.30, decal: { onBase: true },              note: 'Cut to your own outline — drop an SVG in the sticker step.' },
   oval:     { label: 'Oval',      build: styled('oval', ovalShape),     base: 1.04, decal: { y: 0.50, w: 0.74, h: 0.52 }, note: 'Soft medallion shape. Pairs well with an oval sticker.' },
   facet:    { label: 'Facet',     build: styled('facet', facetShape),    base: 1.02, decal: { y: 0.49, w: 0.80, h: 0.52 }, note: 'Eight-sided and modern. Popular for corporate awards.' },
