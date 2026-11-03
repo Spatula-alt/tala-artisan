@@ -1439,10 +1439,15 @@ export function figureArt(key, variant) {
    disposeGroup leaves it alone. It loads in the background; when it lands,
    'tala:art' tells every viewer to draw again. */
 const ART_TEX = new Map();
+/* Where the pictures are served from: beside this module on the site. The
+   video project bundles this file away from the site and points it at its own
+   copy of assets/img/figures instead. */
+let ART_BASE = null;
+export function setArtBase(url) { ART_BASE = url; }
 function artTexture(art) {
   let tx = ART_TEX.get(art.src);
   if (!tx) {
-    tx = new THREE.TextureLoader().load(new URL('../' + art.src, import.meta.url).href,
+    tx = new THREE.TextureLoader().load(ART_BASE ? ART_BASE + art.src : new URL('../' + art.src, import.meta.url).href,
       () => window.dispatchEvent(new Event('tala:art')));
     tx.colorSpace = THREE.SRGBColorSpace;
     tx.anisotropy = 8;
