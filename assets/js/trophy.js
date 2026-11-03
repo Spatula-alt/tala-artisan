@@ -199,58 +199,104 @@ function pieces(shape) {
 
 
 
-/* The panel trophies, drawn by figure-src/plaque-designs.py (run it with --write
-   to change them): one cut each -- a panel joined to its ornament -- and the
-   ornament again as a second, gold mirror piece laid on its front. The owner
-   (3 Nov) held up catalogues of acrylic awards -- a star rising out of a wave,
-   a sun on an arch, a shooting star, a disc in a ring, a slab with a medallion,
-   a sail -- and asked for designs like those in place of the plain Arch,
-   Plaque, Shield, Oval, Facet, Monolith and Wave. The keys stay, so a saved
-   design or a shop card still opens; it opens as the new design. 300 tall, y
-   down, the foot on y = 300. */
-const SUNBURST_BODY = `M22.0 300.0 L208.0 300.0 L207.9 150.8 L204.8 131.7 L198.8 116.8 L192.0 105.9 L181.0 94.1 L170.8 86.4 L156.4 79.2 L144.0 75.6 L134.4 74.3 L88.4 74.0 L86.3 67.4 L83.2 61.9 L100.4 37.6 L76.1 54.8 L69.9 51.4 L63.0 49.4 L58.0 20.0 L53.0 49.4 L46.1 51.4 L39.9 54.8 L15.6 37.6 L32.8 61.9 L29.7 67.4 L27.6 74.0 L22.0 74.0 L22.0 75.9 L-2.0 80.0 L22.0 84.1 L22.0 113.4 L15.6 122.4 L22.0 117.9 Z`;
-const SUNBURST_ACCENTS = [`M53.0 49.4 L46.1 51.4 L39.9 54.8 L15.6 37.6 L32.8 61.9 L29.4 68.1 L27.4 75.0 L-2.0 80.0 L27.4 85.0 L29.4 91.9 L32.8 98.1 L15.6 122.4 L39.9 105.2 L46.1 108.6 L53.0 110.6 L58.0 140.0 L63.0 110.6 L69.9 108.6 L76.1 105.2 L100.4 122.4 L83.2 98.1 L86.6 91.9 L88.6 85.0 L118.0 80.0 L88.6 75.0 L86.6 68.1 L83.2 61.9 L100.4 37.6 L76.1 54.8 L69.9 51.4 L63.0 49.4 L58.0 20.0 Z`];
-const SUNBURST_DECAL = { x: 0.095, y: 0.3, w: 0.568, h: 0.385 };
 
-const STAR_RISE_BODY = `M130.7 115.0 L81.9 132.8 L61.8 138.1 L51.9 139.1 L42.3 138.7 L33.0 136.4 L24.0 132.0 L24.0 300.0 L206.0 300.0 L206.0 122.0 L186.2 118.5 L181.8 101.7 L213.2 76.1 L172.7 73.8 L158.0 36.0 L143.3 73.8 L102.8 76.1 L134.2 101.7 Z`;
-const STAR_RISE_ACCENTS = [`M158.0 36.0 L172.7 73.8 L213.2 76.1 L181.8 101.7 L192.1 140.9 L158.0 119.0 L123.9 140.9 L134.2 101.7 L102.8 76.1 L143.3 73.8 Z`];
-const STAR_RISE_DECAL = { x: -0.032, y: 0.267, w: 0.654, h: 0.413 };
 
-const SHOOTING_STAR_BODY = `M128.0 145.0 L175.4 182.0 L179.6 122.0 L229.5 88.4 L173.7 65.9 L157.1 8.0 L118.5 54.1 L58.3 52.0 L90.3 103.0 L75.0 144.9 L63.1 160.3 L51.1 179.1 L41.3 198.4 L33.7 218.0 L28.1 237.6 L24.4 257.2 L22.4 276.5 L22.0 300.0 L112.0 300.0 L108.3 273.7 L106.6 254.3 L106.3 234.3 L107.7 213.5 L111.1 191.9 L115.6 173.9 L125.6 145.8 Z`;
-const SHOOTING_STAR_ACCENTS = [`M75.0 144.9 L63.1 160.3 L51.1 179.1 L41.3 198.4 L33.7 218.0 L28.1 237.6 L24.4 257.2 L22.4 276.5 L22.0 300.0 L112.0 300.0 L108.3 273.7 L106.6 254.3 L106.3 234.3 L107.2 217.7 L109.4 200.7 L113.1 183.0 L118.5 164.7 L125.8 145.5 L69.6 159.6 Z`];
-const SHOOTING_STAR_DECAL = { x: 0.132, y: 0.667, w: 0.248, h: 0.189 };
 
-const RING_BODY = `M218.0 118.4 L216.7 103.7 L212.7 87.9 L207.0 74.3 L198.3 60.4 L188.7 49.3 L176.2 38.7 L162.2 30.3 L148.6 24.8 L134.3 21.3 L119.6 20.0 L104.9 20.9 L89.0 24.3 L75.2 29.6 L61.1 37.8 L48.5 48.1 L38.7 59.1 L28.3 75.8 L21.0 95.7 L18.1 116.7 L19.3 136.3 L22.3 149.0 L27.6 162.8 L34.9 175.6 L43.9 187.2 L54.6 197.3 L65.2 204.9 L78.2 211.7 L90.7 216.2 L80.0 300.0 L158.0 300.0 L147.2 215.6 L162.2 209.7 L176.2 201.3 L188.7 190.7 L199.3 178.2 L207.7 164.2 L213.7 149.0 L217.1 133.1 Z`;
-const RING_ACCENTS = [`M127.3 20.4 L106.6 20.7 L87.4 24.8 L69.4 32.6 L53.3 43.7 L39.7 57.8 L29.0 74.3 L21.8 92.5 L18.3 111.8 L18.7 131.4 L22.8 150.6 L30.6 168.6 L41.7 184.7 L55.8 198.3 L72.3 209.0 L90.5 216.2 L109.8 219.7 L127.8 219.5 L147.0 215.7 L163.7 209.0 L180.2 198.3 L194.3 184.7 L204.6 170.0 L212.2 153.7 L216.8 135.5 L211.8 146.5 L205.9 156.1 L198.8 164.8 L190.6 172.5 L181.4 179.0 L171.5 184.3 L161.0 188.3 L150.0 190.9 L137.4 192.0 L126.2 191.4 L115.1 189.4 L104.4 186.0 L94.2 181.2 L84.8 175.1 L76.2 167.8 L68.6 159.5 L61.5 149.0 L56.5 138.9 L52.9 128.3 L50.7 117.2 L50.0 106.0 L50.7 94.8 L52.9 83.7 L56.5 73.1 L61.5 63.0 L67.8 53.6 L75.2 45.2 L83.6 37.8 L93.0 31.5 L103.1 26.5 L115.1 22.6 Z`];
-const RING_DECAL = { x: 0.052, y: 0.627, w: 0.423, h: 0.324 };
 
-const MEDALLION_BODY = `M18.0 294.6 L20.2 298.6 L24.0 300.0 L206.0 300.0 L208.8 299.3 L211.0 297.3 L212.0 294.0 L212.0 263.9 L216.1 258.0 L219.4 250.8 L221.3 243.9 L222.0 236.0 L221.3 228.1 L219.4 221.2 L216.1 214.0 L212.0 208.1 L212.0 34.7 L209.7 29.9 L205.2 28.7 L182.9 34.2 L163.0 36.4 L97.3 36.9 L71.9 38.8 L56.9 41.6 L42.3 45.9 L27.7 52.4 L19.1 57.9 L18.0 61.4 Z`;
-const MEDALLION_ACCENTS = [`M222.0 236.0 L221.2 227.4 L218.7 219.2 L214.6 211.6 L209.1 204.9 L202.4 199.4 L194.8 195.3 L186.6 192.8 L178.0 192.0 L169.4 192.8 L161.2 195.3 L153.6 199.4 L146.9 204.9 L141.4 211.6 L137.3 219.2 L134.8 227.4 L134.0 236.0 L134.8 244.6 L137.3 252.8 L141.4 260.4 L146.9 267.1 L153.6 272.6 L161.2 276.7 L169.4 279.2 L178.0 280.0 L186.6 279.2 L194.8 276.7 L202.4 272.6 L209.1 267.1 L214.6 260.4 L218.7 252.8 L221.2 244.6 Z`];
-const MEDALLION_DECAL = { x: -0.126, y: 0.547, w: 0.501, h: 0.383 };
 
-const SAIL_BODY = `M34.0 300.0 L34.0 14.0 L51.5 18.7 L68.1 24.8 L84.0 32.2 L106.2 45.6 L119.9 56.1 L132.7 67.7 L144.6 80.4 L160.6 101.4 L174.3 124.6 L182.2 141.2 L188.9 158.6 L194.6 176.8 L201.0 205.5 L203.8 225.5 L205.4 246.1 L205.8 267.3 L204.0 300.0 Z`;
-const SAIL_ACCENTS = [`M205.3 282.0 L205.8 256.6 L204.8 235.8 L202.6 215.5 L199.2 195.8 L194.6 176.8 L188.9 158.6 L182.2 141.2 L170.0 116.6 L155.5 94.2 L144.6 80.4 L132.7 67.7 L119.9 56.1 L106.2 45.6 L91.6 36.3 L76.2 28.3 L54.6 19.8 L56.6 34.2 L78.0 43.7 L92.1 51.8 L105.3 61.0 L117.7 71.4 L129.3 82.8 L140.0 95.2 L149.8 108.7 L158.7 123.1 L170.2 146.3 L176.7 162.9 L182.1 180.3 L186.4 198.4 L189.7 217.3 L191.8 236.8 L192.8 256.9 L192.3 282.0 Z`];
-const SAIL_DECAL = { x: -0.003, y: 0.333, w: 0.448, h: 0.373 };
 
-const WING_BODY = `M40.0 300.0 L40.0 94.0 L210.0 12.0 L200.3 42.0 L194.8 64.1 L190.9 89.6 L188.9 113.9 L188.1 151.1 L188.9 187.9 L191.9 244.6 L196.0 300.0 Z`;
-const WING_ACCENTS = [`M40.0 300.0 L40.0 94.0 L78.0 76.0 L66.0 300.0 Z`];
-const WING_DECAL = { x: 0.034, y: 0.38, w: 0.392, h: 0.403 };
+
+/* The panel trophies are TRACED from the owner's catalogue pictures
+   (figure-src/owner/catalogue) by figure-src/catalogue-shapes.py -- the owner
+   (3 Nov): "don't recreate it, use the images I sent earlier and put it in the
+   cut shapes, and sort it". Each is the outline of a real trophy in those
+   pictures, its own stand cut off; a gold piece the photo shows (the Jay C.
+   sun, the gem's medallion) is traced as the gold piece too. The old keys
+   point at the nearest traced shape, so a saved design or a shop card still
+   opens: arch Sun Arch, plaque Certificate, shield Tulip, oval Oval, facet
+   Faceted Round, monolith Crystal, wave Scallop Sail. 300 tall, y down. */
+const SUNARCH_BODY = `M2.2 64.9 L1.6 65.8 L2.2 66.6 L17.2 70.1 L18.0 71.0 L10.7 85.7 L4.6 116.4 L1.5 162.2 L0.0 208.1 L4.6 254.1 L16.9 299.7 L227.8 299.7 L228.1 177.6 L225.0 116.3 L215.8 67.3 L194.4 32.1 L163.8 9.2 L128.8 0.0 L87.3 9.2 L69.2 18.4 L68.4 17.7 L65.1 3.7 L64.2 3.1 L58.8 23.9 L52.0 27.6 L44.4 35.5 L21.1 21.3 L20.0 21.4 L19.8 22.6 L34.3 46.3 L26.1 55.1 L23.4 60.0 Z`;
+const SUNARCH_ACCENTS = [`M51.4 34.7 L46.4 37.2 L20.4 21.9 L20.3 22.5 L35.7 48.0 L33.2 52.9 L31.5 58.2 L2.2 65.8 L2.5 66.2 L17.4 69.6 L18.1 70.3 L31.5 73.4 L33.2 78.7 L35.7 83.6 L17.7 112.3 L46.4 94.4 L51.4 96.9 L56.7 98.6 L64.3 131.6 L71.9 98.6 L77.2 96.9 L82.1 94.4 L110.8 112.3 L92.8 83.6 L95.4 78.7 L97.1 73.4 L130.1 65.8 L97.1 58.2 L95.4 52.9 L92.8 48.0 L110.8 19.3 L82.1 37.2 L77.2 34.7 L71.9 33.0 L64.5 3.9 L56.7 33.0 Z`];
+const SUNARCH_DECAL = { x: 0.124, y: 0.321, w: 0.571, h: 0.546 };
+
+const GEM_BODY = `M8.5 39.4 L4.2 67.6 L1.4 109.8 L0.0 152.1 L0.0 194.3 L4.2 236.7 L11.2 278.8 L21.0 299.7 L177.2 293.4 L192.5 294.1 L207.4 290.1 L220.3 281.8 L227.2 274.1 L232.4 265.1 L235.6 255.3 L236.4 240.0 L232.4 225.1 L227.2 216.1 L216.4 205.2 L204.1 198.3 L201.4 180.2 L200.0 152.1 L202.9 124.0 L207.1 95.7 L208.5 67.6 L207.1 39.5 L202.8 18.3 L194.5 5.8 L180.3 0.0 L163.5 2.8 L126.7 21.1 L109.9 18.3 L91.6 8.4 L70.5 2.8 L49.3 2.8 L31.2 5.6 L16.9 14.1 Z`;
+const GEM_ACCENTS = [`M202.6 198.2 L192.5 196.1 L182.2 196.1 L172.1 198.2 L162.7 202.4 L154.4 208.4 L147.5 216.1 L144.7 220.4 L140.5 229.8 L138.3 239.9 L138.3 250.2 L140.5 260.3 L144.7 269.7 L150.7 278.1 L158.4 285.0 L167.3 290.1 L172.1 292.0 L175.6 292.9 L192.4 293.6 L207.2 289.7 L220.0 281.4 L226.8 273.8 L232.0 264.9 L235.1 255.2 L235.9 240.0 L232.0 225.3 L226.8 216.4 L216.1 205.6 Z`];
+const GEM_DECAL = { x: -0.081, y: 0.59, w: 0.548, h: 0.493 };
+
+const GOLDSTAR_BODY = `M0.7 112.6 L0.3 114.1 L75.6 191.2 L57.4 299.8 L155.8 250.0 L253.4 299.9 L254.5 299.6 L234.9 191.2 L308.8 113.1 L204.4 96.7 L157.9 0.2 L156.5 0.5 L107.1 96.7 Z`;
+const GOLDSTAR_ACCENTS = [];
+const GOLDSTAR_DECAL = { x: 0.001, y: 0.449, w: 0.494, h: 0.377 };
+
+const ROUND_BODY = `M225.8 299.7 L232.2 298.7 L238.3 294.2 L244.4 284.5 L252.0 275.5 L259.4 264.8 L275.0 234.4 L281.4 212.1 L282.7 197.4 L282.7 152.3 L281.4 132.6 L270.4 100.6 L257.0 73.6 L253.4 67.2 L242.4 52.6 L218.2 28.4 L202.2 17.7 L187.5 10.3 L175.2 5.7 L158.5 1.7 L142.8 0.0 L131.2 0.0 L110.8 2.7 L75.5 15.0 L57.2 26.7 L42.7 40.2 L30.0 54.6 L17.7 75.6 L10.0 94.9 L3.0 119.0 L0.0 146.7 L0.0 164.7 L2.0 190.4 L5.7 206.1 L10.0 219.4 L20.0 243.4 L35.7 268.5 L52.0 286.8 L55.7 296.5 L60.2 299.3 L64.8 300.0 Z`;
+const ROUND_ACCENTS = [];
+const ROUND_DECAL = { x: -0.003, y: 0.471, w: 0.812, h: 0.621 };
+
+const TABLET_BODY = `M0.0 298.9 L1.2 300.0 L185.9 299.5 L185.6 0.2 L24.8 0.0 L16.5 1.5 L12.4 3.3 L8.8 5.9 L3.3 12.4 L0.4 20.5 L0.0 24.9 Z`;
+const TABLET_ACCENTS = [];
+const TABLET_DECAL = { x: -0.001, y: 0.41, w: 0.709, h: 0.677 };
+
+const FIN_BODY = `M125.0 299.7 L131.0 298.7 L136.5 294.1 L145.9 276.2 L152.6 259.4 L162.6 220.3 L163.6 207.8 L166.7 190.6 L171.7 176.8 L173.0 162.6 L173.0 154.2 L169.3 138.7 L169.3 130.6 L171.3 119.2 L171.3 112.4 L166.7 97.2 L166.3 87.5 L163.6 73.7 L162.6 58.5 L156.3 29.8 L151.3 14.3 L146.9 5.2 L141.1 0.0 L137.4 0.0 L134.4 1.7 L83.3 52.1 L76.0 62.9 L56.1 83.3 L29.6 109.6 L16.2 120.0 L6.0 130.3 L1.7 137.4 L0.0 147.5 L0.3 159.3 L2.3 168.0 L12.0 199.4 L19.4 218.6 L25.4 240.2 L31.1 255.0 L36.8 281.0 L43.2 295.8 L46.3 298.7 L52.4 300.0 Z`;
+const FIN_ACCENTS = [];
+const FIN_DECAL = { x: 0.018, y: 0.443, w: 0.417, h: 0.425 };
+
+const PENTAGON_BODY = `M0.3 124.6 L53.0 299.7 L231.7 299.5 L277.1 125.1 L133.3 0.2 L131.8 0.3 Z`;
+const PENTAGON_ACCENTS = [];
+const PENTAGON_DECAL = { x: 0.004, y: 0.383, w: 0.686, h: 0.617 };
+
+const HALFMOON_BODY = `M150.7 299.7 L155.5 299.0 L159.3 296.1 L161.4 288.0 L161.0 274.4 L159.3 265.3 L159.3 257.5 L161.4 243.9 L161.4 226.6 L159.3 213.1 L160.0 188.6 L161.4 176.8 L161.4 21.5 L160.0 12.0 L157.3 5.6 L153.4 1.4 L149.4 0.0 L140.0 3.4 L126.5 6.1 L110.3 11.5 L90.4 19.7 L61.5 38.0 L31.7 68.0 L21.2 82.2 L11.5 100.2 L8.4 106.6 L2.7 124.2 L0.0 148.3 L0.0 184.6 L4.7 210.7 L12.1 231.4 L20.2 245.9 L36.0 270.3 L49.2 283.6 L56.6 294.4 L59.8 297.6 L67.9 300.0 Z`;
+const HALFMOON_ACCENTS = [];
+const HALFMOON_DECAL = { x: 0.009, y: 0.458, w: 0.493, h: 0.502 };
+
+const STARPLAQUE_BODY = `M0.4 121.5 L0.1 122.8 L61.7 299.8 L274.7 299.5 L326.8 127.4 L168.7 0.2 L167.3 0.2 Z`;
+const STARPLAQUE_ACCENTS = [`M15.8 125.2 L15.0 126.2 L15.1 127.3 L33.3 153.3 L45.7 174.3 L56.1 195.5 L62.0 209.8 L69.2 231.2 L73.0 245.7 L76.9 267.5 L78.5 282.0 L79.2 295.2 L80.6 296.5 L102.5 293.4 L125.4 291.1 L148.0 289.6 L170.2 289.2 L192.1 289.7 L213.7 291.2 L234.9 293.7 L254.0 296.8 L255.0 296.5 L255.6 295.3 L255.0 286.1 L255.1 274.9 L256.3 263.0 L260.0 244.4 L265.9 224.8 L274.2 204.2 L284.7 182.6 L297.5 160.0 L311.8 137.4 L310.8 135.8 L286.3 128.2 L262.4 118.2 L240.9 106.6 L221.7 93.2 L204.9 78.1 L190.5 61.3 L182.2 49.0 L175.0 36.1 L169.8 24.7 L168.5 23.9 L167.3 24.4 L159.0 35.9 L148.7 48.4 L137.7 60.2 L120.3 76.1 L101.5 90.0 L81.5 101.9 L60.3 111.8 L37.7 119.7 Z M30.9 131.9 L48.7 126.7 L71.5 117.8 L86.4 110.6 L107.1 98.3 L120.4 88.7 L138.9 73.0 L150.7 61.1 L166.8 42.1 L177.8 60.6 L187.3 73.4 L203.2 90.4 L215.7 101.2 L235.4 115.0 L250.6 123.5 L274.4 134.3 L296.9 142.2 L284.3 162.7 L272.1 185.3 L265.0 200.3 L256.5 221.3 L252.0 235.4 L247.4 255.1 L245.6 268.2 L245.0 285.1 L229.0 282.8 L207.4 280.7 L170.3 279.2 L132.2 280.5 L109.1 282.6 L88.8 285.2 L86.8 266.0 L82.7 243.6 L78.8 228.3 L71.4 206.3 L65.3 191.5 L58.2 176.7 L46.2 155.1 Z`];
+const STARPLAQUE_DECAL = { x: 0.003, y: 0.329, w: 0.602, h: 0.46 };
+
+const TEARDROP_BODY = `M161.7 299.7 L166.3 299.0 L170.5 295.5 L176.1 270.7 L176.5 214.2 L174.5 194.5 L170.2 173.4 L159.9 139.3 L155.2 128.3 L136.9 91.8 L129.0 79.1 L113.0 59.0 L90.2 36.1 L82.9 30.4 L65.0 18.7 L44.7 8.7 L20.4 1.0 L12.5 0.0 L7.5 0.0 L4.5 1.0 L1.3 5.2 L1.3 11.5 L3.0 16.9 L11.6 31.3 L13.6 37.3 L19.6 64.0 L19.9 88.5 L18.9 95.8 L14.3 111.5 L12.6 126.6 L2.7 155.0 L0.3 176.8 L0.3 213.2 L2.3 225.3 L7.3 243.0 L4.7 263.0 L4.7 278.4 L2.7 288.8 L2.7 293.1 L3.7 295.8 L6.8 298.7 L12.8 300.0 Z`;
+const TEARDROP_ACCENTS = [];
+const TEARDROP_DECAL = { x: 0.026, y: 0.312, w: 0.489, h: 0.498 };
+
+const FACETED_BODY = `M271.3 299.7 L275.3 298.0 L283.1 290.2 L284.8 284.8 L293.8 275.8 L295.1 271.2 L301.1 264.8 L302.1 260.8 L304.8 257.5 L305.5 253.8 L308.5 250.2 L308.8 243.8 L311.8 239.8 L312.5 232.8 L315.5 229.2 L315.8 219.2 L319.2 214.5 L319.2 202.5 L321.2 197.2 L321.2 148.8 L319.2 143.5 L318.8 137.5 L315.8 133.5 L315.5 123.8 L312.5 119.8 L311.8 112.8 L308.8 109.2 L308.5 102.8 L305.8 99.5 L304.8 95.5 L301.8 91.5 L301.1 84.5 L295.1 78.2 L293.8 73.5 L281.1 60.8 L279.5 55.5 L266.8 42.8 L265.5 38.2 L260.6 36.7 L251.6 27.7 L247.0 26.3 L240.6 20.3 L236.6 19.3 L233.9 17.0 L229.3 15.7 L225.3 12.7 L221.9 12.0 L218.9 9.3 L211.6 8.7 L207.9 5.7 L201.6 5.3 L196.9 2.0 L188.3 2.0 L182.9 0.0 L145.2 0.0 L139.9 2.0 L117.2 2.0 L112.6 5.3 L102.5 5.7 L98.9 8.7 L92.9 9.0 L87.9 12.3 L83.9 13.3 L78.2 19.0 L73.9 20.0 L70.9 22.7 L67.2 23.3 L57.2 33.0 L52.5 34.3 L37.7 49.2 L36.7 53.5 L34.0 56.5 L33.3 60.2 L27.3 66.5 L26.0 71.2 L20.0 77.5 L18.7 82.2 L16.3 84.8 L15.7 88.5 L9.3 95.2 L9.0 104.8 L5.3 111.5 L5.3 133.5 L2.0 138.5 L2.0 153.8 L0.0 159.5 L0.0 165.2 L2.0 170.8 L2.0 182.8 L5.3 187.5 L5.3 206.2 L9.0 212.8 L9.0 221.2 L12.3 226.2 L12.7 232.5 L15.3 235.8 L16.3 239.8 L18.7 242.5 L20.3 247.8 L23.0 251.2 L23.3 253.8 L25.7 256.5 L27.3 261.8 L33.0 267.5 L34.3 272.2 L43.0 280.8 L45.0 286.5 L53.7 295.5 L53.7 298.8 L56.2 300.0 Z`;
+const FACETED_ACCENTS = [];
+const FACETED_DECAL = { x: -0.006, y: 0.439, w: 0.909, h: 0.695 };
+
+const STARSIDE_BODY = `M0.5 86.3 L0.6 88.3 L39.4 113.2 L49.2 148.9 L49.3 230.1 L48.0 299.6 L190.1 299.7 L193.5 68.3 L113.2 80.2 L112.8 78.3 L148.0 31.3 L148.1 29.9 L146.8 29.4 L82.0 43.2 L54.2 0.6 L53.1 0.0 L52.0 1.0 L42.7 61.1 Z`;
+const STARSIDE_ACCENTS = [];
+const STARSIDE_DECAL = { x: 0.033, y: 0.349, w: 0.483, h: 0.615 };
+
+const CROWNPANEL_BODY = `M13.3 270.2 L25.4 300.0 L177.6 299.5 L190.6 270.2 L200.5 228.8 L205.5 178.9 L205.5 129.3 L203.9 79.5 L197.2 33.1 L185.4 0.2 L29.6 2.2 L14.9 33.3 L5.0 79.6 L1.7 129.3 L0.0 179.1 L5.0 228.7 Z`;
+const CROWNPANEL_ACCENTS = [];
+const CROWNPANEL_DECAL = { x: -0.003, y: 0.481, w: 0.685, h: 0.654 };
+
+const CERTIFICATE_BODY = `M0.5 0.0 L0.1 299.7 L216.9 299.9 L217.0 0.3 Z`;
+const CERTIFICATE_ACCENTS = [];
+const CERTIFICATE_DECAL = { x: -0.0, y: 0.482, w: 0.835, h: 0.85 };
+
+const SAIL_BODY = `M174.3 299.7 L178.9 298.7 L191.0 292.0 L205.3 282.0 L212.7 274.6 L217.5 271.1 L226.6 262.1 L230.7 256.6 L234.2 254.4 L241.3 244.7 L242.6 241.0 L247.3 234.4 L254.3 221.3 L262.3 200.3 L263.0 195.9 L265.3 190.9 L265.3 186.6 L268.0 176.2 L268.0 169.2 L270.7 162.9 L271.7 152.8 L270.7 129.8 L268.0 121.8 L268.0 115.1 L265.3 107.4 L265.3 103.1 L262.6 96.7 L262.3 92.7 L260.0 88.7 L258.3 81.7 L251.3 66.3 L233.9 37.6 L214.0 15.0 L210.7 13.0 L201.7 4.0 L195.0 0.0 L193.3 0.0 L190.8 1.8 L173.4 25.9 L151.7 59.6 L147.4 64.3 L141.7 74.0 L133.3 85.4 L127.0 96.7 L120.0 105.4 L117.0 111.1 L104.6 127.8 L102.3 132.5 L97.9 137.1 L87.5 153.8 L80.2 164.2 L76.5 167.9 L65.5 185.6 L49.8 207.3 L48.1 211.0 L7.0 268.8 L0.0 280.8 L0.7 283.5 L3.5 286.3 L17.5 294.0 L22.6 299.3 L24.2 300.0 Z`;
+const SAIL_ACCENTS = [];
+const SAIL_DECAL = { x: 0.145, y: 0.481, w: 0.439, h: 0.42 };
+
+const CRYSTAL_BODY = `M0.0 299.5 L180.7 299.7 L180.5 10.6 L17.3 0.0 L9.8 1.5 L3.7 5.3 L0.0 12.2 Z`;
+const CRYSTAL_ACCENTS = [];
+const CRYSTAL_DECAL = { x: 0.002, y: 0.424, w: 0.687, h: 0.7 };
+
+const EGG_BODY = `M210.0 299.7 L214.0 298.3 L218.5 292.5 L226.2 276.8 L230.8 263.2 L234.5 251.5 L237.8 232.8 L238.8 212.2 L237.8 177.2 L236.1 165.2 L228.2 131.5 L218.8 103.8 L203.2 75.2 L183.5 46.5 L171.7 33.7 L149.7 15.3 L133.1 6.7 L121.4 2.3 L112.1 0.3 L95.1 0.0 L84.4 1.0 L69.8 5.3 L59.8 10.3 L45.1 20.3 L37.6 27.8 L29.6 37.8 L21.0 51.2 L18.3 56.8 L10.3 77.5 L3.7 102.2 L1.0 118.8 L0.0 132.5 L0.0 165.8 L1.0 177.8 L4.7 198.2 L9.3 216.8 L19.3 244.8 L30.6 266.5 L36.3 275.2 L49.6 293.5 L54.5 298.3 L57.5 299.7 Z`;
+const EGG_ACCENTS = [];
+const EGG_DECAL = { x: 0.006, y: 0.417, w: 0.652, h: 0.586 };
+
+const WING_BODY = `M0.3 85.1 L8.4 299.5 L122.3 299.9 L130.9 0.4 L129.7 0.1 Z`;
+const WING_ACCENTS = [];
+const WING_DECAL = { x: -0.018, y: 0.486, w: 0.408, h: 0.445 };
+
+const TULIP_BODY = `M124.3 299.7 L127.3 299.0 L130.5 294.8 L143.8 254.4 L150.1 229.0 L153.4 207.3 L153.4 199.6 L156.4 181.9 L156.8 135.5 L153.4 112.1 L153.4 99.7 L145.4 53.0 L137.5 19.2 L134.1 9.5 L130.3 6.7 L124.0 7.0 L105.3 14.0 L92.4 15.7 L83.7 15.7 L67.4 13.0 L53.1 7.7 L41.1 0.3 L33.8 0.3 L30.3 2.5 L27.0 8.9 L20.0 28.9 L17.6 40.3 L13.6 52.6 L12.6 60.0 L7.7 79.3 L4.3 99.1 L0.0 146.5 L0.0 180.6 L2.7 202.6 L9.0 237.7 L12.6 249.1 L17.0 268.1 L26.0 294.8 L28.5 298.3 L31.1 299.7 Z`;
+const TULIP_ACCENTS = [];
+const TULIP_DECAL = { x: -0.001, y: 0.455, w: 0.496, h: 0.505 };
 
 export const LAYERED = {
-  arch:     { name: 'Sunburst',      body: SUNBURST_BODY,      accents: SUNBURST_ACCENTS,
-              decal: SUNBURST_DECAL },
-  shield:   { name: 'Star Rise',     body: STAR_RISE_BODY,     accents: STAR_RISE_ACCENTS,
-              decal: STAR_RISE_DECAL },
-  facet:    { name: 'Shooting Star', body: SHOOTING_STAR_BODY, accents: SHOOTING_STAR_ACCENTS,
-              decal: SHOOTING_STAR_DECAL },
-  oval:     { name: 'Ring',          body: RING_BODY,          accents: RING_ACCENTS,
-              decal: RING_DECAL },
-  plaque:   { name: 'Medallion',     body: MEDALLION_BODY,     accents: MEDALLION_ACCENTS,
-              decal: MEDALLION_DECAL },
-  monolith: { name: 'Sail',          body: SAIL_BODY,          accents: SAIL_ACCENTS,
-              decal: SAIL_DECAL },
-  wave:     { name: 'Wing',          body: WING_BODY,          accents: WING_ACCENTS,
-              decal: WING_DECAL },
+  arch:       { name: 'Sun Arch',    body: SUNARCH_BODY,    accents: SUNARCH_ACCENTS,    decal: SUNARCH_DECAL },
+  gem:        { name: 'Gem',         body: GEM_BODY,        accents: GEM_ACCENTS,        decal: GEM_DECAL },
+  /* the catalogue prints this star in red on a clear pentagon; here its rim is
+     the gold piece -- a ring, so the accent has a hole and the sticker sits in it */
+  starplaque: { name: 'Star Plaque', body: STARPLAQUE_BODY, accents: STARPLAQUE_ACCENTS, decal: STARPLAQUE_DECAL },
 };
 /* the accent layer is a second cut and a second sheet: about 30% more */
 const LAYERED_COST = 1.3;
@@ -1413,26 +1459,42 @@ function customShape(w, h, v) { return figureShape('custom')(w, h, v); }
 function styled(key) {
   return (w, h) => pathToShape(LAYERED[key].body, w, h);
 }
+/* A traced panel with no gold piece: its outline, fitted to the blade. */
+function traced(body) {
+  return (w, h) => pathToShape(body, w, h);
+}
 
 export const SHAPES = {
-  arch:     { label: 'Sunburst',  build: styled('arch'),     base: 1.04, decal: LAYERED.arch.decal,     note: 'An arch with the Philippine sun in gold at its shoulder. For school and town awards.' },
-  plaque:   { label: 'Medallion', build: styled('plaque'),   base: 1.00, decal: LAYERED.plaque.decal,   note: 'A modern slab with a gold medallion. A big sticker, for corporate awards.' },
-  shield:   { label: 'Star Rise', build: styled('shield'),   base: 1.04, decal: LAYERED.shield.decal,   note: 'A wave rising into a gold star. For champions and top performers.' },
-  lady:     { label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
-  gown:     { label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
-  gent:     { label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
-  grad:     { label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, in gown and cap. For recognition day.' },
-  ball:     { label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The liga favourite.' },
-  suit:     { label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face: a man in a charcoal suit and tie. The partner to the Lady.' },
-  volley:   { label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The school and liga favourite.' },
-  box:      { label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. For boxing and arnis tournaments.' },
-  foot:     { label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball at their feet. Also used for futsal.' },
-  run:      { label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. Covers track, fun runs and Palaro.' },
+  plaque:     { label: 'Certificate', group: 'Classic', build: traced(CERTIFICATE_BODY), base: 0.94, decal: CERTIFICATE_DECAL, note: 'A tall rectangle. The biggest sticker, for certificates and corporate awards.' },
+  monolith:   { label: 'Crystal', group: 'Classic', build: traced(CRYSTAL_BODY), base: 0.96, decal: CRYSTAL_DECAL, note: 'A crystal block. Plain and classic.' },
+  tablet:     { label: 'Tablet', group: 'Classic', build: traced(TABLET_BODY), base: 0.96, decal: TABLET_DECAL, note: 'An upright tablet. A clean all-rounder.' },
+  arch:       { label: 'Sun Arch', group: 'Classic', build: styled('arch'), base: 1.04, decal: LAYERED.arch.decal, note: 'An arch with the Philippine sun in gold. For school and town awards.' },
+  crownpanel: { label: 'Crown Panel', group: 'Classic', build: traced(CROWNPANEL_BODY), base: 1.00, decal: CROWNPANEL_DECAL, note: 'A barrel-sided panel. For appreciation and service awards.' },
+  shield:     { label: 'Tulip', group: 'Classic', build: traced(TULIP_BODY), base: 1.02, decal: TULIP_DECAL, note: 'A tulip crest. Suits quiz bees and academic contests.' },
+  pentagon:   { label: 'Pentagon', group: 'Classic', build: traced(PENTAGON_BODY), base: 1.00, decal: PENTAGON_DECAL, note: 'A five-sided plaque. Strong and modern.' },
+  round:      { label: 'Round', group: 'Rounds', build: traced(ROUND_BODY), base: 1.02, decal: ROUND_DECAL, note: 'A full disc. Pairs with a round sticker.' },
+  oval:       { label: 'Oval', group: 'Rounds', build: traced(EGG_BODY), base: 1.04, decal: EGG_DECAL, note: 'An egg-shaped oval. Soft and elegant.' },
+  facet:      { label: 'Faceted Round', group: 'Rounds', build: traced(FACETED_BODY), base: 1.04, decal: FACETED_DECAL, note: 'A disc with facets cut round its edge, like crystal.' },
+  gem:        { label: 'Gem', group: 'Rounds', build: styled('gem'), base: 1.04, decal: LAYERED.gem.decal, note: 'A gem with a gold medallion. A showpiece for corporate nights.' },
+  goldstar:   { label: 'Gold Star', group: 'Stars', build: traced(GOLDSTAR_BODY), base: 1.06, decal: GOLDSTAR_DECAL, note: 'A big five-point star. Cut it in gold mirror for the classic look.' },
+  starplaque: { label: 'Star Plaque', group: 'Stars', build: styled('starplaque'), base: 1.02, decal: LAYERED.starplaque.decal, note: 'A pentagon with a gold star rim on the front. For champions and star performers.' },
+  starside:   { label: 'Star & Plaque', group: 'Stars', build: traced(STARSIDE_BODY), base: 1.04, decal: STARSIDE_DECAL, note: 'A star on a stem beside its plaque. For outstanding performers.' },
+  wave:       { label: 'Scallop Sail', group: 'Curves', build: traced(SAIL_BODY), base: 1.04, decal: SAIL_DECAL, note: 'A half-moon sail. Contemporary and light.' },
+  wing:       { label: 'Wing', group: 'Curves', build: traced(WING_BODY), base: 1.00, decal: WING_DECAL, note: 'An angled wing. For leadership and service awards.' },
+  fin:        { label: 'Fin', group: 'Curves', build: traced(FIN_BODY), base: 1.00, decal: FIN_DECAL, note: 'A tall fin with a pointed top.' },
+  halfmoon:   { label: 'Half Moon', group: 'Curves', build: traced(HALFMOON_BODY), base: 1.00, decal: HALFMOON_DECAL, note: 'A half moon, straight on one side. A modern classic.' },
+  teardrop:   { label: 'Teardrop', group: 'Curves', build: traced(TEARDROP_BODY), base: 1.02, decal: TEARDROP_DECAL, note: 'A tall teardrop. Graceful and modern.' },
+  lady:     { group: 'Figures', label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
+  gown:     { group: 'Figures', label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
+  gent:     { group: 'Figures', label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
+  suit:     { group: 'Figures', label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face: a man in a charcoal suit and tie. The partner to the Lady.' },
+  grad:     { group: 'Figures', label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, in gown and cap. For recognition day.' },
+  ball:     { group: 'Figures', label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The liga favourite.' },
+  volley:   { group: 'Figures', label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The school and liga favourite.' },
+  box:      { group: 'Figures', label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. For boxing and arnis tournaments.' },
+  foot:     { group: 'Figures', label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball at their feet. Also used for futsal.' },
+  run:      { group: 'Figures', label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. Covers track, fun runs and Palaro.' },
   custom:   { label: 'Your art',  build: customShape,   base: 1.30, decal: { onBase: true },              note: 'Cut to your own outline — drop an SVG in the sticker step.' },
-  oval:     { label: 'Ring',      build: styled('oval'),     base: 1.02, decal: LAYERED.oval.decal,     note: 'A disc held in a gold ring. Pairs with a round sticker.' },
-  facet:    { label: 'Shooting Star', build: styled('facet'), base: 1.06, decal: LAYERED.facet.decal,  note: 'A star on a gold sweeping tail. For rising stars and breakout years.' },
-  monolith: { label: 'Sail',      build: styled('monolith'), base: 0.98, decal: LAYERED.monolith.decal, note: 'A sail with a gold edge. Clean and contemporary.' },
-  wave:     { label: 'Wing',      build: styled('wave'),     base: 0.98, decal: LAYERED.wave.decal,     note: 'An angled wing with a gold stripe. For service and leadership awards.' },
 };
 
 /* The option tiles draw the REAL cut outline, sampled from the same builder
@@ -2536,6 +2598,7 @@ export function buildTrophy(cfg) {
       poly: ring(cut.getPoints(64)),
       holes: (cut.holes || []).map(hh => ring(hh.getPoints(32))),
       accents: accents.map(a => ring(a.getPoints(48))),
+      accentHoles: accents.flatMap(a => (a.holes || []).map(hh => ring(hh.getPoints(48)))),   // a rim's middle is bare acrylic
       z: faceZ, w, h, by,
       box: d,                                   // the design's own sticker box
       base: { w: w * 2 * d.w, h: h * d.h },     // sticker size at s = 1

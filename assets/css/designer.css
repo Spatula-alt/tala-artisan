@@ -62,6 +62,9 @@
 .opt[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .opt svg{width:100%;height:38px}
 .opt svg path,.opt svg rect{fill:currentColor;opacity:.82}
+.opt svg path.gold{fill:#c9a24a;opacity:1}
+.opts__group{grid-column:1/-1;margin:10px 2px 0;font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.opts__group:first-child{margin-top:0}
 .opt .sw{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.16);flex:none}
 .opt[aria-pressed="true"] .sw{box-shadow:0 0 0 2px var(--paper)}
 .opt b{font-weight:500}

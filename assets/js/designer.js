@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611031510';
+import { createViewer, webglAvailable } from './viewer.js?v=202611031549';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611031510';
+} from './trophy.js?v=202611031549';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -208,15 +208,16 @@ function placementFits(P) {
   P = { ...placement(), ...P };
   const pts = outline(P);
   const cx = f.w * 2 * P.x, cy = f.by + f.h * P.y;
+  const onGold = (x, y) => f.accents.some(acc => inPoly(x, y, acc)) && !(f.accentHoles || []).some(h => inPoly(x, y, h));
   for (const [x, y] of pts) {
     const dx = x - cx, dy = y - cy, L = Math.hypot(dx, dy) || 1;
     const ox = x + dx / L * MARGIN, oy = y + dy / L * MARGIN;   // the margin, pushed outwards
     if (!inPoly(ox, oy, f.poly)) return false;
     for (const hole of f.holes)  if (inPoly(x, y, hole) || inPoly(ox, oy, hole)) return false;
-    for (const acc of f.accents) if (inPoly(x, y, acc) || inPoly(ox, oy, acc)) return false;
+    if (onGold(x, y) || onGold(ox, oy)) return false;
   }
   // and no accent or cut-out reaching INTO the sticker between its sample points
-  for (const ring of [...f.accents, ...f.holes]) for (const [x, y] of ring) if (inPoly(x, y, pts)) return false;
+  for (const ring of [...f.accents, ...(f.accentHoles || []), ...f.holes]) for (const [x, y] of ring) if (inPoly(x, y, pts)) return false;
   return true;
 }
 
@@ -326,7 +327,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031510'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031549'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -652,7 +653,7 @@ function poseTiles() {
       const d = outlinePath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
       const gd = goldPath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
       return `<svg viewBox="0 0 40 50" aria-hidden="true"><path d="${d}" fill-rule="evenodd"/>` +
-             (gd ? `<path d="${gd}" fill="#c9a24a"/>` : '') +
+             (gd ? `<path class="gold" d="${gd}" fill-rule="evenodd"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
   markTiles();
@@ -679,9 +680,22 @@ function buildTiles() {
                              : outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
       const gd = k === 'custom' ? '' : goldPath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
       return `<svg viewBox="0 0 40 50" aria-hidden="true"><path d="${d}" fill-rule="evenodd"/>` +
-             (gd ? `<path d="${gd}" fill="#c9a24a"/>` : '') +
+             (gd ? `<path class="gold" d="${gd}" fill-rule="evenodd"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
+
+  // sorted: the shapes in their groups, a heading over each group
+  let lastGroup = null;
+  for (const b of [...($('#optShape')?.querySelectorAll('.opt') || [])]) {
+    const g = SHAPES[b.dataset.key]?.group;
+    if (g && g !== lastGroup) {
+      const h = document.createElement('p');
+      h.className = 'opts__group';
+      h.textContent = g;
+      b.before(h);
+      lastGroup = g;
+    }
+  }
 
   tiles('#optMaterial', Object.entries(MATERIALS),
     k => { cfg.material = k; custom(); rebuild(); },
