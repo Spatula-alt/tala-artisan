@@ -8,75 +8,7 @@
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
 
-/* ───────────────────────── cut shapes ───────────────────────── */
-
-function archShape(w, h) {
-  const s = new THREE.Shape();
-  s.moveTo(-w, 0); s.lineTo(-w, h - w);
-  s.absarc(0, h - w, w, Math.PI, 0, true);
-  s.lineTo(w, 0); s.closePath();
-  return s;
-}
-
-function shieldShape(w, h) {
-  const s = new THREE.Shape();
-  s.moveTo(-w * 0.58, 0);
-  s.bezierCurveTo(-w, h * 0.20, -w, h * 0.54, -w, h * 0.80);
-  s.quadraticCurveTo(-w, h, -w * 0.70, h);
-  s.lineTo(w * 0.70, h);
-  s.quadraticCurveTo(w, h, w, h * 0.80);
-  s.bezierCurveTo(w, h * 0.54, w, h * 0.20, w * 0.58, 0);
-  s.closePath();
-  return s;
-}
-
-function monolithShape(w, h) {
-  const c = w * 0.26;
-  const s = new THREE.Shape();
-  s.moveTo(-w, 0); s.lineTo(-w, h - c); s.lineTo(-w + c, h);
-  s.lineTo(w - c, h); s.lineTo(w, h - c); s.lineTo(w, 0);
-  s.closePath();
-  return s;
-}
-
-function facetShape(w, h) {
-  const s = new THREE.Shape();
-  s.moveTo(-w * 0.52, 0); s.lineTo(w * 0.52, 0);
-  s.lineTo(w, h * 0.26); s.lineTo(w, h * 0.74);
-  s.lineTo(w * 0.52, h); s.lineTo(-w * 0.52, h);
-  s.lineTo(-w, h * 0.74); s.lineTo(-w, h * 0.26);
-  s.closePath();
-  return s;
-}
-
-function ovalShape(w, h) {
-  const s = new THREE.Shape();
-  s.absellipse(0, h / 2, w, h / 2, 0, Math.PI * 2, false);
-  return s;
-}
-
-function waveShape(w, h) {
-  const s = new THREE.Shape();
-  s.moveTo(-w, 0); s.lineTo(-w, h * 0.66);
-  s.bezierCurveTo(-w, h * 0.94, -w * 0.34, h * 1.00, 0, h * 0.90);
-  s.bezierCurveTo(w * 0.34, h * 0.80, w, h * 0.96, w, h * 0.64);
-  s.lineTo(w, 0); s.closePath();
-  return s;
-}
-
-function plaqueShape(w, h) {
-  const r = Math.min(w, h) * 0.12;
-  const s = new THREE.Shape();
-  s.moveTo(-w + r, 0);
-  s.lineTo(w - r, 0);  s.quadraticCurveTo(w, 0, w, r);
-  s.lineTo(w, h - r);  s.quadraticCurveTo(w, h, w - r, h);
-  s.lineTo(-w + r, h); s.quadraticCurveTo(-w, h, -w, h - r);
-  s.lineTo(-w, r);     s.quadraticCurveTo(-w, 0, -w + r, 0);
-  s.closePath();
-  return s;
-}
-
-/* ───────────────────── figures, authored as path data ─────────────────────
+/* ───────────────────── shapes, authored as path data ─────────────────────
    Hand-tuning bezier numbers in JS was the wrong tool for drawing people, so
    the figures are written as SVG path data in a 100 x 300 box (y down, the
    way you would draw them) and converted to THREE.Shape here. The first
@@ -263,100 +195,62 @@ function pieces(shape) {
    the plain cut as the default look of its shape; the plain cut stays as
    "Classic". `decal` keeps the sticker on the clear part of each panel, clear
    of the accents (x is an offset from centre, as a fraction of the width). */
-const FLAME_BODY = `M52.8 0.0 L55.1 0.8 L56.2 3.4 L56.2 28.8 L58.5 31.2 L66.2 34.4 L71.3 33.9 L91.2 23.3
-  L103.0 18.4 L107.4 17.7 L109.1 18.6 L110.4 22.6 L109.6 43.6 L108.1 45.9 L100.4 50.4 L100.2 53.6
-  L120.5 72.8 L130.7 85.8 L142.0 105.5 L151.0 128.8 L155.5 148.0 L157.6 162.5 L158.3 177.9 L157.8 194.7
-  L159.3 200.3 L159.3 205.2 L157.8 222.1 L150.1 257.3 L145.9 269.9 L141.2 270.3 L141.0 298.7 L131.4 300.0
-  L-50.4 300.0 L-59.3 299.2 L-59.3 284.6 L-50.6 276.1 L-45.7 274.0 L-44.0 272.0 L-55.9 220.6 L-58.9 194.5
-  L-58.2 158.6 L-53.8 135.2 L-47.6 114.0 L-41.8 99.9 L-32.4 82.2 L-20.7 64.5 L-9.4 50.2 L7.7 32.9
-  L21.8 20.7 L36.8 9.2 L52.8 0.0 Z`;
-const FLAME_ACCENTS = [
-  `M52.8 0.0 L55.1 0.8 L56.2 3.4 L55.8 26.9 L55.1 29.3 L26.1 51.7 L4.9 73.0 L-15.6 100.6
-  L-21.3 110.2 L-29.0 126.8 L-38.0 158.9 L-42.0 185.8 L-42.0 225.7 L-40.1 242.6 L-37.3 255.4 L-35.8 255.0
-  L-35.4 251.8 L-35.8 227.4 L-33.3 198.4 L-29.9 179.1 L-26.0 163.3 L-20.0 144.6 L-12.6 127.0 L-8.9 121.1
-  L-1.7 106.3 L6.9 93.1 L21.8 74.3 L39.3 57.0 L53.9 45.3 L70.1 34.4 L89.3 24.3 L104.2 18.1
-  L107.4 17.7 L108.9 18.4 L110.4 22.6 L109.6 43.6 L107.6 46.3 L88.0 55.5 L73.1 64.5 L60.2 73.9
-  L47.6 84.6 L29.1 104.4 L20.3 115.9 L8.6 134.1 L-6.2 165.0 L-11.3 179.8 L-17.3 202.8 L-22.2 228.5
-  L-25.0 253.0 L-26.2 276.5 L-26.0 299.4 L-30.9 300.0 L-40.3 277.2 L-50.1 247.7 L-55.9 220.6 L-58.0 206.3
-  L-58.9 194.3 L-58.2 158.7 L-52.1 128.5 L-46.5 111.2 L-35.8 88.2 L-23.7 68.8 L-9.2 50.0 L9.4 31.4
-  L21.8 20.7 L36.8 9.2 L52.8 0.0 Z`,
-  `M157.4 198.6 L158.7 199.4 L159.3 202.2 L158.0 220.4 L153.1 244.5 L145.9 269.9 L141.4 270.7 L141.2 282.9
-  L134.6 299.4 L89.1 300.0 L109.2 281.6 L125.2 261.8 L138.6 239.8 L149.7 216.1 L155.3 201.4 L157.4 198.6 Z`];
 
-const FLAG_BODY = `M-21.7 0.0 L-7.8 0.4 L4.3 2.3 L14.0 4.6 L39.1 13.3 L55.3 17.3 L80.5 21.7 L115.0 24.8
-  L130.2 25.0 L150.4 23.8 L152.7 25.3 L159.8 37.4 L168.7 57.2 L175.4 79.1 L179.0 103.1 L179.0 127.9
-  L176.7 145.4 L174.1 157.8 L166.5 180.1 L171.4 219.0 L157.3 237.9 L157.7 242.1 L160.5 248.7 L162.3 256.9
-  L161.3 260.5 L144.5 274.3 L142.2 277.1 L142.4 284.6 L144.9 292.4 L144.9 300.0 L-52.7 299.8 L-52.7 295.4
-  L-51.0 293.9 L-50.8 290.5 L-52.4 280.6 L-53.5 261.5 L-52.9 230.4 L-57.1 223.0 L-62.5 207.9 L-67.0 183.7
-  L-67.4 163.3 L-63.6 131.3 L-63.4 119.3 L-65.7 106.9 L-72.4 94.9 L-70.5 87.1 L-70.1 80.8 L-71.4 74.9
-  L-76.2 64.4 L-75.4 54.1 L-79.4 34.1 L-75.6 27.8 L-70.3 21.5 L-64.0 15.6 L-55.0 9.3 L-49.7 6.5
-  L-38.1 2.5 L-21.7 0.0 Z`;
-const FLAG_ACCENTS = [
-  `M-76.9 39.1 L-73.9 39.8 L-62.6 47.8 L-50.6 61.0 L-46.6 67.5 L-41.9 78.1 L-38.1 95.1 L-37.3 109.6
-  L-38.2 126.6 L-41.1 145.4 L-49.3 184.7 L-52.0 205.7 L-52.9 224.3 L-53.9 226.4 L-55.8 225.3 L-57.1 223.0
-  L-62.5 207.9 L-66.8 185.8 L-67.4 163.3 L-63.6 131.3 L-63.4 119.3 L-65.7 106.9 L-72.4 94.9 L-70.5 87.1
-  L-70.1 80.8 L-71.4 74.9 L-76.2 64.4 L-75.4 54.1 L-77.7 41.7 L-76.9 39.1 Z`,
-  `M165.5 184.5 L166.8 185.3 L167.8 189.3 L171.4 219.0 L157.3 237.9 L157.7 242.1 L162.3 256.9 L162.1 259.0
-  L160.2 261.9 L144.7 274.1 L142.1 277.7 L142.4 284.6 L144.9 292.6 L144.9 300.0 L32.8 300.0 L56.9 289.9
-  L75.3 280.4 L93.8 268.9 L111.9 254.8 L128.9 238.4 L140.9 224.5 L151.2 210.0 L165.5 184.5 Z`];
 
-const FAN_BODY = `M-16.2 0.0 L4.6 0.2 L20.9 2.4 L40.1 6.9 L74.0 16.9 L93.9 20.2 L106.2 20.4 L121.5 18.6
-  L140.7 13.1 L152.7 8.0 L154.7 8.6 L142.5 157.9 L143.5 159.1 L145.5 158.7 L160.6 147.0 L162.5 146.8
-  L163.1 149.3 L157.4 191.9 L140.4 204.8 L138.4 207.6 L137.2 217.6 L137.2 221.5 L138.2 222.7 L147.8 216.6
-  L150.2 217.0 L150.4 219.4 L146.4 246.2 L143.1 249.2 L137.8 251.9 L133.7 252.1 L133.7 263.5 L134.9 265.3
-  L134.9 289.0 L131.7 291.8 L131.7 300.0 L-29.0 300.0 L-35.6 296.3 L-45.1 296.3 L-45.1 270.0 L-42.7 266.8
-  L-41.3 262.7 L-36.8 262.1 L-35.1 261.0 L-34.3 252.1 L-38.0 251.9 L-45.5 247.6 L-46.6 246.0 L-50.2 217.0
-  L-48.0 216.0 L-42.1 220.5 L-38.2 221.7 L-37.4 220.7 L-38.0 209.7 L-38.8 207.0 L-41.1 204.4 L-57.8 191.7
-  L-63.1 149.5 L-62.9 147.2 L-60.8 147.0 L-44.9 158.9 L-42.7 158.1 L-55.1 8.6 L-52.9 6.1 L-40.7 3.1
-  L-16.2 0.0 Z`;
-const FAN_ACCENTS = [
-  `M-62.5 146.8 L-60.8 147.0 L-55.5 150.3 L-38.6 163.8 L-21.3 179.5 L-1.7 200.1 L10.9 215.8 L24.6 236.8
-  L26.0 241.3 L29.1 245.3 L35.8 259.6 L43.6 281.4 L47.5 295.5 L47.9 300.0 L14.8 300.0 L4.6 286.3
-  L-10.7 271.2 L-34.1 254.1 L-34.7 252.1 L-37.8 251.9 L-46.2 246.8 L-47.6 239.0 L-47.2 236.0 L-48.6 232.5
-  L-49.0 225.2 L-50.2 221.3 L-50.0 216.8 L-47.8 216.2 L-28.4 230.3 L-8.6 248.2 L10.1 268.2 L26.2 290.8
-  L26.9 291.4 L27.7 290.6 L17.5 269.8 L7.9 255.5 L-4.1 240.0 L-21.5 221.5 L-40.4 204.8 L-57.8 191.5
-  L-61.5 162.7 L-61.3 158.7 L-62.5 155.2 L-62.5 146.8 Z`,
-  `M161.2 146.8 L163.1 147.4 L163.1 149.1 L159.4 180.9 L157.2 192.3 L144.3 202.3 L139.4 204.4 L134.1 210.7
-  L116.0 226.4 L115.0 228.6 L111.9 230.9 L102.3 242.7 L99.3 245.1 L97.2 249.0 L88.8 259.2 L80.1 274.7
-  L78.0 277.0 L70.9 292.7 L71.7 294.1 L72.7 293.3 L78.7 283.3 L85.8 275.1 L89.9 268.6 L112.9 244.3
-  L120.5 237.2 L129.4 230.7 L131.3 228.2 L135.1 226.8 L137.2 223.9 L145.7 217.6 L148.8 216.4 L150.4 217.4
-  L146.4 246.2 L139.8 250.9 L134.1 252.1 L133.7 253.9 L130.5 256.4 L117.4 264.7 L114.3 268.6 L106.4 274.5
-  L98.4 283.1 L88.4 295.1 L85.8 300.0 L51.9 300.0 L57.8 277.2 L66.0 255.9 L80.3 229.0 L83.1 225.0
-  L88.8 219.8 L89.5 215.6 L96.4 208.6 L97.4 205.8 L102.9 201.9 L105.4 196.6 L120.5 180.5 L139.8 163.0
-  L142.1 162.1 L147.4 157.0 L161.2 146.8 Z`,
-  `M-38.4 264.5 L-34.9 266.8 L-31.5 267.4 L-27.8 270.4 L-22.9 271.9 L-9.5 281.0 L0.7 289.2 L11.4 300.0
-  L-6.0 300.0 L-15.8 294.1 L-36.8 286.5 L-38.6 284.1 L-38.8 275.5 L-39.8 272.7 L-38.8 269.4 L-39.2 265.5
-  L-38.4 264.5 Z`,
-  `M134.9 265.9 L134.9 287.2 L131.5 286.3 L129.4 289.0 L126.0 289.6 L115.8 294.9 L112.7 295.1 L109.4 298.2
-  L105.2 300.0 L88.6 300.0 L98.8 289.6 L109.9 280.6 L120.5 273.5 L123.9 272.5 L129.0 268.6 L134.9 265.9 Z`];
 
-const CREST_BODY = `M47.2 0.0 L66.3 2.3 L96.7 9.7 L106.9 13.7 L113.3 19.7 L120.5 36.0 L128.6 44.8 L156.2 62.6
-  L177.9 66.9 L183.9 71.9 L184.6 81.6 L177.3 115.6 L180.0 129.5 L179.6 136.9 L174.0 144.4 L154.3 154.8
-  L147.5 162.6 L142.3 172.2 L138.6 183.6 L136.1 199.5 L135.7 237.6 L139.8 260.0 L148.7 276.2 L154.7 280.9
-  L160.7 282.8 L185.2 280.9 L193.9 282.2 L200.9 288.4 L197.0 300.0 L-94.5 300.0 L-95.8 296.5 L-100.9 293.6
-  L-100.9 271.0 L-85.6 266.4 L-64.1 266.2 L-53.1 262.7 L-47.7 257.7 L-43.8 250.9 L-39.2 231.4 L-39.8 195.6
-  L-43.5 180.7 L-48.9 168.6 L-53.3 162.2 L-60.3 156.0 L-80.2 147.9 L-85.4 139.6 L-85.0 110.8 L-91.4 78.5
-  L-90.4 71.1 L-86.8 67.3 L-81.9 65.3 L-58.7 62.6 L-37.1 49.9 L-24.1 38.7 L-15.2 20.1 L-8.3 13.7
-  L13.8 6.6 L47.2 0.0 Z`;
-const CREST_ACCENTS = [
-  `M-77.3 65.5 L-68.6 66.7 L-59.9 71.1 L-51.6 78.9 L-43.3 90.5 L-27.4 123.5 L-18.5 157.5 L-15.2 191.0
-  L-16.8 229.8 L-25.1 273.5 L-35.0 298.1 L-42.7 298.1 L-44.2 289.8 L-36.7 235.4 L-37.3 200.3 L-40.6 180.7
-  L-44.8 169.5 L-52.0 157.7 L-58.9 151.9 L-76.9 144.4 L-82.3 136.1 L-79.4 114.8 L-87.7 74.0 L-84.6 68.0
-  L-77.3 65.5 Z`,
-  `M172.5 66.9 L180.8 68.4 L184.8 74.6 L182.1 94.3 L176.7 114.2 L180.0 134.5 L178.1 140.1 L174.8 143.8
-  L158.3 151.9 L150.8 158.3 L144.8 167.0 L139.0 181.5 L135.5 204.5 L135.0 237.8 L143.1 291.1 L141.9 298.1
-  L134.4 298.1 L124.1 273.3 L115.6 226.2 L114.1 190.6 L116.8 161.8 L124.1 130.3 L138.2 98.6 L147.7 84.1
-  L156.2 74.6 L164.5 69.2 L172.5 66.9 Z`];
+
+/* The panel trophies, drawn by figure-src/plaque-designs.py (run it with --write
+   to change them): one cut each -- a panel joined to its ornament -- and the
+   ornament again as a second, gold mirror piece laid on its front. The owner
+   (3 Nov) held up catalogues of acrylic awards -- a star rising out of a wave,
+   a sun on an arch, a shooting star, a disc in a ring, a slab with a medallion,
+   a sail -- and asked for designs like those in place of the plain Arch,
+   Plaque, Shield, Oval, Facet, Monolith and Wave. The keys stay, so a saved
+   design or a shop card still opens; it opens as the new design. 300 tall, y
+   down, the foot on y = 300. */
+const SUNBURST_BODY = `M22.0 300.0 L208.0 300.0 L207.9 150.8 L204.8 131.7 L198.8 116.8 L192.0 105.9 L181.0 94.1 L170.8 86.4 L156.4 79.2 L144.0 75.6 L134.4 74.3 L88.4 74.0 L86.3 67.4 L83.2 61.9 L100.4 37.6 L76.1 54.8 L69.9 51.4 L63.0 49.4 L58.0 20.0 L53.0 49.4 L46.1 51.4 L39.9 54.8 L15.6 37.6 L32.8 61.9 L29.7 67.4 L27.6 74.0 L22.0 74.0 L22.0 75.9 L-2.0 80.0 L22.0 84.1 L22.0 113.4 L15.6 122.4 L22.0 117.9 Z`;
+const SUNBURST_ACCENTS = [`M53.0 49.4 L46.1 51.4 L39.9 54.8 L15.6 37.6 L32.8 61.9 L29.4 68.1 L27.4 75.0 L-2.0 80.0 L27.4 85.0 L29.4 91.9 L32.8 98.1 L15.6 122.4 L39.9 105.2 L46.1 108.6 L53.0 110.6 L58.0 140.0 L63.0 110.6 L69.9 108.6 L76.1 105.2 L100.4 122.4 L83.2 98.1 L86.6 91.9 L88.6 85.0 L118.0 80.0 L88.6 75.0 L86.6 68.1 L83.2 61.9 L100.4 37.6 L76.1 54.8 L69.9 51.4 L63.0 49.4 L58.0 20.0 Z`];
+const SUNBURST_DECAL = { x: 0.095, y: 0.3, w: 0.568, h: 0.385 };
+
+const STAR_RISE_BODY = `M130.7 115.0 L81.9 132.8 L61.8 138.1 L51.9 139.1 L42.3 138.7 L33.0 136.4 L24.0 132.0 L24.0 300.0 L206.0 300.0 L206.0 122.0 L186.2 118.5 L181.8 101.7 L213.2 76.1 L172.7 73.8 L158.0 36.0 L143.3 73.8 L102.8 76.1 L134.2 101.7 Z`;
+const STAR_RISE_ACCENTS = [`M158.0 36.0 L172.7 73.8 L213.2 76.1 L181.8 101.7 L192.1 140.9 L158.0 119.0 L123.9 140.9 L134.2 101.7 L102.8 76.1 L143.3 73.8 Z`];
+const STAR_RISE_DECAL = { x: -0.032, y: 0.267, w: 0.654, h: 0.413 };
+
+const SHOOTING_STAR_BODY = `M128.0 145.0 L175.4 182.0 L179.6 122.0 L229.5 88.4 L173.7 65.9 L157.1 8.0 L118.5 54.1 L58.3 52.0 L90.3 103.0 L75.0 144.9 L63.1 160.3 L51.1 179.1 L41.3 198.4 L33.7 218.0 L28.1 237.6 L24.4 257.2 L22.4 276.5 L22.0 300.0 L112.0 300.0 L108.3 273.7 L106.6 254.3 L106.3 234.3 L107.7 213.5 L111.1 191.9 L115.6 173.9 L125.6 145.8 Z`;
+const SHOOTING_STAR_ACCENTS = [`M75.0 144.9 L63.1 160.3 L51.1 179.1 L41.3 198.4 L33.7 218.0 L28.1 237.6 L24.4 257.2 L22.4 276.5 L22.0 300.0 L112.0 300.0 L108.3 273.7 L106.6 254.3 L106.3 234.3 L107.2 217.7 L109.4 200.7 L113.1 183.0 L118.5 164.7 L125.8 145.5 L69.6 159.6 Z`];
+const SHOOTING_STAR_DECAL = { x: 0.132, y: 0.667, w: 0.248, h: 0.189 };
+
+const RING_BODY = `M218.0 118.4 L216.7 103.7 L212.7 87.9 L207.0 74.3 L198.3 60.4 L188.7 49.3 L176.2 38.7 L162.2 30.3 L148.6 24.8 L134.3 21.3 L119.6 20.0 L104.9 20.9 L89.0 24.3 L75.2 29.6 L61.1 37.8 L48.5 48.1 L38.7 59.1 L28.3 75.8 L21.0 95.7 L18.1 116.7 L19.3 136.3 L22.3 149.0 L27.6 162.8 L34.9 175.6 L43.9 187.2 L54.6 197.3 L65.2 204.9 L78.2 211.7 L90.7 216.2 L80.0 300.0 L158.0 300.0 L147.2 215.6 L162.2 209.7 L176.2 201.3 L188.7 190.7 L199.3 178.2 L207.7 164.2 L213.7 149.0 L217.1 133.1 Z`;
+const RING_ACCENTS = [`M127.3 20.4 L106.6 20.7 L87.4 24.8 L69.4 32.6 L53.3 43.7 L39.7 57.8 L29.0 74.3 L21.8 92.5 L18.3 111.8 L18.7 131.4 L22.8 150.6 L30.6 168.6 L41.7 184.7 L55.8 198.3 L72.3 209.0 L90.5 216.2 L109.8 219.7 L127.8 219.5 L147.0 215.7 L163.7 209.0 L180.2 198.3 L194.3 184.7 L204.6 170.0 L212.2 153.7 L216.8 135.5 L211.8 146.5 L205.9 156.1 L198.8 164.8 L190.6 172.5 L181.4 179.0 L171.5 184.3 L161.0 188.3 L150.0 190.9 L137.4 192.0 L126.2 191.4 L115.1 189.4 L104.4 186.0 L94.2 181.2 L84.8 175.1 L76.2 167.8 L68.6 159.5 L61.5 149.0 L56.5 138.9 L52.9 128.3 L50.7 117.2 L50.0 106.0 L50.7 94.8 L52.9 83.7 L56.5 73.1 L61.5 63.0 L67.8 53.6 L75.2 45.2 L83.6 37.8 L93.0 31.5 L103.1 26.5 L115.1 22.6 Z`];
+const RING_DECAL = { x: 0.052, y: 0.627, w: 0.423, h: 0.324 };
+
+const MEDALLION_BODY = `M18.0 294.6 L20.2 298.6 L24.0 300.0 L206.0 300.0 L208.8 299.3 L211.0 297.3 L212.0 294.0 L212.0 263.9 L216.1 258.0 L219.4 250.8 L221.3 243.9 L222.0 236.0 L221.3 228.1 L219.4 221.2 L216.1 214.0 L212.0 208.1 L212.0 34.7 L209.7 29.9 L205.2 28.7 L182.9 34.2 L163.0 36.4 L97.3 36.9 L71.9 38.8 L56.9 41.6 L42.3 45.9 L27.7 52.4 L19.1 57.9 L18.0 61.4 Z`;
+const MEDALLION_ACCENTS = [`M222.0 236.0 L221.2 227.4 L218.7 219.2 L214.6 211.6 L209.1 204.9 L202.4 199.4 L194.8 195.3 L186.6 192.8 L178.0 192.0 L169.4 192.8 L161.2 195.3 L153.6 199.4 L146.9 204.9 L141.4 211.6 L137.3 219.2 L134.8 227.4 L134.0 236.0 L134.8 244.6 L137.3 252.8 L141.4 260.4 L146.9 267.1 L153.6 272.6 L161.2 276.7 L169.4 279.2 L178.0 280.0 L186.6 279.2 L194.8 276.7 L202.4 272.6 L209.1 267.1 L214.6 260.4 L218.7 252.8 L221.2 244.6 Z`];
+const MEDALLION_DECAL = { x: -0.126, y: 0.547, w: 0.501, h: 0.383 };
+
+const SAIL_BODY = `M34.0 300.0 L34.0 14.0 L51.5 18.7 L68.1 24.8 L84.0 32.2 L106.2 45.6 L119.9 56.1 L132.7 67.7 L144.6 80.4 L160.6 101.4 L174.3 124.6 L182.2 141.2 L188.9 158.6 L194.6 176.8 L201.0 205.5 L203.8 225.5 L205.4 246.1 L205.8 267.3 L204.0 300.0 Z`;
+const SAIL_ACCENTS = [`M205.3 282.0 L205.8 256.6 L204.8 235.8 L202.6 215.5 L199.2 195.8 L194.6 176.8 L188.9 158.6 L182.2 141.2 L170.0 116.6 L155.5 94.2 L144.6 80.4 L132.7 67.7 L119.9 56.1 L106.2 45.6 L91.6 36.3 L76.2 28.3 L54.6 19.8 L56.6 34.2 L78.0 43.7 L92.1 51.8 L105.3 61.0 L117.7 71.4 L129.3 82.8 L140.0 95.2 L149.8 108.7 L158.7 123.1 L170.2 146.3 L176.7 162.9 L182.1 180.3 L186.4 198.4 L189.7 217.3 L191.8 236.8 L192.8 256.9 L192.3 282.0 Z`];
+const SAIL_DECAL = { x: -0.003, y: 0.333, w: 0.448, h: 0.373 };
+
+const WING_BODY = `M40.0 300.0 L40.0 94.0 L210.0 12.0 L200.3 42.0 L194.8 64.1 L190.9 89.6 L188.9 113.9 L188.1 151.1 L188.9 187.9 L191.9 244.6 L196.0 300.0 Z`;
+const WING_ACCENTS = [`M40.0 300.0 L40.0 94.0 L78.0 76.0 L66.0 300.0 Z`];
+const WING_DECAL = { x: 0.034, y: 0.38, w: 0.392, h: 0.403 };
 
 export const LAYERED = {
-  oval:    { name: 'Flame', body: FLAME_BODY, accents: FLAME_ACCENTS,
-             decal: { x: 0.1, y: 0.4, w: 0.42, h: 0.38 } },
-  facet:   { name: 'Flag', body: FLAG_BODY, accents: FLAG_ACCENTS,
-             decal: { x: 0.07, y: 0.56, w: 0.6, h: 0.46 } },
-  plaque:  { name: 'Fan', body: FAN_BODY, accents: FAN_ACCENTS,
-             decal: { x: 0, y: 0.73, w: 0.64, h: 0.38 } },
-  shield:  { name: 'Crest', body: CREST_BODY, accents: CREST_ACCENTS,
-             decal: { x: 0, y: 0.54, w: 0.38, h: 0.50 } },
+  arch:     { name: 'Sunburst',      body: SUNBURST_BODY,      accents: SUNBURST_ACCENTS,
+              decal: SUNBURST_DECAL },
+  shield:   { name: 'Star Rise',     body: STAR_RISE_BODY,     accents: STAR_RISE_ACCENTS,
+              decal: STAR_RISE_DECAL },
+  facet:    { name: 'Shooting Star', body: SHOOTING_STAR_BODY, accents: SHOOTING_STAR_ACCENTS,
+              decal: SHOOTING_STAR_DECAL },
+  oval:     { name: 'Ring',          body: RING_BODY,          accents: RING_ACCENTS,
+              decal: RING_DECAL },
+  plaque:   { name: 'Medallion',     body: MEDALLION_BODY,     accents: MEDALLION_ACCENTS,
+              decal: MEDALLION_DECAL },
+  monolith: { name: 'Sail',          body: SAIL_BODY,          accents: SAIL_ACCENTS,
+              decal: SAIL_DECAL },
+  wave:     { name: 'Wing',          body: WING_BODY,          accents: WING_ACCENTS,
+              decal: WING_DECAL },
 };
 /* the accent layer is a second cut and a second sheet: about 30% more */
 const LAYERED_COST = 1.3;
@@ -1391,7 +1285,7 @@ export function groupOf(key, i) {
 }
 
 export function variantsOf(key) {
-  if (LAYERED[key]) return [LAYERED[key].name, 'Classic'];
+  if (LAYERED[key]) return ['With gold', 'Plain'];
   const f = FIGURES[key];
   return f && f.names && f.names.length > 1 ? f.names : null;
 }
@@ -1514,16 +1408,16 @@ function customShape(w, h, v) { return figureShape('custom')(w, h, v); }
 
 /* `decal` says where the sticker goes. The figures have no flat area worth
    printing on, so their sticker mounts on the base instead. */
-/* A shape with a layered design: variant 0 draws the traced panel, anything
-   else the plain classic cut. */
-function styled(key, plain) {
-  return (w, h, v) => layeredOn(key, v) ? (pathToShape(LAYERED[key].body, w, h) || plain(w, h)) : plain(w, h);
+/* A panel trophy: one outline in both styles. Variant 0, "With gold", lays the
+   gold piece on its front (accentShapes); 1, "Plain", is the same cut alone. */
+function styled(key) {
+  return (w, h) => pathToShape(LAYERED[key].body, w, h);
 }
 
 export const SHAPES = {
-  arch:     { label: 'Arch',      build: archShape,     base: 1.00, decal: { y: 0.45, w: 0.84, h: 0.52 }, note: 'The default. Fits the most text of any shape.' },
-  plaque:   { label: 'Plaque',    build: styled('plaque', plaqueShape),   base: 0.94, decal: { y: 0.50, w: 0.88, h: 0.64 }, note: 'Rounded rectangle. Cheapest to cut, biggest sticker.' },
-  shield:   { label: 'Shield',    build: styled('shield', shieldShape),   base: 1.06, decal: { y: 0.49, w: 0.82, h: 0.50 }, note: 'Traditional crest. Suits quiz bees and academic contests.' },
+  arch:     { label: 'Sunburst',  build: styled('arch'),     base: 1.04, decal: LAYERED.arch.decal,     note: 'An arch with the Philippine sun in gold at its shoulder. For school and town awards.' },
+  plaque:   { label: 'Medallion', build: styled('plaque'),   base: 1.00, decal: LAYERED.plaque.decal,   note: 'A modern slab with a gold medallion. A big sticker, for corporate awards.' },
+  shield:   { label: 'Star Rise', build: styled('shield'),   base: 1.04, decal: LAYERED.shield.decal,   note: 'A wave rising into a gold star. For champions and top performers.' },
   lady:     { label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
   gown:     { label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
   gent:     { label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
@@ -1535,37 +1429,53 @@ export const SHAPES = {
   foot:     { label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball at their feet. Also used for futsal.' },
   run:      { label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. Covers track, fun runs and Palaro.' },
   custom:   { label: 'Your art',  build: customShape,   base: 1.30, decal: { onBase: true },              note: 'Cut to your own outline — drop an SVG in the sticker step.' },
-  oval:     { label: 'Oval',      build: styled('oval', ovalShape),     base: 1.04, decal: { y: 0.50, w: 0.74, h: 0.52 }, note: 'Soft medallion shape. Pairs well with an oval sticker.' },
-  facet:    { label: 'Facet',     build: styled('facet', facetShape),    base: 1.02, decal: { y: 0.49, w: 0.80, h: 0.52 }, note: 'Eight-sided and modern. Popular for corporate awards.' },
-  monolith: { label: 'Monolith',  build: monolithShape, base: 0.96, decal: { y: 0.47, w: 0.86, h: 0.58 }, note: 'Square with clipped corners. Plain and cheap.' },
-  wave:     { label: 'Wave',      build: waveShape,     base: 1.08, decal: { y: 0.40, w: 0.82, h: 0.48 }, note: 'Contemporary curved top. A change from the usual arch.' },
+  oval:     { label: 'Ring',      build: styled('oval'),     base: 1.02, decal: LAYERED.oval.decal,     note: 'A disc held in a gold ring. Pairs with a round sticker.' },
+  facet:    { label: 'Shooting Star', build: styled('facet'), base: 1.06, decal: LAYERED.facet.decal,  note: 'A star on a gold sweeping tail. For rising stars and breakout years.' },
+  monolith: { label: 'Sail',      build: styled('monolith'), base: 0.98, decal: LAYERED.monolith.decal, note: 'A sail with a gold edge. Clean and contemporary.' },
+  wave:     { label: 'Wing',      build: styled('wave'),     base: 0.98, decal: LAYERED.wave.decal,     note: 'An angled wing with a gold stripe. For service and leadership awards.' },
 };
 
 /* The option tiles draw the REAL cut outline, sampled from the same builder
    the 3D model uses, so a tile can never quietly drift from the piece it
-   sells. Fitted into `box` with the foot on its bottom edge. */
-export function outlinePath(key, box, variant) {
+   sells. Fitted into `box` with the foot on its bottom edge. A panel shown
+   "With gold" carries its gold piece too: in outlinePath as rings the even-odd
+   fill leaves open, and from goldPath to fill them in gold -- so the With gold
+   and Plain tiles differ, as the pieces do. */
+function tileRings(key, box, variant) {
   const spec = SHAPES[key];
-  if (!spec) return '';
+  if (!spec) return null;
   let shape;
-  try { shape = spec.build(6.8, 17.8, variant); } catch { return ''; }
-  if (!shape) return '';
+  try { shape = spec.build(6.8, 17.8, variant); } catch { return null; }
+  if (!shape) return null;
 
-  const rings = pieces(shape).flatMap(s => [s, ...(s.holes || [])]).map(r => r.getPoints(170));
+  const ringsOf = list => list.flatMap(s => [s, ...(s.holes || [])]).map(r => r.getPoints(170));
+  const rings = ringsOf(pieces(shape));
+  const gold = ringsOf(accentShapes(key, 6.8, 17.8, variant));
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   for (const r of rings) for (const p of r) {
     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
     minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
   }
   const w = maxX - minX, h = maxY - minY;
-  if (!(w > 0 && h > 0)) return '';
+  if (!(w > 0 && h > 0)) return null;
 
   const k  = Math.min(box.w / w, box.h / h);
   const ox = box.x + box.w / 2 - ((minX + maxX) / 2) * k;
   const oy = box.y + box.h;
-  return rings.map(r => r.map((p, i) =>
+  const d = list => list.map(r => r.map((p, i) =>
     `${i ? 'L' : 'M'}${(ox + p.x * k).toFixed(1)} ${(oy - (p.y - minY) * k).toFixed(1)}`
   ).join('') + 'Z').join('');
+  return { outline: d(rings), gold: d(gold) };
+}
+
+export function outlinePath(key, box, variant) {
+  const t = tileRings(key, box, variant);
+  return t ? t.outline + t.gold : '';
+}
+
+export function goldPath(key, box, variant) {
+  const t = tileRings(key, box, variant);
+  return t ? t.gold : '';
 }
 
 /* ───────────────────────── sheet colours ───────────────────────── */

@@ -4,15 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611031455';
+import { createViewer, webglAvailable } from './viewer.js?v=202611031510';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
-  quote, peso, fmtDate, setCustomOutline, outlinePath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
+  quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611031455';
+} from './trophy.js?v=202611031510';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -326,7 +326,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031455'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611031510'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -642,7 +642,7 @@ function poseTiles() {
   const styled = isStyled(cfg.shape);
   if ($('#poseHead')) $('#poseHead').textContent = styled ? 'Style' : 'Pose';
   if ($('#notePose')) $('#notePose').textContent = styled
-    ? 'Layered: gold accent pieces cut separately and set on the front. Classic: the plain cut.'
+    ? 'With gold: the gold piece is cut from gold mirror acrylic and set on the front. Plain: the same cut, one sheet.'
     : 'Same cut, different stance.';
   const g = groupOf(cfg.shape, cfg.variant);
   const idx = names.map((n, i) => i).filter(i => !g || (i >= g.from && i < g.to));
@@ -650,7 +650,9 @@ function poseTiles() {
     k => { cfg.variant = +k; cfg.place = null; setVariant(cfg.shape, +k); custom(); rebuild(); },
     (k, v) => {
       const d = outlinePath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
+      const gd = goldPath(cfg.shape, { x: 1, y: 3, w: 38, h: 39 }, v.i);
       return `<svg viewBox="0 0 40 50" aria-hidden="true"><path d="${d}" fill-rule="evenodd"/>` +
+             (gd ? `<path d="${gd}" fill="#c9a24a"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
   markTiles();
@@ -674,8 +676,10 @@ function buildTiles() {
     },
     (k, v) => {
       const d = k === 'custom' ? (outlineReady && outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }) || FIG_CUSTOM)
-                             : outlinePath(k, { x: 1, y: 3, w: 38, h: 39 });
+                             : outlinePath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
+      const gd = k === 'custom' ? '' : goldPath(k, { x: 1, y: 3, w: 38, h: 39 }, 0);
       return `<svg viewBox="0 0 40 50" aria-hidden="true"><path d="${d}" fill-rule="evenodd"/>` +
+             (gd ? `<path d="${gd}" fill="#c9a24a"/>` : '') +
              `<rect x="5" y="44" width="30" height="4" rx="1"/></svg><b>${v.label}</b>`;
     });
 
