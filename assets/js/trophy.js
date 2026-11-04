@@ -1854,6 +1854,25 @@ export function printInk(mat) {
 let CUSTOM_OUTLINE = null;
 export function setCustomOutline(d) { CUSTOM_OUTLINE = d || null; }
 export function hasCustomOutline() { return !!CUSTOM_OUTLINE; }
+export function customOutline() { return CUSTOM_OUTLINE; }
+
+/* A saved design carries its own outline -- a request sent from "Your art"
+   (`outline`, see designSpec in designer.js): build with it, then put back
+   whatever outline the designer page holds. */
+function withOwnOutline(cfg, fn) {
+  if (cfg?.shape !== 'custom' || typeof cfg.outline !== 'string') return fn();
+  const keep = CUSTOM_OUTLINE;
+  CUSTOM_OUTLINE = cfg.outline;
+  try { return fn(); } finally { CUSTOM_OUTLINE = keep; }
+}
+
+/* The path a piece is cut along, in its own drawing's units: a design's body,
+   a figure's pose, the customer's own outline. */
+export function cutOutline(cfg) {
+  if (DESIGNS[cfg.shape]) return DESIGNS[cfg.shape].body;
+  if (cfg.shape === 'custom') return typeof cfg.outline === 'string' ? cfg.outline : CUSTOM_OUTLINE;
+  return figurePath(cfg.shape, cfg.variant);
+}
 
 /* The third argument is the POSE. Every one of these wrappers used to declare
    just (w, h) and drop it, so the 3D model -- built after setVariant() -- was
@@ -2918,6 +2937,9 @@ function fitFigure(shape, w, h, variant) {
    a figure cut smaller to stand inside its base. The size tiles quote the full
    height; the summary, the order sheet and the admin quote this one. */
 export function standingHeight(cfg) {
+  return withOwnOutline(cfg, () => standingHeightNow(cfg));
+}
+function standingHeightNow(cfg) {
   const shape = SHAPES[cfg.shape] || SHAPES.arch;
   const size = SIZES[cfg.size] || SIZES.m;
   if (!shape.decal.onBase) return size.total;
@@ -2926,6 +2948,9 @@ export function standingHeight(cfg) {
 }
 
 export function buildTrophy(cfg) {
+  return withOwnOutline(cfg, () => buildTrophyNow(cfg));
+}
+function buildTrophyNow(cfg) {
   const shape = SHAPES[cfg.shape] || SHAPES.arch;
   const mat   = MATERIALS[cfg.material] || MATERIALS.blue;
   const size  = SIZES[cfg.size] || SIZES.m;

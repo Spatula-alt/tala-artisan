@@ -12,7 +12,7 @@
    Gold and silver (mirror and glitter acrylic), frost, crystal and wood stay
    pieces of their own, laid on top of it.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611041504';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611041741';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
@@ -246,9 +246,37 @@ function decalSticker(cfg, dims, words) {
   return { canvas, path, w: dims.dw, h: dims.dh, clear: !!SCHEMES[cfg.scheme]?.print };
 }
 
-/* -> { canvas, path, w, h, clear }: the sticker at 300 dpi, the cut line on
-   it in its pixels, its size in cm, and whether any of it is left clear. */
+/* Where a photo the customer is still to send goes: a grey stand-in, so the
+   sticker is laid out round it as it will be printed. */
+function photoStandIn(fit) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#CFCAC0';
+  g.fillRect(0, 0, 512, 512);
+  if (fit !== 'cover') {                  // behind the whole sticker the word would sit under the wording
+    g.fillStyle = '#7D776C';
+    g.font = '600 92px Inter, system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('PHOTO', 256, 262);
+  }
+  c.naturalWidth = c.naturalHeight = 512; // stickerCanvas sizes a photo by these
+  return c;
+}
+
+/* -> { canvas, path, w, h, clear, standIn }: the sticker at 300 dpi, the cut
+   line on it in its pixels, its size in cm, whether any of it is left clear,
+   and whether a stand-in holds the place of a photo still to come. */
 export async function stickerArt(cfg) {
+  const standIn = !!(cfg.photo && !cfg.photoImg && cfg.photoTarget !== 'figure');
+  if (standIn) cfg = { ...cfg, photoImg: photoStandIn(cfg.photoFit) };
+  const art = await stickerOf(cfg);
+  if (art) art.standIn = standIn;
+  return art;
+}
+
+async function stickerOf(cfg) {
   const model = buildTrophy(cfg);
   const dims = model.userData.dims;
   disposeGroup(model);
@@ -265,6 +293,49 @@ export async function stickerArt(cfg) {
   if (!plan) return decalSticker(cfg, dims, words);
   const art = plan.members.some(i => PATTERN.has(D.layers[i].fin)) ? await artImage(D.art.src) : null;
   return faceSticker(D, cfg, dims, words, plan, art);
+}
+
+/* What is printed on the cut piece itself, flat and cut along its outline at
+   its real size: the customer's own picture on "Your art" -- the original file
+   they send, cropped where the designer cropped it (`cutBox`) -- or their
+   photo printed over a whole figure. `img` is that file, as an <img>.
+   -> as stickerArt, or null when the piece's outline is not known. */
+export function pieceArt(cfg, img) {
+  const d = cutOutline(cfg);
+  if (!d || !img?.naturalWidth) return null;
+  const model = buildTrophy(cfg);
+  const dims = model.userData.dims;
+  const geo = model.getObjectByName('blade')?.geometry;
+  geo?.computeBoundingBox();
+  const bb = geo?.boundingBox?.clone();
+  disposeGroup(model);
+  if (!dims?.frame || !bb) return null;
+  const { k, cx, maxY } = dims.frame;
+  // the cut's box, in its outline's units (the blade's own frame: x from the centroid, y up from the foot)
+  const u0 = bb.min.x / k + cx, u1 = bb.max.x / k + cx, v0 = maxY - bb.max.y / k, v1 = maxY - bb.min.y / k;
+  const s = k * PXCM;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil((u1 - u0) * s) + 2 * PAD;
+  canvas.height = Math.ceil((v1 - v0) * s) + 2 * PAD;
+  const toPx = new DOMMatrix([s, 0, 0, s, PAD - u0 * s, PAD - v0 * s]);
+  const g = canvas.getContext('2d');
+  g.setTransform(toPx);
+  const cut = new Path2D(d);
+  g.clip(cut, 'evenodd');
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  if (cfg.shape === 'custom' && Array.isArray(cfg.cutBox) && cfg.cutAspect > 0) {
+    // cutout.js scales its crop to 300 units tall, from the crop's top left corner
+    const [bx, by, bw, bh] = cfg.cutBox;
+    g.drawImage(img, bx * iw, by * ih, bw * iw, bh * ih, 0, 0, 300 / cfg.cutAspect, 300);
+  } else {
+    // over the blade's box, as the 3D model prints it: object-fit cover
+    const x0 = cx - dims.w / k, y0 = maxY - dims.h / k, bw = 2 * dims.w / k, bh = dims.h / k;
+    const f = Math.max(bw / iw, bh / ih);
+    g.drawImage(img, x0 + (bw - iw * f) / 2, y0 + (bh - ih * f) / 2, iw * f, ih * f);
+  }
+  const path = new Path2D();
+  path.addPath(cut, toPx);
+  return { canvas, path, w: (u1 - u0) * k, h: (v1 - v0) * k, clear: false };
 }
 
 let CRC_TABLE = null;

@@ -4,15 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611041504';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041741';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
-  quote, peso, fmtDate, setCustomOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
+  quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611041504';
+} from './trophy.js?v=202611041741';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -27,7 +27,7 @@ const cfg = {
   name: 'Maria C. Lualhati', date: '2026',
   photoImg: null, photoFit: 'badge', photoTarget: 'sticker',
   place: null,            // the customer's own sticker placement, or null for the design's box
-  cutArt: null, cutPrint: true, cutMode: null, cutAspect: null,   // "Your art" cut from a picture
+  cutArt: null, cutPrint: true, cutMode: null, cutAspect: null, cutBox: null,   // "Your art" cut from a picture
   extraSticker: false, logo: false, qty: 6,
   speed: 'standard', zone: 'province', payment: 'cash',
   needBy: '', _occasion: 'pageant',
@@ -329,7 +329,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611041504'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611041741'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -455,7 +455,7 @@ async function chooseCutFile(file) {
   if (!file.type.startsWith('image/')) return cutNote('That needs to be a picture file.', true);
   if (file.size > 8 * 1024 * 1024) return cutNote('Too large — keep it under 8 MB.', true);
   if (file.type === 'image/svg+xml' && await readOutline(file)) {     // an outline already
-    cut.result = null; cfg.cutArt = null; cfg.cutAspect = null;
+    cut.result = null; cfg.cutArt = null; cfg.cutAspect = null; cfg.cutBox = null;
     outlineReady = true; useCustomShape();
     return cutNote('Outline read from your SVG — it is now the cut shape.');
   }
@@ -481,6 +481,9 @@ function applyCut(r) {
   cfg.cutPrint = $('#cutPrint').checked;
   cfg.cutMode = cut.hand ? cut.mode + '+hand' : r.mode;
   cfg.cutAspect = r.aspect;                 // height / width, for the price
+  // the crop, as fractions of the picture: the original they send is cropped the same way
+  cfg.cutBox = [r.x0 / cut.c.width, r.y0 / cut.c.height, r.art.width / cut.c.width, r.art.height / cut.c.height]
+    .map(v => +v.toFixed(5));
   outlineReady = true;
   useCustomShape();
 }
@@ -1096,13 +1099,23 @@ function saveImage() {
 }
 
 /* The machine-readable spec, saved with a request so the shop can rebuild the
-   exact piece; the customer's photo and cut-out picture are never included. */
+   exact piece; the customer's photo and cut-out picture are never included.
+   "Your art" sends its outline -- the cut line, so the Admin Deck can show and
+   cut the real shape -- and where the cut sits in the picture, so the original
+   the customer sends lines up with it. A photo is only flagged as coming. */
+const OUTLINE_MAX = 16000;                  // the request's design column holds 20 kB
 function designSpec() {
   const design = {};
   for (const [k, v] of Object.entries(cfg)) {
     if (k.startsWith('_') || k === 'photoImg' || v == null || typeof v === 'object') continue;
     design[k] = v;
   }
+  const outline = cfg.shape === 'custom' ? customOutline() : null;
+  if (outline && outline.length <= OUTLINE_MAX) {
+    design.outline = outline;
+    if (cfg.cutBox) design.cutBox = cfg.cutBox;
+  }
+  if (cfg.photoImg) design.photo = true;
   return design;
 }
 

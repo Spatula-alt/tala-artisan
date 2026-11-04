@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611041504';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041741';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611041504';
-import { stickerArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611041504';
+} from './trophy.js?v=202611041741';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611041741';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -119,7 +119,9 @@ function specRows(d) {
   if (d.needBy) rows.push(['Needed by', d.needBy]);
   return rows.filter(r => r[1]);
 }
-const canBuild = d => d && typeof d === 'object' && SHAPES[d.shape] && d.shape !== 'custom';
+// a request's own outline ("Your art", designSpec in designer.js): plain path data only
+const validOutline = s => typeof s === 'string' && s.length <= 20000 && /^[MLHVCQZmlhvcqz\d\s.,eE+-]+$/.test(s);
+const canBuild = d => d && typeof d === 'object' && SHAPES[d.shape] && (d.shape !== 'custom' || validOutline(d.outline));
 const autoPrice = d => { try { return canBuild(d) ? price({ ...d, qty: 1 }).unit : null; } catch { return null; } };
 
 /* one live 3D view inside a dialog; returns a disposer */
@@ -127,7 +129,7 @@ function mount3D(box, design) {
   box.innerHTML = '';
   if (!canBuild(design)) {
     box.innerHTML = `<div class="v3d__empty">${design?.shape === 'custom'
-      ? 'Cut from the customer’s own picture — the outline is not saved with the request. Ask them for the file.'
+      ? 'Cut from the customer’s own picture — its outline did not come with this request. Ask them for the file.'
       : 'No 3D design.'}</div>`;
     return () => {};
   }
@@ -191,27 +193,137 @@ function stickerThumb(canvas, max = 720) {
   return c.toDataURL('image/png');
 }
 
-/* The sticker block under a design: the picture, its size, save and print. */
-async function mountSticker(box, design, name) {
+/* Ask for a picture and read it in: -> an <img>, or null. Nothing is uploaded;
+   it is only drawn into the prints here. */
+function pickImage() {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/webp';
+    input.addEventListener('cancel', () => resolve(null));
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return resolve(null);
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      try { await img.decode(); resolve(img); }
+      catch { toast(`${file.name} could not be read — use a JPG, PNG or WebP picture.`, true); resolve(null); }
+    });
+    input.click();
+  });
+}
+
+/* "Your art"'s picture for the 3D model: the original, cropped where the designer cropped it */
+function cropToCut(img, [bx, by, bw, bh]) {
+  const iw = img.naturalWidth, ih = img.naturalHeight, sw = bw * iw, sh = bh * ih;
+  const k = Math.min(1, 1024 / Math.max(sw, sh));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+  c.getContext('2d').drawImage(img, bx * iw, by * ih, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+// the design with what the customer sent afterwards in it, for the 3D model
+const withFiles = (design, got) => ({ ...design, photoImg: got.photo || null,
+  cutArt: got.picture && Array.isArray(design.cutBox) ? cropToCut(got.picture, design.cutBox) : null });
+
+/* The sticker block under a design: the picture, its size, save and print.
+   On a request it also takes what the customer sends after ordering (their
+   files stay on their device, see design.html): their photo for the sticker,
+   and on "Your art", or a figure printed over, the picture for the cut piece.
+   `opts.got` keeps those; `opts.onDesign` hears of the design with them in;
+   `opts.photo` says a photo is coming (older requests only say so in words). */
+async function mountSticker(box, design, name, opts = {}) {
   box.hidden = true;
   box.innerHTML = '';
-  if (!canBuild(design)) return;
+  if (!design || typeof design !== 'object' || !SHAPES[design.shape]) return;
   const n = (box.dataset.n = String(Number(box.dataset.n || 0) + 1));   // a newer design wins the race
+  const got = opts.got || (opts.got = {});
+  const coming = !!(design.photo || opts.photo);
+  const onFigure = design.photoTarget === 'figure' && !!SHAPES[design.shape].decal?.onBase;
+  const d = { ...design, photo: coming, photoImg: got.photo || null };
   let art = null;
-  try { art = await stickerArt(design); } catch { /* no sticker for this design */ }
+  try { art = await stickerArt(d); } catch { /* no sticker for this design */ }
   if (!art || box.dataset.n !== n) return;
-  const where = SHAPES[design.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
+
+  // what is printed on the cut piece itself: "Your art"'s own picture, or a photo over a figure
+  const piece = d.shape === 'custom' ? (d.cutPrint && d.cutAspect ? 'picture' : null) : (coming && onFigure ? 'photo' : null);
+  const canLine = piece === 'picture' ? !!(d.outline && Array.isArray(d.cutBox)) : !!piece;
+  let pa = null;
+  if (canLine && got[piece]) { try { pa = pieceArt(d, got[piece]); } catch { /* left to add again */ } }
+
+  const label = SHAPES[d.shape]?.label || 'trophy';
+  const along = piece === 'picture' ? 'their outline' : 'the figure';
+  const where = SHAPES[d.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
   const film = art.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '';
+  const wait = art.standIn ? ' Their photo goes in the grey part: add it when they send it.' : '';
+  const btn = (k, t) => `<button class="btn btn--line btn--sm" type="button" data-stk="${k}">${t}</button>`;
   box.innerHTML = `<p class="sec-t">Sticker</p>
     <div class="stk__pic"><img src="${stickerThumb(art.canvas)}" alt="The sticker of this design"></div>
-    <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[design.size]?.label || 'Medium'} size.${film}</p>
-    <div class="stk__btns"><button class="btn btn--line btn--sm" type="button" data-stk="save">Save sticker</button>
-      <button class="btn btn--line btn--sm" type="button" data-stk="print">Print at real size</button></div>`;
+    <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[d.size]?.label || 'Medium'} size.${film}${wait}</p>
+    <div class="stk__btns">${btn('save', 'Save sticker')}${btn('print', 'Print at real size')}${
+      coming && !onFigure ? btn('photo', got.photo ? 'Change their photo' : 'Add their photo') : ''}</div>
+    ${!piece ? '' : `<div class="stk__piece"><p class="sec-t">${piece === 'picture' ? 'Picture on the cut piece' : 'Photo on the figure'}</p>${
+      pa ? `<div class="stk__pic"><img src="${stickerThumb(pa.canvas)}" alt="The print for the cut piece"></div>
+        <p class="stk__size">${pa.w.toFixed(1)} × ${pa.h.toFixed(1)} cm, cut along ${along}. Check its edges before printing.</p>
+        <div class="stk__btns">${btn('psave', 'Save picture')}${btn('pprint', 'Print at real size')}${btn(piece, `Change their ${piece}`)}</div>`
+      : canLine ? `<p class="stk__size">They keep their ${piece} until they send it. Add it here and it is ${
+          piece === 'picture' ? 'cropped where they cropped it and ' : ''}cut along ${along}, at real size.</p>
+        <div class="stk__btns">${btn(piece, `Add their ${piece}`)}</div>`
+      : `<p class="stk__size">Their outline did not come with this request, so their picture cannot be lined up here. Ask them for the file.</p>`}</div>`}`;
   box.hidden = false;
-  const file = `${slug(name || SHAPES[design.shape]?.label || 'trophy')}-sticker-${art.w.toFixed(1)}x${art.h.toFixed(1)}cm`;
-  $('[data-stk="save"]', box).addEventListener('click', () => saveSticker(art, file));
+  const base = slug(name || label);
+  $('[data-stk="save"]', box).addEventListener('click', () => saveSticker(art, `${base}-sticker-${art.w.toFixed(1)}x${art.h.toFixed(1)}cm`));
   $('[data-stk="print"]', box).addEventListener('click', () => printSticker(art, name || 'Sticker'));
+  for (const k of ['photo', 'picture']) {
+    $(`[data-stk="${k}"]`, box)?.addEventListener('click', async () => {
+      const img = await pickImage();
+      if (!img) return;
+      got[k] = img;
+      opts.onDesign?.(withFiles(design, got));
+      mountSticker(box, design, name, opts);
+    });
+  }
+  if (pa) {
+    $('[data-stk="psave"]', box).addEventListener('click', () => saveSticker(pa, `${base}-${piece}-${pa.w.toFixed(1)}x${pa.h.toFixed(1)}cm`));
+    $('[data-stk="pprint"]', box).addEventListener('click', () => printSticker(pa, `${name || label} · ${piece}`));
+  }
 }
+
+/* The order sheet the designer writes into the message (specText in
+   designer.js), read back into its sections, so it shows as a table instead of
+   padded text. Whatever else the customer typed is kept apart, as their own.
+   -> { sections: [{ title, rows: [[key, value]] }], notes, own }, or null. */
+const SHEET_TOP = 'TROPHY DESIGN — built on the website';
+const SHEET_END = 'Please confirm the price and send a proof.';
+const SHEET_TITLES = { 'PRINTED STICKER': 'Sticker', WORDING: 'Wording', ORDER: 'Order' };
+// the customer's own notes, said for the shop
+const SHEET_NOTES = { 'NOTE: the photo is only on my own screen — please tell me where to send the file.':
+  'Their photo is still on their own device: ask them to send it, then add it to the sticker below.' };
+function orderSheet(message) {
+  const lines = String(message || '').split(/\r?\n/);
+  const top = lines.findIndex(l => l.trim() === SHEET_TOP);
+  if (top < 0) return null;
+  let end = lines.findIndex((l, i) => i > top && l.trim() === SHEET_END);
+  if (end < 0) end = lines.length;
+  const sections = [{ title: 'Trophy', rows: [] }], notes = [];
+  for (const raw of lines.slice(top + 1, end)) {
+    const l = raw.replace(/\s+$/, ''), t = l.trim();
+    if (!t) continue;
+    if (SHEET_TITLES[t]) { sections.push({ title: SHEET_TITLES[t], rows: [] }); continue; }
+    if (/^NOTE:/i.test(t)) { notes.push(SHEET_NOTES[t] || t.replace(/^NOTE:\s*/i, '')); continue; }
+    // specText pads each label to 16 characters; a line the customer edited may keep only a gap
+    const row = l.length > 16 && l[15] === ' ' && l.slice(0, 16).trim()
+      ? [l.slice(0, 16).trim(), l.slice(16).trim()] : (t.match(/^(.+?)\s{2,}(.+)$/) || []).slice(1);
+    if (row.length !== 2 || !row[1]) { notes.push(t); continue; }
+    if (row[0] === 'Unit') sections.push({ title: 'Price', rows: [] });
+    sections[sections.length - 1].rows.push(row);
+  }
+  const own = [...lines.slice(0, top), ...lines.slice(end + 1)].join('\n').trim();
+  return { sections: sections.filter(x => x.rows.length), notes, own };
+}
+const sheetHtml = sh => sh.sections.map(x => `<p class="sheet__t">${esc(x.title)}</p>
+    <dl class="kv sheet__kv">${x.rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd${/TOTAL/.test(k) ? ' class="sheet__total"' : ''}>${esc(v)}</dd>`).join('')}</dl>`).join('')
+  + sh.notes.map(t => `<p class="sheet__note">${esc(t)}</p>`).join('');
 
 /* stills of the shop designs, one renderer for all of them */
 const stills = new Map();
@@ -558,7 +670,7 @@ function renderRequests() {
         <span class="req__dot"></span>
         <span class="req__name">${esc(r.name)}</span>
         <span class="req__side"><span class="st st--${esc(r.status)}">${STATUS_LABEL[r.status] || esc(r.status)}</span><span>${when(r.created_at)}</span></span>
-        <span class="req__meta">${esc([r.item, r.qty ? `${r.qty} pcs` : '', r.design ? '3D design' : '', (r.message || '').split('\n')[0]].filter(Boolean).join(' · '))}</span>
+        <span class="req__meta">${esc(reqMeta(r))}</span>
       </button>`).join('')}</div>`
     : `<div class="adm-empty">${S.requests.length ? 'Nothing matches.' : 'No requests yet. When a customer sends the quote form, it appears here.'}</div>`}`;
 
@@ -574,10 +686,21 @@ function renderRequests() {
   $$('.req').forEach(b => b.addEventListener('click', () => openRequest(S.requests.find(r => String(r.id) === b.dataset.id))));
 }
 
+const reqMeta = r => {
+  const sh = orderSheet(r.message), cut = SHAPES[r.design?.shape]?.label;
+  return [r.item, r.qty ? `${r.qty} pcs` : '', r.design ? `3D design${cut ? `: ${cut}` : ''}` : '',
+    (sh ? sh.own : r.message || '').split('\n')[0]].filter(Boolean).join(' · ');
+};
+
 function openRequest(r) {
   if (!r) return;
-  const d = r.design && typeof r.design === 'object' ? r.design : null;
+  const d = r.design && typeof r.design === 'object' ? { ...r.design } : null;
+  if (d?.shape === 'custom' && !validOutline(d.outline)) delete d.outline;   // only plain path data is drawn
   const est = d ? autoPrice(d) : null;
+  const sheet = orderSheet(r.message);
+  // a photo still to come: flagged on newer requests, only written in older ones
+  const photoRow = sheet?.sections.flatMap(x => x.rows).find(([k]) => k === 'Photo');
+  const photoComing = !!(d && (d.photo || /TO BE SENT/.test(photoRow?.[1] || '')));
   const dlg = document.createElement('dialog');
   dlg.className = 'adm-dlg';
   dlg.innerHTML = `<form method="dialog">
@@ -593,7 +716,9 @@ function openRequest(r) {
               <dt>How many</dt><dd>${esc(r.qty ?? '—')}</dd>
               ${est != null ? `<dt>Estimate</dt><dd>${peso(est)} each at the site's current prices</dd>` : ''}
             </dl></div>
-          ${r.message ? `<div><p class="sec-t">Message</p><div class="msg-box">${esc(r.message)}</div></div>` : ''}
+          ${sheet ? `${sheet.own ? `<div><p class="sec-t">Their message</p><div class="msg-box">${esc(sheet.own)}</div></div>` : ''}
+            <div><p class="sec-t">Order sheet</p><div class="sheet">${sheetHtml(sheet)}</div></div>`
+          : r.message ? `<div><p class="sec-t">Message</p><div class="msg-box">${esc(r.message)}</div></div>` : ''}
           <div class="fld-row">
             <label class="fld">Status<select name="status">${STATUSES.map(s => `<option value="${s}"${s === r.status ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select></label>
           </div>
@@ -602,14 +727,14 @@ function openRequest(r) {
         </div>
         <div>${d ? `<p class="sec-t">Their design</p><div class="v3d" id="v3d"></div>
             <div class="stk" id="stk" hidden></div>
-            <dl class="kv" style="margin-top:12px">${specRows(d).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
+            ${sheet ? '' : `<dl class="kv" style="margin-top:12px">${specRows(d).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`}`
           : `<p class="sec-t">Their design</p><div class="adm-empty" style="padding:28px 18px">Sent from the quote form without a 3D design.</div>`}
         </div>
       </div>
     </div>
     <div class="dlg-f">
       <button class="btn btn--line btn--sm btn-danger" type="button" id="del">Delete</button>
-      ${canBuild(d) ? '<button class="btn btn--line btn--sm" type="button" id="toShop">Add this design to the shop</button>' : ''}
+      ${canBuild(d) && d.shape !== 'custom' ? '<button class="btn btn--line btn--sm" type="button" id="toShop">Add this design to the shop</button>' : ''}
       <span class="grow"></span>
       <button class="btn btn--line btn--sm" value="close">Close</button>
       <button class="btn btn--solid btn--sm" type="submit" value="save" id="save">Save</button>
@@ -620,7 +745,10 @@ function openRequest(r) {
   dlg.addEventListener('close', close);
   dlg.showModal();
   if (d) dispose = mount3D($('#v3d', dlg), d);
-  if (d) mountSticker($('#stk', dlg), d, r.name ? `Order for ${r.name}` : 'Order');
+  if (d) mountSticker($('#stk', dlg), d, r.name ? `Order for ${r.name}` : 'Order', {
+    photo: photoComing,
+    onDesign: dd => { dispose(); dispose = mount3D($('#v3d', dlg), dd); },   // their photo or picture, on the 3D
+  });
 
   $('form', dlg).addEventListener('submit', async e => {
     e.preventDefault();
