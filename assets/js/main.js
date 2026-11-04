@@ -126,6 +126,28 @@
   const yr = $('#yr');
   if (yr) yr.textContent = new Date().getFullYear();
 
+  /* ─── arriving at the form (the designer's "Send this design to the studio") ───
+     The shop above it loads its trophies after the page does and grows by more
+     than a screen, so the form slid down past where the browser had jumped: the
+     owner landed on "Tala means star" instead. Hold the form in place while the
+     page settles, until the visitor scrolls, clicks or types themselves. */
+  const quoteSec = location.hash === '#quote' && $('#quote');
+  if (quoteSec && 'ResizeObserver' in window) {
+    let held = true;
+    const root = document.documentElement;
+    root.style.scrollBehavior = 'auto';      // a smooth scroll still heading for the old spot would win
+    const pad = () => parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
+    const align = () => {
+      if (held) scrollTo({ top: quoteSec.getBoundingClientRect().top + scrollY - pad(), behavior: 'instant' });
+    };
+    const ro = new ResizeObserver(align);
+    const release = () => { held = false; ro.disconnect(); root.style.scrollBehavior = ''; };
+    ro.observe(document.body);
+    addEventListener('load', align);
+    for (const ev of ['wheel', 'touchstart', 'keydown', 'pointerdown']) addEventListener(ev, release, { once: true, passive: true });
+    setTimeout(release, 8000);
+  }
+
   /* ─── quote form ─── */
   const form = $('#quoteForm');
   if (form) {

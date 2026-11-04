@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611042309';
+import { createViewer, webglAvailable } from './viewer.js?v=202611050029';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611042309';
+} from './trophy.js?v=202611050029';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -331,7 +331,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611042309'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611050029'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');

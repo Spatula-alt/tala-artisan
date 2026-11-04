@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611042309';
+import { createViewer, webglAvailable } from './viewer.js?v=202611050029';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611042309';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042309';
+} from './trophy.js?v=202611050029';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611050029';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
