@@ -119,12 +119,12 @@
 .msg-box{white-space:pre-wrap;background:var(--surface);border-radius:8px;padding:12px 14px;font-size:.9rem;line-height:1.55}
 .sec-t{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 8px;font-weight:600}
 
-.v3d{position:relative;aspect-ratio:4/5;max-height:420px;background:linear-gradient(#2A2721,#15140F);border-radius:10px;overflow:hidden}
+/* one light stage for every trophy: clear and white ones used to get a dark
+   one, and the owner read the difference as a bug */
+.v3d{position:relative;aspect-ratio:4/5;max-height:420px;background:linear-gradient(#EFECE4,#DDD7CA);border-radius:10px;overflow:hidden}
 .v3d canvas{width:100%;height:100%;cursor:grab}
-.v3d.is-light{background:linear-gradient(#EFECE4,#DDD7CA)}
-.v3d__note{position:absolute;left:10px;bottom:10px;font-size:.72rem;color:rgba(251,250,247,.7)}
-.v3d.is-light .v3d__note{color:var(--mute)}
-.v3d__empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:rgba(251,250,247,.75);font-size:.86rem}
+.v3d__note{position:absolute;left:10px;bottom:10px;font-size:.72rem;color:var(--mute);background:rgba(251,250,247,.82);padding:2px 8px;border-radius:999px}
+.v3d__empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute);font-size:.86rem}
 
 .photos{display:flex;gap:10px;flex-wrap:wrap}
 .ph{position:relative;width:96px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:var(--surface)}

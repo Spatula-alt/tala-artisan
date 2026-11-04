@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611041252';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041303';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611041252';
+} from './trophy.js?v=202611041303';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -136,7 +136,6 @@ function mount3D(box, design) {
   const note = document.createElement('span');
   note.className = 'v3d__note'; note.textContent = 'Drag to turn';
   box.append(note);
-  box.classList.toggle('is-light', design.material !== 'white' && design.material !== 'clear');
   const viewer = createViewer(canvas, { autoRotate: true, maxDpr: 2 });
   const model = buildTrophy(design);
   viewer.scene.add(model);
