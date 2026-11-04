@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611042243';
+import { createViewer, webglAvailable } from './viewer.js?v=202611042309';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611042243';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042243';
+} from './trophy.js?v=202611042309';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042309';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -48,16 +48,40 @@ const safeImage = u => typeof u === 'string' &&
 
 let sb = null;
 
-/* A deck kept from before the last update reloads itself, once.
-   GitHub Pages lets a browser keep a page for 10 minutes, and a page that old runs the old code: the
-   owner tested a fix twice in a page like that and saw none of it. bump-version.py writes version.json. */
-const BUILD = new URL(import.meta.url).searchParams.get('v');
-if (BUILD) {
-  fetch(new URL('../../version.json', import.meta.url), { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(j => {
-    if (!j?.v || j.v === BUILD || sessionStorage.getItem('tala.fresh') === j.v) return;
-    sessionStorage.setItem('tala.fresh', j.v);
-    location.reload();
-  }).catch(() => { /* offline or private mode: carry on with this page */ });
+/* A deck kept from before the last update reloads itself, once. GitHub Pages
+   lets a browser keep a page for 10 minutes, and a page that old runs the old
+   code: the owner tested a fix twice in a page like that and saw none of it.
+   bump-version.py writes version.json. Asked before signing in (start), so
+   the reload never cuts off a sign-in being renewed. -> true to reload */
+async function stale() {
+  const build = new URL(import.meta.url).searchParams.get('v');
+  if (!build) return false;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 2500);            // a slow network does not hold the deck up
+    const j = await (await fetch(new URL('../../version.json', import.meta.url), { cache: 'no-store', signal: ctl.signal })).json();
+    clearTimeout(t);
+    if (!j?.v || j.v === build || sessionStorage.getItem('tala.fresh') === j.v) return false;
+    sessionStorage.setItem('tala.fresh', j.v);                  // once, so it can never loop
+    return true;
+  } catch { return false; }
+}
+
+/* A staff request turned away because the sign-in ran out ("JWT expired": the
+   owner met it after the deck had sat open -- a laptop that slept, a clock a
+   little slow) goes again, once, with the sign-in renewed. */
+let renewal = null;
+async function renewingFetch(input, init) {
+  const res = await fetch(input, init);
+  const url = String(typeof input === 'string' ? input : input?.url || '');
+  if (!sb || res.ok || ![400, 401, 403].includes(res.status) || !/\/(rest|storage)\/v1\//.test(url)) return res;
+  if (!/jwt expired/i.test(await res.clone().text())) return res;
+  renewal ||= sb.auth.refreshSession().finally(() => { renewal = null; });
+  const token = (await renewal)?.data?.session?.access_token;
+  if (!token) return res;
+  const headers = new Headers(init?.headers);
+  headers.set('Authorization', `Bearer ${token}`);
+  return fetch(input, { ...init, headers });
 }
 const S = { user: null, tab: 'requests', requests: [], items: [], filter: 'open', q: '' };
 
@@ -1141,7 +1165,10 @@ async function enter() {
   S.user = session.user;
   let staff;
   try { staff = chk(await sb.from('admins').select('user_id').eq('user_id', S.user.id).maybeSingle()); }
-  catch (err) { app.innerHTML = `<section class="adm-gate"><h1>Can't open the deck</h1><p>${esc(friendly(err))}</p></section>`; return; }
+  catch (err) {
+    if (/jwt|refresh token|session/i.test(String(err?.message))) return signInScreen('Your sign-in ran out. Sign in again with your email and PIN.');
+    app.innerHTML = `<section class="adm-gate"><h1>Can't open the deck</h1><p>${esc(friendly(err))}</p></section>`; return;
+  }
   if (!staff) return S.user.is_anonymous ? deviceScreen() : notStaffScreen(S.user.email);
   shell();
   $('#main').innerHTML = '<p class="adm-boot">Loading…</p>';
@@ -1151,12 +1178,16 @@ async function enter() {
 }
 
 (async function start() {
+  if (await stale()) { location.reload(); return; }
   if (!URL_ || !KEY) return setupScreen();
   if (!window.supabase?.createClient) {
     app.innerHTML = '<section class="adm-gate"><h1>Can’t load</h1><p>The sign-in library did not load. Check the internet connection and reload.</p></section>';
     return;
   }
-  sb = window.supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'tala-admin' } });
+  sb = window.supabase.createClient(URL_, KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'tala-admin' },
+    global: { fetch: renewingFetch },
+  });
   sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') signInScreen(); });
   await enter();
 })();
