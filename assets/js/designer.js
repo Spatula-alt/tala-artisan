@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611041741';
+import { createViewer, webglAvailable } from './viewer.js?v=202611042211';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611041741';
+} from './trophy.js?v=202611042211';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -329,7 +329,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611041741'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611042211'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1049,13 +1049,13 @@ function specText() {
     cfg.shape === 'custom' && cfg.cutArt ? r('  Your art', `Cut from the customer's picture (`
       + `${{ alpha: 'transparent PNG', plain: 'plain background removed', photo: 'photo background removed' }[(cfg.cutMode || '').replace('+hand', '')] || 'background removed'}`
       + `${(cfg.cutMode || '').includes('+hand') ? ', then edited by hand' : ''}), `
-      + (cfg.cutPrint ? 'picture printed on the cut piece' : 'bare acrylic') + '. Please send the original file.') : null,
+      + (cfg.cutPrint ? 'picture printed on the cut piece, the picture sent with this request' : 'bare acrylic') + '.') : null,
     shape.decal.onBase ? r('  Figure', cfg.photoImg && cfg.photoTarget === 'figure'
         ? 'customer image printed over the whole cut shape'
         : 'bare acrylic') : null,
     cfg.photoImg ? r('  Photo', cfg.photoTarget === 'figure'
-        ? 'customer supplied, printed over the whole cut shape — TO BE SENT'
-        : `customer supplied, ${PHOTO_FITS[cfg.photoFit].label.toLowerCase()} — TO BE SENT`) : null,
+        ? 'customer supplied, printed over the whole cut shape — sent with this request'
+        : `customer supplied, ${PHOTO_FITS[cfg.photoFit].label.toLowerCase()} — sent with this request`) : null,
     r('  Extra sticker', cfg.extraSticker ? 'Yes' : 'No'),
     r('  Logo', cfg.logo ? 'Yes — artwork to follow' : 'No'),
     '',
@@ -1080,7 +1080,6 @@ function specText() {
     r('ESTIMATED TOTAL', peso(q.total)),
     r('Est. arrival', `${fmtDate(q.arrival)} (${q.days} working days)`),
     '',
-    cfg.photoImg ? 'NOTE: the photo is only on my own screen — please tell me where to send the file.' : null,
     'Please confirm the price and send a proof.',
   ].filter(Boolean).join('\n');
 }
@@ -1099,10 +1098,9 @@ function saveImage() {
 }
 
 /* The machine-readable spec, saved with a request so the shop can rebuild the
-   exact piece; the customer's photo and cut-out picture are never included.
-   "Your art" sends its outline -- the cut line, so the Admin Deck can show and
-   cut the real shape -- and where the cut sits in the picture, so the original
-   the customer sends lines up with it. A photo is only flagged as coming. */
+   exact piece. "Your art" sends its outline -- the cut line, so the Admin Deck
+   can show and cut the real shape -- and where the cut sits in the picture.
+   The pictures themselves travel apart (orderFiles), as files, not in here. */
 const OUTLINE_MAX = 16000;                  // the request's design column holds 20 kB
 function designSpec() {
   const design = {};
@@ -1119,11 +1117,61 @@ function designSpec() {
   return design;
 }
 
-function sendToStudio() {
-  try {
-    const design = designSpec();
-    sessionStorage.setItem('tala.spec', JSON.stringify({ text: specText(), qty: cfg.qty, item: 'Trophy', design }));
-  } catch { /* private mode — the quote form still opens, just empty */ }
+/* The customer's own pictures, sent with the order: the owner wants the design
+   in the Admin Deck as it was made, and its prints. "Your art"'s picture from
+   the original file, cropped to the cut, its background taken off as the
+   cut-out took it off, up to 2400 px; the photo up to 2000 px. Drawn afresh, so
+   no camera data (place, time) goes with them. main.js uploads them when the
+   request is sent, and only then. -> { picture?, photo? } as data URLs, or null */
+const asDataUrl = (c, type, q) => new Promise((resolve, reject) => c.toBlob(b => {
+  if (!b) return reject(new Error('could not encode'));
+  const fr = new FileReader();
+  fr.onload = () => resolve(fr.result);
+  fr.onerror = reject;
+  fr.readAsDataURL(b);
+}, type, q));
+async function shrinkToFit(draw, w, h, type, sizes) {
+  // a browser that cannot write WebP writes a far larger PNG: step down until it travels
+  for (const max of sizes) {
+    const k = Math.min(1, max / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    draw(c.getContext('2d'), c.width, c.height);
+    const url = await asDataUrl(c, type, 0.9);
+    if (url.length < 4.5e6) return url;
+  }
+  return null;
+}
+async function orderFiles() {
+  const files = {};
+  if (cfg.shape === 'custom' && cfg.cutPrint && cfg.cutArt && cfg.cutBox && cut.img) {
+    const img = cut.img, [bx, by, bw, bh] = cfg.cutBox;
+    const sw = bw * img.naturalWidth, sh = bh * img.naturalHeight;
+    const url = await shrinkToFit((g, w, h) => {
+      g.imageSmoothingQuality = 'high';
+      g.drawImage(img, bx * img.naturalWidth, by * img.naturalHeight, sw, sh, 0, 0, w, h);
+      g.globalCompositeOperation = 'destination-in';     // keep only what the cut-out kept
+      g.drawImage(cfg.cutArt, 0, 0, w, h);
+    }, sw, sh, 'image/webp', [2400, 1600, 1100]);
+    if (url) files.picture = url;
+  }
+  if (cfg.photoImg) {
+    const img = cfg.photoImg;
+    const url = await shrinkToFit((g, w, h) => g.drawImage(img, 0, 0, w, h),
+      img.naturalWidth, img.naturalHeight, 'image/jpeg', [2000, 1400, 1000]);
+    if (url) files.photo = url;
+  }
+  return Object.keys(files).length ? files : null;
+}
+
+async function sendToStudio() {
+  const design = designSpec(), text = specText();
+  let files = null;
+  try { files = await orderFiles(); } catch (err) { console.warn('[tala] pictures not packed:', err); }
+  for (const spec of [{ text, qty: cfg.qty, item: 'Trophy', design, files }, { text, qty: cfg.qty, item: 'Trophy', design }]) {
+    try { sessionStorage.setItem('tala.spec', JSON.stringify(spec)); break; }
+    catch { /* too big for this browser's storage: the design goes without its pictures */ }
+  }
   location.href = './#quote';
 }
 

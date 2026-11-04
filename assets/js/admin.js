@@ -5,18 +5,20 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611041741';
+import { createViewer, webglAvailable } from './viewer.js?v=202611042211';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611041741';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611041741';
+} from './trophy.js?v=202611042211';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042211';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
 const KEY = String(C.supabaseKey || '');
 const BUCKET = 'trophy-photos';
+const ART_BUCKET = 'request-art';                // the pictures customers send with a request (supabase/request-art.sql)
+const ART_PATH = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(picture|photo)\.(webp|png|jpg)$/;
 const MAX_PHOTOS = 8;
 const DESIGN_KEY = 'tala.admin.design';      // the designer hands a design over through this
 
@@ -213,6 +215,26 @@ function pickImage() {
   });
 }
 
+/* The pictures that came with a request (main.js sends them), opened for staff:
+   -> { picture?, photo?, pictureBox? } as <img>s. The picture is the cut-out
+   already, so it spans the whole crop box. */
+async function requestFiles(d) {
+  const got = {};
+  for (const k of ['picture', 'photo']) {
+    const path = d?.files?.[k];
+    if (typeof path !== 'string' || !ART_PATH.test(path)) continue;
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(chk(await sb.storage.from(ART_BUCKET).download(path)));
+      await img.decode();
+      got[k] = img;
+    } catch (err) { console.warn('[tala] could not open', path, err); }
+  }
+  if (got.picture) got.pictureBox = [0, 0, 1, 1];
+  return got;
+}
+const requestPaths = d => Object.values(d?.files || {}).filter(v => typeof v === 'string' && ART_PATH.test(v));
+
 /* "Your art"'s picture for the 3D model: the original, cropped where the designer cropped it */
 function cropToCut(img, [bx, by, bw, bh]) {
   const iw = img.naturalWidth, ih = img.naturalHeight, sw = bw * iw, sh = bh * ih;
@@ -224,7 +246,7 @@ function cropToCut(img, [bx, by, bw, bh]) {
 }
 // the design with what the customer sent afterwards in it, for the 3D model
 const withFiles = (design, got) => ({ ...design, photoImg: got.photo || null,
-  cutArt: got.picture && Array.isArray(design.cutBox) ? cropToCut(got.picture, design.cutBox) : null });
+  cutArt: got.picture && Array.isArray(design.cutBox) ? cropToCut(got.picture, got.pictureBox || design.cutBox) : null });
 
 /* The sticker block under a design: the picture, its size, save and print.
    On a request it also takes what the customer sends after ordering (their
@@ -249,7 +271,10 @@ async function mountSticker(box, design, name, opts = {}) {
   const piece = d.shape === 'custom' ? (d.cutPrint && d.cutAspect ? 'picture' : null) : (coming && onFigure ? 'photo' : null);
   const canLine = piece === 'picture' ? !!(d.outline && Array.isArray(d.cutBox)) : !!piece;
   let pa = null;
-  if (canLine && got[piece]) { try { pa = pieceArt(d, got[piece]); } catch { /* left to add again */ } }
+  if (canLine && got[piece]) {
+    try { pa = pieceArt(piece === 'picture' && got.pictureBox ? { ...d, cutBox: got.pictureBox } : d, got[piece]); }
+    catch { /* left to add again */ }
+  }
 
   const label = SHAPES[d.shape]?.label || 'trophy';
   const along = piece === 'picture' ? 'their outline' : 'the figure';
@@ -279,6 +304,7 @@ async function mountSticker(box, design, name, opts = {}) {
       const img = await pickImage();
       if (!img) return;
       got[k] = img;
+      if (k === 'picture') got.pictureBox = null;   // their original file: cropped where they cropped it
       opts.onDesign?.(withFiles(design, got));
       mountSticker(box, design, name, opts);
     });
@@ -744,11 +770,21 @@ function openRequest(r) {
   const close = () => { dispose(); if (dlg.open) dlg.close(); dlg.remove(); };
   dlg.addEventListener('close', close);
   dlg.showModal();
-  if (d) dispose = mount3D($('#v3d', dlg), d);
-  if (d) mountSticker($('#stk', dlg), d, r.name ? `Order for ${r.name}` : 'Order', {
-    photo: photoComing,
-    onDesign: dd => { dispose(); dispose = mount3D($('#v3d', dlg), dd); },   // their photo or picture, on the 3D
-  });
+  if (d) {
+    dispose = mount3D($('#v3d', dlg), d);
+    const who = r.name ? `Order for ${r.name}` : 'Order';
+    const opts = {
+      photo: photoComing,
+      onDesign: dd => { dispose(); dispose = mount3D($('#v3d', dlg), dd); },   // their photo or picture, on the 3D
+    };
+    if (!requestPaths(d).length) mountSticker($('#stk', dlg), d, who, opts);
+    else requestFiles(d).then(got => {     // the pictures they sent: on the 3D and in the prints
+      if (!dlg.isConnected) return;
+      opts.got = got;
+      if (got.picture || got.photo) opts.onDesign(withFiles(d, got));
+      mountSticker($('#stk', dlg), d, who, opts);
+    });
+  }
 
   $('form', dlg).addEventListener('submit', async e => {
     e.preventDefault();
@@ -766,6 +802,8 @@ function openRequest(r) {
     if (!await confirmBox('Delete this request?', `${r.name}'s request will be removed for good. Mark it Lost instead if you may want it later.`)) return;
     try {
       chk(await sb.from('quote_requests').delete().eq('id', r.id));
+      // its pictures go with it
+      if (requestPaths(d).length) await sb.storage.from(ART_BUCKET).remove(requestPaths(d)).catch(() => {});
       S.requests = S.requests.filter(x => x.id !== r.id);
       close(); render(); toast('Request deleted.');
     } catch (err) { toast(friendly(err), true); }

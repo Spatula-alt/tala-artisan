@@ -127,6 +127,7 @@
     };
 
     let design = null;                                // set when the designer handed one over
+    let files = null;                                 // and the pictures it was made with
     const cfgT = window.TALA_CONFIG || {};
     const live = !!(cfgT.supabaseUrl && cfgT.supabaseKey);
     const btn = form.querySelector('button[type="submit"]');
@@ -146,6 +147,28 @@
         body: JSON.stringify(row),
       });
       if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`.slice(0, 300));
+    }
+
+    /* The pictures a design was made with (orderFiles in designer.js), into the
+       shop's private 'request-art' bucket: the publishable key may add a file
+       under a fresh random folder and do nothing else (supabase/request-art.sql).
+       Only staff can open them. -> { picture?, photo? }, the paths that went */
+    async function sendFiles(all) {
+      const id = crypto.randomUUID(), out = {};
+      for (const k of ['picture', 'photo']) {
+        const m = typeof all[k] === 'string' && all[k].match(/^data:(image\/(?:webp|png|jpeg));base64,(.+)$/);
+        if (!m) continue;
+        const bytes = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0));
+        const path = `${id}/${k}.${{ 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg' }[m[1]]}`;
+        const res = await fetch(`${cfgT.supabaseUrl.replace(/\/$/, '')}/storage/v1/object/request-art/${path}`, {
+          method: 'POST',
+          headers: { apikey: cfgT.supabaseKey, Authorization: `Bearer ${cfgT.supabaseKey}`, 'Content-Type': m[1], 'x-upsert': 'false' },
+          body: new Blob([bytes], { type: m[1] }),
+        });
+        if (res.ok) out[k] = path;
+        else console.warn('[tala] picture not sent:', res.status, await res.text().catch(() => ''));
+      }
+      return out;
     }
 
     form.addEventListener('submit', async e => {
@@ -180,13 +203,15 @@
       btn.disabled = true; out.classList.remove('ok', 'err'); out.textContent = 'Sending…';
       try {
         const qty = parseInt(qtyEl.value, 10);
+        // the pictures first, so the request can say where they went; without them it still goes
+        const sent = design && files ? await sendFiles(files).catch(err => { console.warn('[tala] pictures not sent:', err); return {}; }) : {};
         await save({
           name: nameEl.value.trim().slice(0, 120),
           email: email.slice(0, 200),
           item: itemEl.value || null,
           qty: Number.isFinite(qty) ? Math.min(Math.max(qty, 1), 2000) : null,
           message: msgEl.value.trim().slice(0, 6000) || null,
-          design,
+          design: design && Object.keys(sent).length ? { ...design, files: sent } : design,
           page: location.pathname.slice(0, 200),
         });
         out.classList.add('ok');
@@ -195,7 +220,7 @@
         tick.className = 'form__tick'; tick.setAttribute('aria-hidden', 'true');
         out.prepend(tick);
         playLottie(tick, 'sent', false).catch(() => tick.remove());
-        form.reset(); design = null;
+        form.reset(); design = null; files = null;
         sessionStorage.removeItem('tala.spec');
       } catch (err) {
         console.warn('[tala] quote not saved:', err);
@@ -221,6 +246,7 @@
           msgEl.value = spec.text;
           if (spec.qty) qtyEl.value = spec.qty;
           if (spec.design && typeof spec.design === 'object') design = spec.design;
+          if (spec.files && typeof spec.files === 'object') files = spec.files;
           if (spec.item && [...itemEl.options].some(o => o.value === spec.item)) itemEl.value = spec.item;
           out.textContent = 'Your design has been filled in below — add your details and send.';
           out.classList.add('ok');
