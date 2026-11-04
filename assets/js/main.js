@@ -5,6 +5,18 @@
 (() => {
   'use strict';
 
+  /* ─── a page kept from before the last update reloads itself, once ───
+     GitHub Pages lets a browser keep a page for 10 minutes, and a page that old runs the old code: the
+     owner tested a fix twice in a page like that and saw none of it. bump-version.py writes version.json. */
+  const build = new URL(document.currentScript?.src || location.href).searchParams.get('v');
+  if (build) {
+    fetch('version.json', { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(j => {
+      if (!j || !j.v || j.v === build || sessionStorage.getItem('tala.fresh') === j.v) return;
+      sessionStorage.setItem('tala.fresh', j.v);     // once, so it can never loop
+      location.reload();
+    }).catch(() => { /* offline or private mode: carry on with this page */ });
+  }
+
   const $  = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 

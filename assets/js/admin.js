@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611042211';
+import { createViewer, webglAvailable } from './viewer.js?v=202611042243';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611042211';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042211';
+} from './trophy.js?v=202611042243';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611042243';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -47,6 +47,18 @@ const safeImage = u => typeof u === 'string' &&
   (u.startsWith(`${URL_}/storage/v1/object/public/${BUCKET}/`) || /^assets\/[\w./-]+$/.test(u));
 
 let sb = null;
+
+/* A deck kept from before the last update reloads itself, once.
+   GitHub Pages lets a browser keep a page for 10 minutes, and a page that old runs the old code: the
+   owner tested a fix twice in a page like that and saw none of it. bump-version.py writes version.json. */
+const BUILD = new URL(import.meta.url).searchParams.get('v');
+if (BUILD) {
+  fetch(new URL('../../version.json', import.meta.url), { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).then(j => {
+    if (!j?.v || j.v === BUILD || sessionStorage.getItem('tala.fresh') === j.v) return;
+    sessionStorage.setItem('tala.fresh', j.v);
+    location.reload();
+  }).catch(() => { /* offline or private mode: carry on with this page */ });
+}
 const S = { user: null, tab: 'requests', requests: [], items: [], filter: 'open', q: '' };
 
 /* ───────────────────────── small helpers ───────────────────────── */
@@ -282,16 +294,16 @@ async function mountSticker(box, design, name, opts = {}) {
   const film = art.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '';
   const wait = art.standIn ? ' Their photo goes in the grey part: add it when they send it.' : '';
   const btn = (k, t) => `<button class="btn btn--line btn--sm" type="button" data-stk="${k}">${t}</button>`;
-  box.innerHTML = `<p class="sec-t">Sticker</p>
+  box.innerHTML = `<p class="sec-t">${SHAPES[d.shape]?.decal?.onBase ? 'Sticker for the base' : 'Sticker'}</p>
     <div class="stk__pic"><img src="${stickerThumb(art.canvas)}" alt="The sticker of this design"></div>
     <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[d.size]?.label || 'Medium'} size.${film}${wait}</p>
     <div class="stk__btns">${btn('save', 'Save sticker')}${btn('print', 'Print at real size')}${
       coming && !onFigure ? btn('photo', got.photo ? 'Change their photo' : 'Add their photo') : ''}</div>
-    ${!piece ? '' : `<div class="stk__piece"><p class="sec-t">${piece === 'picture' ? 'Picture on the cut piece' : 'Photo on the figure'}</p>${
+    ${!piece ? '' : `<div class="stk__piece"><p class="sec-t">${piece === 'picture' ? 'Picture sticker for the cut piece' : 'Photo sticker for the figure'}</p>${
       pa ? `<div class="stk__pic"><img src="${stickerThumb(pa.canvas)}" alt="The print for the cut piece"></div>
         <p class="stk__size">${pa.w.toFixed(1)} × ${pa.h.toFixed(1)} cm, cut along ${along}. Check its edges before printing.</p>
         <div class="stk__btns">${btn('psave', 'Save picture')}${btn('pprint', 'Print at real size')}${btn(piece, `Change their ${piece}`)}</div>`
-      : canLine ? `<p class="stk__size">They keep their ${piece} until they send it. Add it here and it is ${
+      : canLine ? `<p class="stk__size">Their ${piece} did not come with this request. Add the one they send you and it is ${
           piece === 'picture' ? 'cropped where they cropped it and ' : ''}cut along ${along}, at real size.</p>
         <div class="stk__btns">${btn(piece, `Add their ${piece}`)}</div>`
       : `<p class="stk__size">Their outline did not come with this request, so their picture cannot be lined up here. Ask them for the file.</p>`}</div>`}`;

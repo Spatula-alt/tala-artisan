@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611042211';
+import { createViewer, webglAvailable } from './viewer.js?v=202611042243';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611042211';
+} from './trophy.js?v=202611042243';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -312,6 +312,8 @@ $('#placeRot')?.addEventListener('input', e => {
 });
 /* for tests/designer-check.js: does every design's own sticker box fit its face? */
 window.__talaPlace = { fits: () => placementFits(placement()), placement, cfg };
+// what "Send this design to the studio" hands over, without going anywhere (for tests)
+window.__talaOrder = async () => ({ design: designSpec(), text: specText(), files: await orderFiles() });
 $('#placeCentre')?.addEventListener('click', () => { tryPlace({ x: 0 }); custom(); sync(); });
 $('#placeReset')?.addEventListener('click', () => { cfg.place = null; rebuild(); custom(); sync(); });
 
@@ -329,7 +331,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611042211'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611042243'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1158,7 +1160,7 @@ async function orderFiles() {
   if (cfg.photoImg) {
     const img = cfg.photoImg;
     const url = await shrinkToFit((g, w, h) => g.drawImage(img, 0, 0, w, h),
-      img.naturalWidth, img.naturalHeight, 'image/jpeg', [2000, 1400, 1000]);
+      img.naturalWidth, img.naturalHeight, 'image/webp', [2000, 1400, 1000]);   // WebP keeps a logo's clear background
     if (url) files.photo = url;
   }
   return Object.keys(files).length ? files : null;
