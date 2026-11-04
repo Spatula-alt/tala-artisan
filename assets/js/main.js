@@ -148,11 +148,53 @@
     setTimeout(release, 8000);
   }
 
-  /* ─── quote form ─── */
+  /* ─── the shop: the cart's count in the menu (cart.js keeps the cart) ─── */
+  const cartCount = $('#cartCount');
+  const countCart = () => {
+    if (!cartCount) return;
+    let n = 0;
+    try { n = (JSON.parse(localStorage.getItem('tala.cart') || '[]') || []).length; } catch { /* private mode */ }
+    cartCount.textContent = n;
+    cartCount.hidden = !n;
+  };
+  countCart();
+  addEventListener('storage', e => { if (e.key === 'tala.cart') countCart(); });
+  addEventListener('tala:cart', countCart);
+
+  const cfgT = window.TALA_CONFIG || {};
+  const live = !!(cfgT.supabaseUrl && cfgT.supabaseKey);
+  const base = String(cfgT.supabaseUrl || '').replace(/\/$/, '');
+  const auth = { apikey: cfgT.supabaseKey, Authorization: `Bearer ${cfgT.supabaseKey}` };
+
+  /* Someone opened a share link (cart.js makes them: ?ref=CODE). It counts
+     toward the sharer's voucher, once per browser (share_visit, orders.sql). */
+  const shareRef = new URLSearchParams(location.search).get('ref');
+  if (live && shareRef && /^[A-Z0-9]{8}$/.test(shareRef)) {
+    try {
+      const seen = JSON.parse(localStorage.getItem('tala.visited') || '[]');
+      if (!seen.includes(shareRef)) {
+        let me = JSON.parse(localStorage.getItem('tala.visitor') || 'null');
+        if (typeof me !== 'string' || !/^[0-9a-f-]{36}$/.test(me)) {
+          me = crypto.randomUUID();
+          localStorage.setItem('tala.visitor', JSON.stringify(me));
+        }
+        fetch(`${base}/rest/v1/rpc/share_visit`, {
+          method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_code: shareRef, p_visitor: me }),
+        }).then(r => { if (r.ok) localStorage.setItem('tala.visited', JSON.stringify([...seen, shareRef].slice(-20))); })
+          .catch(() => { /* not counted this time */ });
+      }
+    } catch { /* private mode: not counted */ }
+  }
+
+  /* ─── the request form ───
+     For anything the designer does not make: a plaque, a reprint, a trophy
+     from a logo. A designed trophy is ordered from the cart (cart.html). */
   const form = $('#quoteForm');
   if (form) {
     const nameEl = $('#qName'), mailEl = $('#qEmail'), msgEl = $('#qMsg');
-    const qtyEl = $('#qQty'), itemEl = $('#qItem'), out = $('#quoteMsg');
+    const qtyEl = $('#qQty'), phoneEl = $('#qPhone'), out = $('#quoteMsg');
+    const btn = form.querySelector('button[type="submit"]');
 
     const setErr = (el, text) => {
       el.closest('.field').classList.toggle('bad', !!text);
@@ -160,65 +202,24 @@
       if (slot) slot.textContent = text || '';
     };
 
-    let design = null;                                // set when the designer handed one over
-    let files = null;                                 // and the pictures it was made with
-    const cfgT = window.TALA_CONFIG || {};
-    const live = !!(cfgT.supabaseUrl && cfgT.supabaseKey);
-    const btn = form.querySelector('button[type="submit"]');
-
-    /* Insert-only: Row Level Security lets the publishable key add a row and
-       nothing else, so `return=minimal` -- asking for the row back would need a
-       SELECT policy, which deliberately does not exist. */
-    async function save(row) {
-      const res = await fetch(`${cfgT.supabaseUrl.replace(/\/$/, '')}/rest/v1/quote_requests`, {
-        method: 'POST',
-        headers: {
-          apikey: cfgT.supabaseKey,
-          Authorization: `Bearer ${cfgT.supabaseKey}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=minimal',
-        },
-        body: JSON.stringify(row),
-      });
-      if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`.slice(0, 300));
-    }
-
-    /* The pictures a design was made with (orderFiles in designer.js), into the
-       shop's private 'request-art' bucket: the publishable key may add a file
-       under a fresh random folder and do nothing else (supabase/request-art.sql).
-       Only staff can open them. -> { picture?, photo? }, the paths that went */
-    async function sendFiles(all) {
-      const id = crypto.randomUUID(), out = {};
-      for (const k of ['picture', 'photo']) {
-        const m = typeof all[k] === 'string' && all[k].match(/^data:(image\/(?:webp|png|jpeg));base64,(.+)$/);
-        if (!m) continue;
-        const bytes = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0));
-        const path = `${id}/${k}.${{ 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg' }[m[1]]}`;
-        const res = await fetch(`${cfgT.supabaseUrl.replace(/\/$/, '')}/storage/v1/object/request-art/${path}`, {
-          method: 'POST',
-          headers: { apikey: cfgT.supabaseKey, Authorization: `Bearer ${cfgT.supabaseKey}`, 'Content-Type': m[1], 'x-upsert': 'false' },
-          body: new Blob([bytes], { type: m[1] }),
-        });
-        if (res.ok) out[k] = path;
-        else console.warn('[tala] picture not sent:', res.status, await res.text().catch(() => ''));
-      }
-      return out;
-    }
-
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const nameOk = nameEl.value.trim().length > 1;
       const mailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mailEl.value.trim());
+      // a mobile number: digits, with spaces, dashes or +63
+      const phone = (phoneEl?.value || '').replace(/[^\d+()\s-]/g, '').replace(/\s+/g, ' ').trim();
+      const phoneOk = !phoneEl || (/^[0-9 +()-]{7,20}$/.test(phone) && phone.replace(/\D/g, '').length >= 7);
 
       setErr(nameEl, nameOk ? '' : 'We need a name to put on the quote.');
       setErr(mailEl, mailOk ? '' : 'That email does not look right.');
+      if (phoneEl) setErr(phoneEl, phoneOk ? '' : 'We need a mobile number, like 0917 123 4567.');
 
-      out.classList.toggle('err', !(nameOk && mailOk));
-      out.classList.toggle('ok', nameOk && mailOk);
-
-      if (!nameOk || !mailOk) {
+      const allOk = nameOk && mailOk && phoneOk;
+      out.classList.toggle('err', !allOk);
+      out.classList.toggle('ok', allOk);
+      if (!allOk) {
         out.textContent = 'Check the highlighted fields.';
-        (!nameOk ? nameEl : mailEl).focus();
+        (!nameOk ? nameEl : !mailOk ? mailEl : phoneEl).focus();
         return;
       }
 
@@ -237,27 +238,30 @@
       btn.disabled = true; out.classList.remove('ok', 'err'); out.textContent = 'Sending…';
       try {
         const qty = parseInt(qtyEl.value, 10);
-        // the pictures first, so the request can say where they went; without them it still goes
-        const sent = design && files ? await sendFiles(files).catch(err => { console.warn('[tala] pictures not sent:', err); return {}; }) : {};
-        await save({
-          name: nameEl.value.trim().slice(0, 120),
-          email: email.slice(0, 200),
-          item: itemEl.value || null,
-          qty: Number.isFinite(qty) ? Math.min(Math.max(qty, 1), 2000) : null,
-          message: msgEl.value.trim().slice(0, 6000) || null,
-          design: design && Object.keys(sent).length ? { ...design, files: sent } : design,
-          page: location.pathname.slice(0, 200),
+        /* Insert-only: Row Level Security lets the publishable key add a row
+           and nothing else, so `return=minimal`. */
+        const res = await fetch(`${base}/rest/v1/quote_requests`, {
+          method: 'POST',
+          headers: { ...auth, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            name: nameEl.value.trim().slice(0, 120),
+            email: email.slice(0, 200),
+            ...(phoneEl ? { phone } : {}),
+            qty: Number.isFinite(qty) ? Math.min(Math.max(qty, 1), 2000) : null,
+            message: msgEl.value.trim().slice(0, 6000) || null,
+            page: location.pathname.slice(0, 200),
+          }),
         });
+        if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`.slice(0, 300));
         out.classList.add('ok');
-        out.textContent = `Thanks ${first} — we'll send a proof to ${email} within 48 hours.`;
+        out.textContent = `Thanks ${first} — we'll reply to ${email} within 48 hours.`;
         const tick = document.createElement('span');
         tick.className = 'form__tick'; tick.setAttribute('aria-hidden', 'true');
         out.prepend(tick);
         playLottie(tick, 'sent', false).catch(() => tick.remove());
-        form.reset(); design = null; files = null;
-        sessionStorage.removeItem('tala.spec');
+        form.reset();
       } catch (err) {
-        console.warn('[tala] quote not saved:', err);
+        console.warn('[tala] request not saved:', err);
         out.classList.add('err');
         out.textContent = 'Sorry — that did not go through. Please try again in a moment.';
       } finally {
@@ -265,27 +269,10 @@
       }
     });
 
-    [nameEl, mailEl].forEach(el => el.addEventListener('input', () => {
+    [nameEl, mailEl, phoneEl].filter(Boolean).forEach(el => el.addEventListener('input', () => {
       setErr(el, '');
       out.textContent = '';
       out.classList.remove('err', 'ok');
     }));
-
-    /* a design handed over from the designer page */
-    try {
-      const raw = sessionStorage.getItem('tala.spec');
-      if (raw) {
-        const spec = JSON.parse(raw);
-        if (spec && typeof spec.text === 'string') {
-          msgEl.value = spec.text;
-          if (spec.qty) qtyEl.value = spec.qty;
-          if (spec.design && typeof spec.design === 'object') design = spec.design;
-          if (spec.files && typeof spec.files === 'object') files = spec.files;
-          if (spec.item && [...itemEl.options].some(o => o.value === spec.item)) itemEl.value = spec.item;
-          out.textContent = 'Your design has been filled in below — add your details and send.';
-          out.classList.add('ok');
-        }
-      }
-    } catch { /* storage unavailable or malformed; the form still works empty */ }
   }
 })();

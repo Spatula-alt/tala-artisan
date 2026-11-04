@@ -105,6 +105,12 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .nav__links a{font-size:.87rem;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent;transition:.25s var(--ease)}
 .nav__links a:hover,.nav__links a[aria-current]{color:var(--ink);border-bottom-color:var(--brass)}
 .nav__act{display:flex;align-items:center;gap:10px}
+/* the cart in the menu, with how many trophies are in it (main.js) */
+.nav__cart{position:relative;display:inline-grid;place-items:center;width:40px;height:40px;color:var(--ink);border-radius:var(--r)}
+.nav__cart:hover{background:var(--surface)}
+.nav__cart svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav__count{position:absolute;top:1px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  background:var(--ink);color:var(--paper);font-size:.68rem;font-weight:600;line-height:18px;text-align:center}
 .burger{display:none;width:38px;height:38px;padding:11px 8px;flex-direction:column;justify-content:space-between}
 .burger span{display:block;height:1.5px;background:var(--ink);transition:.3s var(--ease)}
 .burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
@@ -132,8 +138,9 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   opacity:0;transition:opacity .5s var(--ease);pointer-events:none;
 }
 .viz.is-live .viz__hint{opacity:1}
-/* on the home hero the hint sits at the top, clear of the stats below it */
-.hero .viz__hint{top:14px;bottom:auto}
+/* on the home hero the hint sits in the top corner: clear of the stats below
+   it, and of the figure's face at the top centre (owner, 5 Nov) */
+.hero .viz__hint{top:14px;bottom:auto;left:14px;transform:none}
 .viz__hint svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6}
 
 /* ─── hero ─── */
@@ -155,6 +162,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .card__b h3{font-family:var(--f-display);font-size:1.16rem;font-weight:400;margin:0}
 .card__b p{margin:.25em 0 0;font-size:.92rem;color:var(--ink-2)}
 .card__p{font-size:.88rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* a card opens its trophy's page: the name is the link, stretched over the whole card */
+.card{position:relative}
+.card__go{color:inherit;text-decoration:none}
+.card__go::after{content:"";position:absolute;inset:0;z-index:1}
+.card__go:focus-visible{outline:none}
+.card:has(.card__go:focus-visible){outline:2px solid var(--ink);outline-offset:4px;border-radius:var(--r)}
+.card:hover .card__go{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.card .viz__poster{transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.card:has(.card__go):hover .viz__poster{transform:scale(1.03)}
+@media (prefers-reduced-motion:reduce){.card:has(.card__go):hover .viz__poster{transform:none}}
 /* six on the home page; the rest behind "See all", under the designer's groups */
 .shop:not(.is-open) .is-more{display:none}
 .grid__g{grid-column:1/-1;margin:clamp(12px,2.2vw,28px) 0 0;font-family:var(--f-display);font-size:clamp(1.35rem,2vw,1.7rem);font-weight:400}
@@ -330,5 +347,55 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 @media (max-width:560px){.msg__more{display:none}}
 @media (prefers-reduced-motion:reduce){.msg,.msg:hover{transition:none;transform:none}}
 .chat{margin:1.4rem 0 0;color:var(--ink-2)}
+/* ── the order page: the design sent from the designer, the cart, paying ── */
+.order{display:grid;grid-template-columns:96px 1fr;gap:16px;margin:1.6rem 0 0;padding:16px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.order__pic{width:96px;height:120px;object-fit:cover;border-radius:6px;background:var(--paper)}
+.order__t{margin:0 0 8px;font-weight:600}
+.order dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:.9rem}
+.order dt{color:var(--mute)}
+.order dd{margin:0}
+.order__total{font-weight:600}
+.order__edit{display:inline-block;margin-top:10px;font-size:.88rem;color:var(--brass);text-decoration:underline;text-underline-offset:3px}
+.cart{margin:1rem 0 0;padding:14px 16px;border:1px solid var(--line);border-radius:10px}
+.cart__t{margin:0 0 10px;font-weight:600}
+.cart__list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cart__list li{display:grid;grid-template-columns:40px 1fr auto auto;gap:10px;align-items:center;font-size:.9rem}
+.cart__pic{width:40px;height:50px;object-fit:cover;border-radius:4px;background:var(--surface)}
+.cart__price{font-weight:500;white-space:nowrap}
+.cart__x{background:none;border:0;padding:6px 2px;font:inherit;font-size:.82rem;color:var(--mute);text-decoration:underline;cursor:pointer}
+.cart__x:hover{color:var(--bad)}
+.cart__sum{margin:10px 0 0;font-size:.86rem;color:var(--ink-2)}
+/* Place order and Add to cart, side by side at the same size */
+.form__btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form__btns .btn{width:100%;justify-content:center}
+.pay{margin-top:1.4rem;padding:16px 18px;border-radius:10px;background:var(--surface)}
+.pay__t{margin:0 0 8px;font-weight:600}
+.pay__steps{margin:0;padding-left:1.2rem;display:grid;gap:6px;font-size:.9rem;color:var(--ink-2)}
+.pay__steps b{color:var(--ink)}
+.pay__ways{display:grid;gap:6px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:.92rem}
+.pay__ways p{margin:0}
+.pay__ways b{display:inline-block;min-width:7.5em}
+.pay__note{margin:10px 0 0;font-size:.84rem;color:var(--mute)}
+.paid{align-self:start;padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.paid__head{display:flex;gap:12px;align-items:flex-start}
+.paid__head p{margin:0}
+.paid__k{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ok);font-weight:600}
+.paid__code{margin:2px 0 6px;font-family:var(--f-display);font-size:2.1rem;font-weight:400;letter-spacing:.01em}
+.paid__sum{display:grid;grid-template-columns:1fr auto;gap:6px 16px;margin:18px 0 0;padding:14px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:.92rem}
+.paid__sum dd{margin:0;text-align:right;white-space:nowrap}
+.paid__tot{font-weight:600}
+.paid__pay{margin-top:16px;padding:16px;border-radius:10px;background:var(--surface)}
+.paid__t{margin:0;font-weight:600;font-size:1.05rem}
+.paid__up{margin-top:14px;cursor:pointer}
+.paid__msg{margin:8px 0 0;font-size:.86rem;color:var(--ok)}
+.paid__next{margin:16px 0 0;font-size:.9rem;color:var(--ink-2)}
+.paid__links{margin:10px 0 0;font-size:.9rem}
+.paid__links a{color:var(--brass);text-decoration:underline;text-underline-offset:3px}
+@media (max-width:560px){
+  .order{grid-template-columns:72px 1fr;padding:14px}
+  .order__pic{width:72px;height:90px}
+}
 .chat a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--brass);text-underline-offset:3px}
 .chat a:hover{color:var(--brass)}

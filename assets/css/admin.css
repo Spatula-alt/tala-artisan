@@ -135,6 +135,14 @@
 .stk__size{margin:8px 0 0;font-size:.8rem;color:var(--mute);line-height:1.45}
 .stk__btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .stk__piece{margin-top:20px}
+/* Payment details (renderPay) and a customer's receipt in a request */
+.pay-form{display:grid;gap:18px;max-width:680px}
+.pay-form fieldset{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0;padding:14px 16px;border:1px solid var(--line-soft);border-radius:10px}
+.pay-form legend{padding:0 6px;font-weight:600}
+.pay-form .btn{justify-self:start}
+@media (max-width:720px){.pay-form fieldset{grid-template-columns:1fr}}
+.rcpt{display:flex;flex-wrap:wrap;gap:10px}
+.rcpt img{display:block;max-width:220px;max-height:260px;border:1px solid var(--line-soft);border-radius:8px}
 /* the designer's order sheet, read back into sections (orderSheet in admin.js) */
 .sheet{background:var(--surface);border-radius:8px;padding:2px 14px 12px}
 .sheet__t{margin:12px 0 6px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:600}
@@ -194,7 +202,7 @@
 .adm-kpis span{font-size:.76rem;color:var(--mute)}
 
 @media (max-width:820px){
-  .adm-shell{grid-template-columns:1fr}
+  .adm-shell{grid-template-columns:minmax(0,1fr)}
   .adm-side{position:sticky;z-index:20;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px 14px;gap:8px 12px}
   .adm-side__brand{font-size:1.3rem;padding:0}
   .adm-side__label{display:none}
@@ -211,3 +219,17 @@
 .cat-head{margin-top:clamp(36px,5vw,56px)}
 .cat-head h2{font-family:var(--f-display);font-size:clamp(1.4rem,2.4vw,1.8rem);line-height:1.1;margin:0}
 .cat-g{margin:22px 0 10px;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+/* promos and ratings: one row each */
+.promo-list{display:grid;gap:8px}
+.promo-row{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:14px 18px;text-align:left;
+  font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line-soft);border-radius:10px;transition:border-color .2s}
+button.promo-row{cursor:pointer}
+button.promo-row:hover{border-color:var(--ink-2)}
+.promo-row__what{display:block;min-width:0}
+.promo-row__what small{display:block;margin-top:3px;color:var(--mute);font-size:.8rem}
+.promo-row__what code{font-size:.78rem;padding:1px 5px;border-radius:4px;background:var(--surface-2)}
+.promo-row__c{display:block;margin-top:4px;font-size:.88rem;color:var(--ink-2)}
+.promo-row .st,.promo-row .btn{flex:none}
+/* the trophies a promo is on */
+.shape-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;font-size:.84rem}
+.shape-checks label{display:flex;align-items:center;gap:6px;cursor:pointer}

@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611050029';
+import { createViewer, webglAvailable } from './viewer.js?v=202611050158';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611050029';
+} from './trophy.js?v=202611050158';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -313,7 +313,7 @@ $('#placeRot')?.addEventListener('input', e => {
 /* for tests/designer-check.js: does every design's own sticker box fit its face? */
 window.__talaPlace = { fits: () => placementFits(placement()), placement, cfg };
 // what "Send this design to the studio" hands over, without going anywhere (for tests)
-window.__talaOrder = async () => ({ design: designSpec(), text: specText(), files: await orderFiles() });
+window.__talaOrder = async () => ({ design: designSpec(), text: specText(), summary: orderSummary(), files: await orderFiles() });
 $('#placeCentre')?.addEventListener('click', () => { tryPlace({ x: 0 }); custom(); sync(); });
 $('#placeReset')?.addEventListener('click', () => { cfg.place = null; rebuild(); custom(); sync(); });
 
@@ -331,7 +331,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611050029'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611050158'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1166,15 +1166,39 @@ async function orderFiles() {
   return Object.keys(files).length ? files : null;
 }
 
+/* What the order form shows beside its fields (main.js): the trophy, a small
+   picture of it, its price, and when and where it arrives -- worked out here,
+   where the price model is. The owner found the form gave a customer no idea
+   where the trophy would go, when it would come or how to pay. */
+function orderSummary() {
+  const q = quote(cfg);
+  let preview = null;
+  try {
+    viewer.renderNow();
+    const src = viewer.renderer.domElement, k = Math.min(1, 360 / src.width);
+    const c = document.createElement('canvas');
+    c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    preview = c.toDataURL('image/jpeg', 0.82);
+  } catch { /* the card goes without a picture */ }
+  return {
+    title: `${SHAPES[cfg.shape].label} · ${SIZES[cfg.size].label}`, qty: cfg.qty, unit: q.unit, make: q.make,
+    setup: q.setup, shipping: q.shipping, payFee: q.payFee, total: q.total,
+    speed: q.speed.label, days: q.days, arrival: q.arrival.toISOString(),
+    zone: cfg.zone, zoneLabel: q.zone.label, payment: cfg.payment, payLabel: q.pay.label, preview,
+  };
+}
+
 async function sendToStudio() {
-  const design = designSpec(), text = specText();
+  const design = designSpec(), text = specText(), summary = orderSummary();
   let files = null;
   try { files = await orderFiles(); } catch (err) { console.warn('[tala] pictures not packed:', err); }
-  for (const spec of [{ text, qty: cfg.qty, item: 'Trophy', design, files }, { text, qty: cfg.qty, item: 'Trophy', design }]) {
+  for (const spec of [{ text, qty: cfg.qty, item: 'Trophy', design, summary, files }, { text, qty: cfg.qty, item: 'Trophy', design, summary }]) {
     try { sessionStorage.setItem('tala.spec', JSON.stringify(spec)); break; }
     catch { /* too big for this browser's storage: the design goes without its pictures */ }
   }
-  location.href = './#quote';
+  // the cart page: the design as a product, with Add to cart and Place order (cart.js)
+  location.href = 'cart.html';
 }
 
 /* ───────────────────────── guided tour ───────────────────────── */

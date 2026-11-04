@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611050029';
-import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES } from './trophy.js?v=202611050029';
+import { createViewer, webglAvailable } from './viewer.js?v=202611050158';
+import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611050158';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -22,7 +22,7 @@ function writePrices() {
     } catch { /* keep the hand-written fallback */ }
   }
   // "from ₱…" on the page follows the cheapest trophy actually in the shop
-  const prices = $$('#shopGrid [data-price]').map(e => Number(e.textContent.replace(/[^\d]/g, ''))).filter(n => n > 0);
+  const prices = $$('#shopGrid .card:not([data-cat]) [data-price]').map(e => Number(e.textContent.replace(/[^\d]/g, ''))).filter(n => n > 0);
   if (prices.length) $$('[data-from]').forEach(e => { e.textContent = peso(Math.min(...prices)); });
 }
 
@@ -30,37 +30,57 @@ function writePrices() {
    cards written into index.html stay as the fallback: offline, Supabase down,
    or nothing published yet. A card shows the trophy's photo when it has one,
    otherwise its 3D design baked to a still, like the built-in cards. The
-   first six are the home page's "most ordered"; the rest wait behind "See
-   all", in the designer's groups. */
+   first six are the home page's "most ordered". "See all" opens the rest, in
+   the designer's groups, and after them every designer trophy not in the
+   shop yet (as the Admin Deck lists them), so the shop shows all it makes.
+   Each card opens its trophy's own page in the cart: cart.html?item=<shop
+   item> or ?shape=<designer trophy>. */
 const SHOP_POSTERS = ['lady', 'shield', 'oval', 'arch', 'plaque', 'facet'];
 const FEATURED = 6;
 const GROUP_ORDER = ['Classic', 'Rounds', 'Stars', 'Curves', 'Figures'];
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ITEM_ID = /^[a-z0-9][a-z0-9-]{1,79}$/;
 
-async function loadShop() {
-  const grid = $('#shopGrid');
-  const C = window.TALA_CONFIG || {};
-  const base = String(C.supabaseUrl || '').replace(/\/+$/, '');
-  if (!grid || !base || !C.supabaseKey) return;
-  const photoBase = `${base}/storage/v1/object/public/trophy-photos/`;
-  let rows;
+/* A designer trophy as the shop would list it: the Admin Deck's "Not in the
+   shop yet" card -- its own sheet and ink, Medium on a black gold bar,
+   sample wording on the picture. */
+function catalogDesign(k) {
+  const s = SHAPES[k];
+  return { shape: k, variant: 0, material: MATERIALS[s.sheet] ? s.sheet : 'white', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
+    decal: 'rect', scheme: s.ink || 'black', laminate: 'gloss', font: 'classic', motif: 'star',
+    org: 'Gloria Awards Night', title: 'Champion', name: 'Juan Dela Cruz', date: '2026' };
+}
+
+async function shopRows(base, key) {
   try {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 6000);
     const res = await fetch(`${base}/rest/v1/shop_items?select=id,name,line,category,price,design,images&published=is.true&order=sort.asc,name.asc`, {
-      headers: { apikey: C.supabaseKey }, signal: ctl.signal,
+      headers: { apikey: key }, signal: ctl.signal,
     });
     clearTimeout(t);
-    if (!res.ok) return;
-    rows = await res.json();
-  } catch { return; }                       // keep the built-in cards
-  if (!Array.isArray(rows) || !rows.length) return;
+    return res.ok ? await res.json() : null;
+  } catch { return null; }                  // keep the built-in cards
+}
+
+async function loadShop() {
+  const grid = $('#shopGrid');
+  if (!grid) return;
+  const C = window.TALA_CONFIG || {};
+  const base = String(C.supabaseUrl || '').replace(/\/+$/, '');
+  const photoBase = `${base}/storage/v1/object/public/trophy-photos/`;
+  const [rows, products] = await Promise.all([
+    base && C.supabaseKey ? shopRows(base, C.supabaseKey) : null,
+    fetch(new URL('../img/products/products.json', import.meta.url)).then(r => (r.ok ? r.json() : [])).catch(() => []),
+  ]);
 
   // a photo uploaded in the Admin Deck, or one served with the site (assets/img/products)
   const photoOf = r => (r.images || []).find(u => typeof u === 'string' && (u.startsWith(photoBase) || /^assets\/[\w./-]+$/.test(u)));
-  const designOf = r => (r.design && typeof r.design === 'object' && r.design.shape !== 'custom' ? r.design : null);
-  const items = rows.filter(r => photoOf(r) || designOf(r));
-  if (!items.length) return;
+  const designOf = r => (r.design && typeof r.design === 'object' && SHAPES[r.design.shape] && r.design.shape !== 'custom' ? r.design : null);
+  const items = (Array.isArray(rows) ? rows : []).filter(r => r && typeof r.name === 'string' && (photoOf(r) || designOf(r)));
+  // the owner's photos of designer trophies (products.json `key`)
+  const photoKey = Object.fromEntries((Array.isArray(products) ? products : [])
+    .filter(x => x && x.key && /^assets\/img\/products\/[\w.-]+$/.test(x.photo || '')).map(x => [x.key, x.photo]));
 
   const card = (r, more) => {
     const photo = photoOf(r), d = designOf(r);
@@ -69,25 +89,57 @@ async function loadShop() {
     const pic = photo
       ? `<img class="viz__poster viz__photo" src="${escH(photo)}" alt="${escH(r.name)}" loading="lazy">`
       : `<img class="viz__poster" src="assets/img/${SHOP_POSTERS.includes(d.shape) ? 's-' + d.shape : 'poster-hero'}.svg" alt="${escH(r.name)}, ${escH(r.line)}">`;
+    const name = ITEM_ID.test(r.id || '') && d ? `<a class="card__go" href="cart.html?item=${r.id}">${escH(r.name)}</a>` : escH(r.name);
     // the design prices the card even under a photo; only a card with no photo is baked to a still
     return `<article class="card in${more ? ' is-more' : ''}" data-rev${d ? ` data-cfg="${escH(JSON.stringify(d))}"` : ''}${photo ? ' data-photo' : ''}${fixed ? ' data-fixed' : ''}>
         <div class="viz">${pic}</div>
         <div class="card__b">
-          <div><h3>${escH(r.name)}</h3><p>${escH(r.line || r.category)}</p></div>
+          <div><h3>${name}</h3><p>${escH(r.line || r.category)}</p></div>
           <p class="card__p" data-price>${shown}</p>
         </div>
       </article>`;
   };
-  const rest = items.slice(FEATURED);
-  const groupOf = r => SHAPES[designOf(r)?.shape]?.group || 'More';
-  grid.innerHTML = items.slice(0, FEATURED).map(r => card(r, false)).join('')
-    + [...new Set([...GROUP_ORDER, ...rest.map(groupOf)])].map(g => {
-      const gs = rest.filter(r => groupOf(r) === g);
-      return gs.length ? `<h3 class="grid__g is-more">${escH(g)}</h3>${gs.map(r => card(r, true)).join('')}` : '';
-    }).join('');
+  // a designer trophy that is not in the shop: its photo, or its tile until it is baked
+  const catCard = k => {
+    const d = catalogDesign(k), photo = photoKey[k];
+    const line = `${MATERIALS[d.material].label} · ${BASES.goldbar.label.toLowerCase()} base · ${SIZES.m.total} cm`;
+    const pic = photo
+      ? `<img class="viz__poster viz__photo" src="${escH(photo)}" alt="${escH(SHAPES[k].label)}" loading="lazy">`
+      : `<img class="viz__poster" src="${DESIGNS[k]?.tile ? `assets/${escH(DESIGNS[k].tile)}` : 'assets/img/poster-hero.svg'}" alt="${escH(SHAPES[k].label)}" loading="lazy">`;
+    return `<article class="card in is-more" data-rev data-cat data-cfg="${escH(JSON.stringify(d))}"${photo ? ' data-photo' : ''}>
+        <div class="viz">${pic}</div>
+        <div class="card__b">
+          <div><h3><a class="card__go" href="cart.html?shape=${k}">${escH(SHAPES[k].label)}</a></h3><p>${escH(line)}</p></div>
+          <p class="card__p" data-price></p>
+        </div>
+      </article>`;
+  };
 
-  if (rest.length) {
-    const label = `See all ${items.length} trophies`;
+  let rest = [];
+  if (items.length) {
+    grid.innerHTML = items.slice(0, FEATURED).map(r => card(r, false)).join('');
+    rest = items.slice(FEATURED);
+  } else {
+    // the built-in cards open their trophy as the designer has it
+    for (const c of $$('.card[data-cfg]', grid)) {
+      let shape = null;
+      try { shape = JSON.parse(c.dataset.cfg).shape; } catch { /* no link */ }
+      const h = c.querySelector('h3');
+      if (h && SHAPES[shape] && shape !== 'custom') h.innerHTML = `<a class="card__go" href="cart.html?shape=${shape}">${escH(h.textContent)}</a>`;
+    }
+  }
+  const shapeOf = c => { try { return JSON.parse(c.dataset.cfg).shape; } catch { return null; } };
+  const inShop = new Set([...items.map(r => designOf(r)?.shape), ...$$('.card[data-cfg]', grid).map(shapeOf)].filter(Boolean));
+  const cat = Object.keys(SHAPES).filter(k => k !== 'custom' && !inShop.has(k));
+  const groupOf = r => SHAPES[designOf(r)?.shape]?.group || 'More';
+  grid.insertAdjacentHTML('beforeend', [...new Set([...GROUP_ORDER, ...rest.map(groupOf)])].map(g => {
+    const gs = rest.filter(r => groupOf(r) === g), cs = cat.filter(k => (SHAPES[k].group || 'Figures') === g);
+    return gs.length || cs.length ? `<h3 class="grid__g is-more">${escH(g)}</h3>${gs.map(r => card(r, true)).join('')}${cs.map(catCard).join('')}` : '';
+  }).join(''));
+
+  const total = (items.length || $$('.card:not(.is-more)', grid).length) + cat.length;
+  if (rest.length || cat.length) {
+    const label = `See all ${total} trophies`;
     const wrap = document.createElement('p');
     wrap.className = 'shop__all';
     wrap.innerHTML = `<button class="btn btn--line" type="button" aria-expanded="false" aria-controls="shopGrid">${label}</button>`;
@@ -97,11 +149,12 @@ async function loadShop() {
       const open = shop.classList.toggle('is-open');
       btn.setAttribute('aria-expanded', String(open));
       btn.textContent = open ? 'Show fewer' : label;
-      if (!open) shop.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      if (open) bakeThumbnails();          // the cards just shown that have no photo
+      else shop.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });
   }
   const head = $('#shop .sec-head h2');
-  if (head && items.length < FEATURED) head.textContent = 'What we make most often.';
+  if (head && items.length && items.length < FEATURED) head.textContent = 'What we make most often.';
 }
 
 function liveViewer(vizId, canvasId, cfg) {
@@ -126,8 +179,9 @@ const idle = () => new Promise(r =>
 
 async function bakeThumbnails() {
   await idle();
-  const cards = $$('#shopGrid .card[data-cfg]:not([data-photo])');
+  const cards = $$('#shopGrid .card[data-cfg]:not([data-photo]):not([data-baked])').filter(c => c.getClientRects().length);
   if (!cards.length) return;
+  for (const c of cards) c.dataset.baked = '';     // taken: a second run (See all opened) leaves it alone
 
   // a card is at most ~360 css px wide; 560 covers that on a 1.5x screen and
   // costs half the pixels of the old 760 x 950 -- each still was ~0.5 s on a phone

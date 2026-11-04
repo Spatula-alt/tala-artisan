@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap"></noscript>
-<link rel="stylesheet" href="assets/css/styles.css?v=202611050029">
+<link rel="stylesheet" href="assets/css/styles.css?v=202611050158">
 
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -40,6 +40,7 @@
       <a href="#studio">Studio</a>
     </nav>
     <div class="nav__act">
+      <a class="nav__cart" href="cart.html" aria-label="Your cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11h10.6L20 7H6.2M9 20h.01M17 20h.01"/></svg><span class="nav__count" id="cartCount" hidden>0</span></a>
       <a class="btn btn--line btn--sm" href="#quote">Get a quote</a>
       <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
         <span></span><span></span><span></span>
@@ -277,11 +278,11 @@
   <div class="wrap quote__in">
     <div data-rev>
       <h2 class="d2">Tell us what you need.</h2>
-      <p class="lede">Tell us the quantity, wording and date. You get a price and a free proof within 2 days.</p>
+      <p class="lede">A plaque, a reprint, a trophy from your own logo, anything the designer does not make. Tell us the quantity, wording and date and you get a price within 2 days.</p>
       <ul class="trust trust--col">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>No deposit for a proof</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>A proof to check before we make it</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>Bulk orders priced lower per piece</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>Designs from the 3D designer fill in automatically</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"/></svg>Designed a trophy? <a href="cart.html">Order it from your cart</a></li>
       </ul>
       <p class="chat">Prefer to chat? <a href="https://m.me/61595841638997" target="_blank" rel="noopener">Message us on Facebook</a></p>
     </div>
@@ -301,14 +302,9 @@
       </div>
       <div class="row2">
         <div class="field">
-          <label for="qItem">What are you after?</label>
-          <select id="qItem" name="item">
-            <option>Trophy</option>
-            <option>Plaque</option>
-            <option>Certificate holder</option>
-            <option>Sticker reprint only</option>
-            <option>Not sure yet</option>
-          </select>
+          <label for="qPhone">Mobile number</label>
+          <input id="qPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" required>
+          <span class="field__err" data-err="qPhone"></span>
         </div>
         <div class="field">
           <label for="qQty">How many?</label>
@@ -316,14 +312,13 @@
         </div>
       </div>
       <div class="field">
-        <label for="qMsg">Wording, deadline, anything else</label>
+        <label for="qMsg">What you need: wording, deadline, anything else</label>
         <textarea id="qMsg" name="message"
-          placeholder="e.g. 12 trophies for the liga finals on 20 April, team logo in colour, shipped to Quezon City."></textarea>
+          placeholder="e.g. 12 plaques for the liga finals on 20 April, team logo in colour, shipped to Quezon City."></textarea>
       </div>
       <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></div>
-      <button class="btn btn--solid" type="submit">Request a free proof</button>
+      <button class="btn btn--solid" type="submit">Send request</button>
       <p class="form__msg" id="quoteMsg" role="status"></p>
-      <p class="muted small" style="margin-top:1rem">No payment until you approve the proof.</p>
     </form>
   </div>
 </section>
@@ -369,8 +364,8 @@
 
 <a class="msg" href="https://m.me/61595841638997" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 3.2 8 7.3s-3.6 7.2-8 7.2c-1 0-2-.2-2.9-.5L5 19.6l1.2-3.5C4.8 14.8 4 13.1 4 11.3 4 7.2 7.6 4 12 4Z"/><path d="m8.3 13 2.6-2.7 2.1 1.6 2.6-2.8"/></svg><span>Message us<span class="msg__more"> on Facebook</span></span></a>
 
-<script src="assets/js/config.js?v=202611050029"></script>
-<script src="assets/js/main.js?v=202611050029" defer></script>
-<script type="module" src="assets/js/home.js?v=202611050029"></script>
+<script src="assets/js/config.js?v=202611050158"></script>
+<script src="assets/js/main.js?v=202611050158" defer></script>
+<script type="module" src="assets/js/home.js?v=202611050158"></script>
 </body>
 </html>

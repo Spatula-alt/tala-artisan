@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611050029';
+import { createViewer, webglAvailable } from './viewer.js?v=202611050158';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611050029';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611050029';
+} from './trophy.js?v=202611050158';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611050158';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -83,7 +83,7 @@ async function renewingFetch(input, init) {
   headers.set('Authorization', `Bearer ${token}`);
   return fetch(input, { ...init, headers });
 }
-const S = { user: null, tab: 'requests', requests: [], items: [], filter: 'open', q: '' };
+const S = { user: null, tab: 'requests', requests: [], items: [], settings: null, promos: null, reviews: null, filter: 'open', q: '' };
 
 /* ───────────────────────── small helpers ───────────────────────── */
 
@@ -270,6 +270,22 @@ async function requestFiles(d) {
   return got;
 }
 const requestPaths = d => Object.values(d?.files || {}).filter(v => typeof v === 'string' && ART_PATH.test(v));
+
+/* The payment receipt a customer uploads after placing an order (main.js),
+   saved beside their pictures under the order number: <ref>/receipt.webp. */
+async function showReceipt(box, ref) {
+  try {
+    const files = chk(await sb.storage.from(ART_BUCKET).list(ref)) || [];
+    const got = files.map(f => f.name).filter(n => /^receipt(-[2-9])?\.(webp|png|jpg)$/.test(n)).sort();
+    if (!got.length || !box.isConnected) return;
+    const urls = [];
+    for (const n of got) urls.push(URL.createObjectURL(chk(await sb.storage.from(ART_BUCKET).download(`${ref}/${n}`))));
+    box.innerHTML = `<p class="sec-t">Payment receipt${urls.length > 1 ? 's' : ''}</p><div class="rcpt">${urls.map(u =>
+      `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="The customer's payment receipt"></a>`).join('')}</div>
+      <p class="stk__size">Uploaded by the customer. Check it against your GCash, Maya or bank before you start.</p>`;
+    box.hidden = false;
+  } catch (err) { console.warn('[tala] receipt not opened:', err); }
+}
 
 /* "Your art"'s picture for the 3D model: the original, cropped where the designer cropped it */
 function cropToCut(img, [bx, by, bw, bh]) {
@@ -607,6 +623,9 @@ const IC = {
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0ZM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/>',
   site: '<path d="M4 5h16v14H4ZM4 9h16M7 7h.01M9.5 7h.01"/>',
   pen: '<path d="M4 20h4L19 9l-4-4L4 16Zm9-13 4 4"/>',
+  wallet: '<path d="M4 7h14a2 2 0 0 1 2 2v9H4ZM4 7l11-3v3M16 13h.01"/>',
+  tag: '<path d="M4 4h7l9 9-7 7-9-9ZM8 8h.01"/>',
+  star: '<path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.3L12 16l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6Z"/>',
 };
 const ico = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 
@@ -619,6 +638,9 @@ function shell() {
       <nav class="adm-side__nav" aria-label="Admin">
         <button type="button" data-tab="requests">${ico('inbox')}<span>Requests</span><span class="adm-badge" id="newCount" hidden></span></button>
         <button type="button" data-tab="shop">${ico('trophy')}<span>Shop trophies</span></button>
+        <button type="button" data-tab="promos">${ico('tag')}<span>Promos</span></button>
+        <button type="button" data-tab="reviews">${ico('star')}<span>Ratings</span></button>
+        <button type="button" data-tab="pay">${ico('wallet')}<span>Payment details</span></button>
         <span class="adm-side__sep"></span>
         <a href="./" target="_blank" rel="noopener">${ico('site')}<span>View website</span></a>
         <a href="design.html" target="_blank" rel="noopener">${ico('pen')}<span>Open the designer</span></a>
@@ -693,7 +715,8 @@ function render() {
   });
   const n = S.requests.filter(r => r.status === 'new').length;
   const badge = $('#newCount'); badge.hidden = !n; badge.textContent = n;
-  if (S.tab === 'requests') renderRequests(); else renderShop();
+  if (S.tab === 'requests') renderRequests(); else if (S.tab === 'pay') renderPay();
+  else if (S.tab === 'promos') renderPromos(); else if (S.tab === 'reviews') renderReviews(); else renderShop();
 }
 
 /* ───────────────────────── requests ───────────────────────── */
@@ -748,9 +771,10 @@ function renderRequests() {
   $$('.req').forEach(b => b.addEventListener('click', () => openRequest(S.requests.find(r => String(r.id) === b.dataset.id))));
 }
 
+const orderCode = r => (/^[0-9a-f-]{36}$/.test(r?.ref || '') ? 'TA-' + r.ref.slice(0, 8).toUpperCase() : null);
 const reqMeta = r => {
   const sh = orderSheet(r.message), cut = SHAPES[r.design?.shape]?.label;
-  return [r.item, r.qty ? `${r.qty} pcs` : '', r.design ? `3D design${cut ? `: ${cut}` : ''}` : '',
+  return [orderCode(r), r.item, r.qty ? `${r.qty} pcs` : '', r.design ? `3D design${cut ? `: ${cut}` : ''}` : '',
     (sh ? sh.own : r.message || '').split('\n')[0]].filter(Boolean).join(' · ');
 };
 
@@ -762,6 +786,7 @@ function openRequest(r) {
   const sheet = orderSheet(r.message);
   // a photo still to come: flagged on newer requests, only written in older ones
   const photoRow = sheet?.sections.flatMap(x => x.rows).find(([k]) => k === 'Photo');
+  const sameOrder = r.ref ? S.requests.filter(x => x.ref === r.ref).length : 0;
   const photoComing = !!(d && (d.photo || /TO BE SENT/.test(photoRow?.[1] || '')));
   const dlg = document.createElement('dialog');
   dlg.className = 'adm-dlg';
@@ -773,7 +798,10 @@ function openRequest(r) {
         <div style="display:grid;gap:16px;align-content:start">
           <div><p class="sec-t">Customer</p>
             <dl class="kv">
+              ${orderCode(r) ? `<dt>Order</dt><dd><b>${orderCode(r)}</b>${sameOrder > 1 ? ` · one of ${sameOrder} trophies in it` : ''}</dd>` : ''}
               <dt>Email</dt><dd><a href="mailto:${esc(r.email)}?subject=${encodeURIComponent('Your Tala Artisan trophy proof')}" style="color:var(--brass)">${esc(r.email)}</a></dd>
+              ${r.phone ? `<dt>Mobile</dt><dd><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}" style="color:var(--brass)">${esc(r.phone)}</a></dd>` : ''}
+              ${r.delivery ? `<dt>${r.delivery === 'pickup' ? 'Gets it' : 'Ship to'}</dt><dd>${r.delivery === 'pickup' ? 'Picks up at the studio in Gloria' : esc(r.address || '—')}</dd>` : ''}
               <dt>Wants</dt><dd>${esc(r.item || '—')}</dd>
               <dt>How many</dt><dd>${esc(r.qty ?? '—')}</dd>
               ${est != null ? `<dt>Estimate</dt><dd>${peso(est)} each at the site's current prices</dd>` : ''}
@@ -781,6 +809,16 @@ function openRequest(r) {
           ${sheet ? `${sheet.own ? `<div><p class="sec-t">Their message</p><div class="msg-box">${esc(sheet.own)}</div></div>` : ''}
             <div><p class="sec-t">Order sheet</p><div class="sheet">${sheetHtml(sheet)}</div></div>`
           : r.message ? `<div><p class="sec-t">Message</p><div class="msg-box">${esc(r.message)}</div></div>` : ''}
+          ${r.pricing && typeof r.pricing === 'object' ? `<div><p class="sec-t">Order totals${sameOrder > 1 ? ` (all ${sameOrder} trophies)` : ''}</p><dl class="kv">
+            <dt>Trophies</dt><dd>${peso(+r.pricing.merch || 0)}</dd>
+            <dt>Shipping</dt><dd>${+r.pricing.shipping ? peso(+r.pricing.shipping) : 'Free'}${ZONES[r.pricing.zone] ? ` · ${esc(ZONES[r.pricing.zone].label)}` : ''}</dd>
+            ${+r.pricing.discount ? `<dt>Promos</dt><dd>−${peso(+r.pricing.discount)}${r.pricing.voucher ? ` · ${esc(r.pricing.voucher)}` : ''}${Array.isArray(r.pricing.promos) && r.pricing.promos.length ? `<br><small>${esc(r.pricing.promos.join(' · '))}</small>` : ''}</dd>` : ''}
+            <dt>Total</dt><dd><b>${peso(+r.pricing.total || 0)}</b></dd>
+            <dt>Pays by</dt><dd>${esc(PAYMENTS[r.pricing.payment]?.label || r.pricing.payment || '—')}${+r.pricing.deposit ? ` · down payment ${peso(+r.pricing.deposit)} (${+r.pricing.deposit_percent}%)` : ''}</dd>
+          </dl></div>` : ''}
+          ${r.status === 'won' && orderCode(r) ? `<p class="stk__size">Rating link for the customer: <a href="cart.html?rate=${esc(r.ref)}" target="_blank" rel="noopener" style="color:var(--brass)">cart.html?rate=…</a>
+            <button class="adm-link" type="button" id="copyRate">Copy</button></p>` : ''}
+          <div id="receipt" hidden></div>
           <div class="fld-row">
             <label class="fld">Status<select name="status">${STATUSES.map(s => `<option value="${s}"${s === r.status ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select></label>
           </div>
@@ -806,6 +844,11 @@ function openRequest(r) {
   const close = () => { dispose(); if (dlg.open) dlg.close(); dlg.remove(); };
   dlg.addEventListener('close', close);
   dlg.showModal();
+  if (orderCode(r)) showReceipt($('#receipt', dlg), r.ref);
+  $('#copyRate', dlg)?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(new URL(`cart.html?rate=${r.ref}`, location.href).href); toast('Rating link copied. Send it to the customer.'); }
+    catch { toast('Could not copy. Right-click the link and copy it.', true); }
+  });
   if (d) {
     dispose = mount3D($('#v3d', dlg), d);
     const who = r.name ? `Order for ${r.name}` : 'Order';
@@ -858,6 +901,304 @@ function openRequest(r) {
    (assets/img/products, listed in products.json): a shop card's photo, or a
    designer trophy (`key`) that goes into the shop with its photo. */
 let PRODUCTS = null;
+
+/* The shop's payment details (shop_settings, supabase/delivery-payment.sql).
+   Missing until that script has been run: the deck still opens. */
+async function loadSettings() {
+  try { S.settings = chk(await sb.from('shop_settings').select('*').eq('id', 'shop').maybeSingle()); }
+  catch { S.settings = null; }
+}
+
+/* Payment details: what the order page shows a customer once they place an
+   order -- where to send the down payment, and how much of the total it is. */
+function renderPay() {
+  const st = S.settings;
+  if (!st) {
+    $('#main').innerHTML = `<div class="adm-head"><div><h1>Payment details</h1></div></div>
+      <div class="adm-empty">The database is missing the payment settings. Run supabase/delivery-payment.sql in the Supabase SQL editor.</div>`;
+    return;
+  }
+  const v = k => esc(st[k] ?? '');
+  $('#main').innerHTML = `
+    <div class="adm-head"><div><h1>Payment details</h1>
+      <p>Customers see these right after they place an order, with the down payment to send and their order number.
+        Fill in only the ways you take. Leave a number empty to hide that way.</p></div></div>
+    <form class="pay-form" id="payForm" novalidate>
+      <fieldset><legend>GCash</legend>
+        <label class="fld">Account name<input name="gcash_name" maxlength="80" value="${v('gcash_name')}" placeholder="e.g. Juan D."></label>
+        <label class="fld">GCash number<input name="gcash_number" inputmode="tel" maxlength="20" value="${v('gcash_number')}" placeholder="0917 123 4567"></label>
+      </fieldset>
+      <fieldset><legend>Maya</legend>
+        <label class="fld">Account name<input name="maya_name" maxlength="80" value="${v('maya_name')}"></label>
+        <label class="fld">Maya number<input name="maya_number" inputmode="tel" maxlength="20" value="${v('maya_number')}" placeholder="0918 123 4567"></label>
+      </fieldset>
+      <fieldset><legend>Bank transfer</legend>
+        <label class="fld">Bank<input name="bank_name" maxlength="80" value="${v('bank_name')}" placeholder="e.g. BDO, BPI, Landbank"></label>
+        <label class="fld">Account name<input name="bank_account_name" maxlength="80" value="${v('bank_account_name')}"></label>
+        <label class="fld">Account number<input name="bank_account_number" inputmode="numeric" maxlength="34" value="${v('bank_account_number')}"></label>
+      </fieldset>
+      <fieldset><legend>Down payment</legend>
+        <label class="fld">Paid when they order<select name="deposit_percent">${[30, 50, 100].map(n =>
+          `<option value="${n}"${Number(st.deposit_percent) === n ? ' selected' : ''}>${n === 100 ? 'The whole amount' : `${n}% of the total`}</option>`).join('')}</select>
+          <small>The rest is paid before you ship, or on pickup.</small></label>
+        <label class="fld">A line for customers (optional)<input name="pay_note" maxlength="300" value="${v('pay_note')}" placeholder="e.g. We confirm payments within the day."></label>
+      </fieldset>
+      <p class="adm-msg" id="payMsg" role="alert"></p>
+      <button class="btn btn--solid btn--sm" type="submit">Save payment details</button>
+    </form>`;
+  const f = $('#payForm'), msg = $('#payMsg');
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const val = k => f[k].value.trim() || null;
+    const fields = {
+      gcash_name: val('gcash_name'), gcash_number: val('gcash_number'), maya_name: val('maya_name'), maya_number: val('maya_number'),
+      bank_name: val('bank_name'), bank_account_name: val('bank_account_name'), bank_account_number: val('bank_account_number'),
+      deposit_percent: Number(f.deposit_percent.value), pay_note: val('pay_note'), updated_at: new Date().toISOString(),
+    };
+    const bad = [['gcash_number', /^[0-9 +()-]{7,20}$/, 'The GCash number'], ['maya_number', /^[0-9 +()-]{7,20}$/, 'The Maya number'],
+      ['bank_account_number', /^[0-9 -]{4,34}$/, 'The account number']].find(([k, re]) => fields[k] && !re.test(fields[k]));
+    if (bad) { msg.textContent = `${bad[2]} should be numbers only (spaces and dashes are fine).`; msg.className = 'adm-msg bad'; f[bad[0]].focus(); return; }
+    const btn = $('button[type=submit]', f); btn.disabled = true;
+    try {
+      chk(await sb.from('shop_settings').update(fields).eq('id', 'shop'));
+      Object.assign(S.settings, fields);
+      toast('Payment details saved. The order page shows them now.');
+      msg.textContent = '';
+    } catch (err) { msg.textContent = friendly(err); msg.className = 'adm-msg bad'; }
+    finally { btn.disabled = false; }
+  });
+}
+
+/* Promos (supabase/orders.sql): the owner asked to "edit each trophy with
+   discounts ... 50 percent off ... or buy 1 take 1", and for Shopee's shop
+   vouchers, bundle deals and promo codes. Missing until that script has run. */
+async function loadPromos() {
+  try { S.promos = chk(await sb.from('promos').select('*').order('created_at', { ascending: false })); }
+  catch { S.promos = null; }
+}
+async function loadReviews() {
+  try { S.reviews = chk(await sb.from('reviews').select('*').order('created_at', { ascending: false }).limit(300)); }
+  catch { S.reviews = null; }
+}
+
+// what a promo is, from its fields
+const PROMO_TYPES = {
+  trophy: 'Discount on trophies',
+  b1t1: 'Buy 1 Take 1',
+  bundle: 'Bundle deal',
+  voucher: 'Shop voucher',
+  code: 'Promo code',
+};
+const promoType = p => (p.auto ? (p.kind === 'b1t1' ? 'b1t1' : p.min_qty ? 'bundle' : 'trophy') : p.listed ? 'voucher' : 'code');
+const promoWhat = p => p.kind === 'b1t1' ? 'Buy 1 Take 1' : p.kind === 'percent' ? `${+p.value}% off` : `${peso(+p.value)} off`;
+const shapeNames = list => (list && list.length ? list.map(k => SHAPES[k]?.label || k).join(', ') : 'All trophies');
+// a date as the owner's calendar has it (local, not UTC: in Manila a UTC date is a day early before 8 am)
+const dayOf = t => { if (!t) return ''; const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// a promo ends at midnight after its last day: the day shown is the last one it runs
+const lastDay = t => (t ? dayOf(new Date(t).getTime() - 1) : '');
+
+function renderPromos() {
+  if (!S.promos) {
+    $('#main').innerHTML = `<div class="adm-head"><div><h1>Promos</h1></div></div>
+      <div class="adm-empty">The database is missing the promos. Run supabase/orders.sql in the Supabase SQL editor.</div>`;
+    return;
+  }
+  const now = Date.now();
+  const state = p => !p.active ? ['Off', 'st--lost'] : p.ends_at && new Date(p.ends_at) <= now ? ['Ended', 'st--lost']
+    : p.starts_at && new Date(p.starts_at) > now ? ['Starts ' + dayOf(p.starts_at), 'st--quoted'] : ['On', 'st--won'];
+  const st = S.settings;
+  $('#main').innerHTML = `
+    <div class="adm-head"><div><h1>Promos</h1>
+      <p>Discounts the cart applies by itself, shop vouchers customers claim, bundle deals and promo codes. A customer gets the automatic ones, plus one voucher or code.</p></div>
+      <button class="btn btn--solid btn--sm" id="newPromo">+ New promo</button></div>
+    ${S.promos.length ? `<div class="promo-list">${S.promos.map(p => {
+      const [label, cls] = state(p);
+      return `<button class="promo-row" data-id="${esc(p.id)}">
+        <span class="promo-row__what"><b>${esc(promoWhat(p))}</b> ${p.min_qty ? `· any ${p.min_qty} pieces` : ''}${p.min_spend ? ` · min. spend ${peso(+p.min_spend)}` : ''}
+          <small>${esc(PROMO_TYPES[promoType(p)])}${p.code ? ` · code <code>${esc(p.code)}</code>` : ''} · ${esc(shapeNames(p.shapes))}${p.ends_at ? ` · until ${esc(lastDay(p.ends_at))}` : ''}</small></span>
+        <span class="st ${cls}">${esc(label)}</span></button>`;
+    }).join('')}</div>` : '<div class="adm-empty">No promos yet. Add the first one, or set one on a trophy in Shop trophies.</div>'}
+    ${st ? `<form class="pay-form" id="shareForm" novalidate style="margin-top:26px"><fieldset><legend>Share voucher</legend>
+      <label class="fld">Discount for sharing<select name="share_percent">${[0, 5, 10, 15, 20].map(n => `<option value="${n}"${+st.share_percent === n ? ' selected' : ''}>${n ? `${n}% off their trophies` : 'Off — no share voucher'}</option>`).join('')}</select></label>
+      <label class="fld">Friends who must open the link<select name="share_needed">${[2, 3, 5].map(n => `<option value="${n}"${+st.share_needed === n ? ' selected' : ''}>${n} friends</option>`).join('')}</select>
+        <small>It works on trust: one person could open their own link in a few browsers. You see it on the order before you approve the proof.</small></label>
+      </fieldset><button class="btn btn--solid btn--sm" type="submit">Save share voucher</button></form>` : ''}`;
+  $('#newPromo').addEventListener('click', () => openPromo({ kind: 'percent', value: 10, auto: true, listed: false, active: true, shapes: null }));
+  $$('.promo-row').forEach(b => b.addEventListener('click', () => openPromo(S.promos.find(p => p.id === b.dataset.id))));
+  $('#shareForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const fields = { share_percent: +e.target.share_percent.value, share_needed: +e.target.share_needed.value, updated_at: new Date().toISOString() };
+    try { chk(await sb.from('shop_settings').update(fields).eq('id', 'shop')); Object.assign(S.settings, fields); toast('Share voucher saved.'); }
+    catch (err) { toast(friendly(err), true); }
+  });
+}
+
+// every trophy a promo can be set on, as checkboxes, grouped like the designer
+const shapeChecks = picked => {
+  const groups = {};
+  for (const [k, v] of Object.entries(SHAPES)) if (k !== 'custom') (groups[v.group || 'Other'] ||= []).push([k, v.label]);
+  return Object.entries(groups).map(([g, list]) => `<p class="sec-t" style="margin:10px 0 4px">${esc(g)}</p><div class="shape-checks">${list.map(([k, l]) =>
+    `<label><input type="checkbox" name="shape" value="${esc(k)}"${picked?.includes(k) ? ' checked' : ''}> ${esc(l)}</label>`).join('')}</div>`).join('');
+};
+
+function openPromo(orig) {
+  const p = { ...orig };
+  const isNew = !p.id;
+  const dlg = document.createElement('dialog');
+  dlg.className = 'adm-dlg';
+  dlg.innerHTML = `<form novalidate>
+    <div class="dlg-h"><div><h2>${isNew ? 'New promo' : 'Promo'}</h2><p>Customers see it in the cart and at checkout.</p></div>
+      <button class="dlg-x" type="button" value="close" aria-label="Close">×</button></div>
+    <div class="dlg-b">
+      <label class="fld">Kind<select name="type">${Object.entries(PROMO_TYPES).map(([k, l]) =>
+        `<option value="${k}"${promoType(p) === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>
+        <small id="typeHelp"></small></label>
+      <div class="fld-row" data-for="trophy bundle voucher code">
+        <label class="fld">Off by<select name="unit"><option value="percent"${p.kind !== 'amount' ? ' selected' : ''}>Percent (%)</option><option value="amount"${p.kind === 'amount' ? ' selected' : ''}>Pesos (₱)</option></select></label>
+        <label class="fld">How much<input name="value" type="number" min="1" step="1" value="${esc(+p.value || '')}" placeholder="e.g. 50"></label>
+      </div>
+      <div class="fld-row">
+        <label class="fld" data-for="voucher code">Code<input name="code" maxlength="20" value="${esc(p.code || '')}" placeholder="e.g. FIESTA20" style="text-transform:uppercase"></label>
+        <label class="fld" data-for="bundle">Any how many pieces<input name="min_qty" type="number" min="2" step="1" value="${esc(p.min_qty || '')}" placeholder="e.g. 3"></label>
+        <label class="fld" data-for="voucher code">Minimum spend (₱)<input name="min_spend" type="number" min="0" step="1" value="${esc(p.min_spend ?? '')}" placeholder="optional"></label>
+      </div>
+      <div class="fld-row">
+        <label class="fld">Starts<input name="starts_at" type="date" value="${esc(dayOf(p.starts_at))}"></label>
+        <label class="fld">Last day<input name="ends_at" type="date" value="${esc(lastDay(p.ends_at))}"></label>
+      </div>
+      <label class="fld">The line customers see (optional)<input name="note" maxlength="140" value="${esc(p.note || '')}" placeholder="e.g. Fiesta sale: 50% off Gold Star"></label>
+      <label class="fld" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="active"${p.active !== false ? ' checked' : ''} style="width:auto"> On</label>
+      <div><p class="sec-t">Trophies</p><label class="fld" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="all"${!p.shapes || !p.shapes.length ? ' checked' : ''} style="width:auto"> All trophies</label>
+        <div id="shapes"${!p.shapes || !p.shapes.length ? ' hidden' : ''}>${shapeChecks(p.shapes)}</div></div>
+      <p class="adm-msg" id="promoMsg" role="alert"></p>
+    </div>
+    <div class="dlg-f">${isNew ? '' : '<button class="btn btn--line btn--sm btn-danger" type="button" id="delPromo">Delete</button>'}
+      <span class="grow"></span><button class="btn btn--line btn--sm" type="button" value="close">Cancel</button>
+      <button class="btn btn--solid btn--sm" type="submit">Save promo</button></div></form>`;
+  document.body.append(dlg);
+  const f = $('form', dlg), msg = $('#promoMsg', dlg);
+  const HELP = {
+    trophy: 'Everyone gets it on the trophies you pick, e.g. 50% off the Gold Star. No code needed.',
+    b1t1: 'Every second piece of the trophies you pick is free. No code needed.',
+    bundle: 'Everyone who orders this many pieces gets it, e.g. any 3 enjoy 2% off.',
+    voucher: 'Shown in the cart for customers to claim, like Shopee\'s shop vouchers.',
+    code: 'Secret: only customers who type the code get it.',
+  };
+  const sync = () => {
+    const t = f.type.value;
+    $$('[data-for]', dlg).forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(t); });
+    $('#typeHelp', dlg).textContent = HELP[t];
+    $('#shapes', dlg).hidden = f.all.checked;
+  };
+  f.type.addEventListener('change', sync);
+  f.all.addEventListener('change', sync);
+  sync();
+  const end = () => { if (dlg.open) dlg.close(); dlg.remove(); };
+  $$('[value="close"]', dlg).forEach(b => b.addEventListener('click', end));
+  dlg.addEventListener('cancel', e => { e.preventDefault(); end(); });
+  $('#delPromo', dlg)?.addEventListener('click', async () => {
+    if (!await confirmBox('Delete this promo?', 'Customers stop getting it straight away.')) return;
+    try { chk(await sb.from('promos').delete().eq('id', p.id)); S.promos = S.promos.filter(x => x.id !== p.id); end(); render(); toast('Promo deleted.'); }
+    catch (err) { toast(friendly(err), true); }
+  });
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const t = f.type.value;
+    const shapes = f.all.checked ? null : $$('input[name=shape]:checked', dlg).map(c => c.value);
+    const row = {
+      kind: t === 'b1t1' ? 'b1t1' : f.unit.value,
+      value: t === 'b1t1' ? 0 : +f.value.value,
+      code: ['voucher', 'code'].includes(t) ? f.code.value.trim().toUpperCase() || null : null,
+      min_qty: t === 'bundle' ? (+f.min_qty.value || null) : null,
+      min_spend: ['voucher', 'code'].includes(t) && f.min_spend.value !== '' ? +f.min_spend.value : null,
+      starts_at: f.starts_at.value ? new Date(f.starts_at.value + 'T00:00:00').toISOString() : null,
+      ends_at: f.ends_at.value ? (e => { e.setDate(e.getDate() + 1); return e.toISOString(); })(new Date(f.ends_at.value + 'T00:00:00')) : null,
+      note: f.note.value.trim() || null,
+      active: f.active.checked,
+      auto: ['trophy', 'b1t1', 'bundle'].includes(t),
+      listed: t === 'voucher',
+      shapes: shapes && shapes.length ? shapes : null,
+    };
+    const bad = row.kind !== 'b1t1' && !(row.value > 0) ? 'Say how much it takes off.'
+      : row.kind === 'percent' && row.value > 90 ? 'Keep a percent at 90 or less.'
+      : ['voucher', 'code'].includes(t) && !/^[A-Z0-9]{3,20}$/.test(row.code || '') ? 'A code is 3 to 20 letters and numbers.'
+      : t === 'bundle' && !(row.min_qty >= 2) ? 'Say how many pieces make the bundle (2 or more).'
+      : !f.all.checked && !row.shapes ? 'Tick the trophies it is for, or All trophies.'
+      : row.ends_at && row.starts_at && row.ends_at <= row.starts_at ? 'It has to end after it starts.' : '';
+    if (bad) { msg.textContent = bad; msg.className = 'adm-msg bad'; return; }
+    try {
+      const saved = isNew ? chk(await sb.from('promos').insert(row).select().single())
+        : chk(await sb.from('promos').update(row).eq('id', p.id).select().single());
+      S.promos = isNew ? [saved, ...S.promos] : S.promos.map(x => (x.id === p.id ? saved : x));
+      end(); render(); toast('Promo saved. The cart uses it now.');
+    } catch (err) {
+      msg.textContent = /duplicate|unique/i.test(String(err.message)) ? 'That code is already used by another promo.' : friendly(err);
+      msg.className = 'adm-msg bad';
+    }
+  });
+  dlg.showModal();
+}
+
+/* The promo on one trophy, set right in its dialog: none, a percent off, or
+   Buy 1 Take 1 -- an automatic promo for just that trophy. */
+function mountTrophyPromo(box, shape) {
+  if (!box) return;
+  if (!S.promos || !shape || shape === 'custom') { box.hidden = true; return; }
+  const own = S.promos.find(p => p.auto && !p.min_qty && p.shapes?.length === 1 && p.shapes[0] === shape);
+  const kind = !own || !own.active ? 'none' : own.kind === 'b1t1' ? 'b1t1' : 'percent';
+  box.hidden = false;
+  box.innerHTML = `<p class="sec-t" style="margin-top:16px">Promo on this trophy</p>
+    <div class="fld-row" style="align-items:flex-end">
+      <label class="fld">Promo<select name="tpKind"><option value="none"${kind === 'none' ? ' selected' : ''}>None</option>
+        <option value="percent"${kind === 'percent' ? ' selected' : ''}>A percent off</option><option value="b1t1"${kind === 'b1t1' ? ' selected' : ''}>Buy 1 Take 1</option></select></label>
+      <label class="fld" data-pct${kind === 'percent' ? '' : ' hidden'}>Percent off<input name="tpPct" type="number" min="1" max="90" step="1" value="${own && own.kind === 'percent' ? +own.value : 50}"></label>
+      <button class="btn btn--line btn--sm" type="button" data-tpsave>Save promo</button>
+    </div>
+    <small style="color:var(--mute);font-size:.78rem">Everyone gets it on this trophy, no code needed. More kinds, dates and vouchers are in Promos.</small>`;
+  const sel = $('[name=tpKind]', box);
+  sel.addEventListener('change', () => { $('[data-pct]', box).hidden = sel.value !== 'percent'; });
+  $('[data-tpsave]', box).addEventListener('click', async () => {
+    const k = sel.value, pct = +$('[name=tpPct]', box).value;
+    if (k === 'percent' && !(pct >= 1 && pct <= 90)) return toast('Pick a percent from 1 to 90.', true);
+    try {
+      if (k === 'none') {
+        if (own) chk(await sb.from('promos').update({ active: false }).eq('id', own.id));
+        if (own) own.active = false;
+      } else {
+        const row = { kind: k, value: k === 'percent' ? pct : 0, auto: true, listed: false, active: true, shapes: [shape], code: null, min_qty: null,
+          note: k === 'b1t1' ? 'Buy 1 Take 1' : `${pct}% off`, ends_at: own?.ends_at ?? null };
+        const saved = own ? chk(await sb.from('promos').update(row).eq('id', own.id).select().single())
+          : chk(await sb.from('promos').insert(row).select().single());
+        S.promos = own ? S.promos.map(x => (x.id === own.id ? saved : x)) : [saved, ...S.promos];
+      }
+      toast(k === 'none' ? 'Promo off for this trophy.' : 'Promo saved. The cart uses it now.');
+      mountTrophyPromo(box, shape);
+    } catch (err) { toast(friendly(err), true); }
+  });
+}
+
+/* Real ratings from customers, for each order they rated once it was done.
+   Hide one and it leaves the site at once. */
+function renderReviews() {
+  if (!S.reviews) {
+    $('#main').innerHTML = `<div class="adm-head"><div><h1>Ratings</h1></div></div>
+      <div class="adm-empty">The database is missing the ratings. Run supabase/orders.sql in the Supabase SQL editor.</div>`;
+    return;
+  }
+  $('#main').innerHTML = `
+    <div class="adm-head"><div><h1>Ratings</h1>
+      <p>Customers rate an order once you mark it Won. Send them its rating link from the request. Hidden ratings do not show on the site.</p></div></div>
+    ${S.reviews.length ? `<div class="promo-list">${S.reviews.map(r => `<div class="promo-row" data-ref="${esc(r.ref)}">
+        <span class="promo-row__what"><b>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</b> ${esc(r.name || '')}
+          <small>${esc(shapeNames(r.shapes))} · ${esc(when(r.created_at))}</small>${r.comment ? `<span class="promo-row__c">${esc(r.comment)}</span>` : ''}</span>
+        <button class="btn btn--line btn--sm" type="button" data-hide>${r.hidden ? 'Show it' : 'Hide it'}</button></div>`).join('')}</div>`
+    : '<div class="adm-empty">No ratings yet.</div>'}`;
+  $$('[data-hide]').forEach(b => b.addEventListener('click', async () => {
+    const r = S.reviews.find(x => x.ref === b.closest('[data-ref]').dataset.ref);
+    try { chk(await sb.from('reviews').update({ hidden: !r.hidden }).eq('ref', r.ref)); r.hidden = !r.hidden; renderReviews(); }
+    catch (err) { toast(friendly(err), true); }
+  }));
+}
 
 async function loadItems() {
   S.items = chk(await sb.from('shop_items').select('*').order('sort').order('name'));
@@ -1016,6 +1357,7 @@ function openItem(orig) {
           <button class="btn btn--line btn--sm" type="button" id="noDesign"${it.design ? '' : ' hidden'}>Remove design</button>
         </div>
         <p class="adm-msg" id="dMsg" style="margin-top:8px;font-size:.8rem;color:var(--mute)"></p>
+        <div id="trophyPromo" hidden></div>
         <div class="stk" id="stk" hidden></div>
       </div>
     </div></div>
@@ -1034,6 +1376,7 @@ function openItem(orig) {
     dispose();
     dispose = mount3D($('#v3d', dlg), it.design);
     mountSticker($('#stk', dlg), it.design, f.name.value.trim() || it.name);
+    mountTrophyPromo($('#trophyPromo', dlg), it.design?.shape);
     $('#noDesign', dlg).hidden = !it.design;
     $('#design', dlg).textContent = it.design ? 'Change in the designer' : 'Design it in 3D';
     const a = autoPrice(it.design);
@@ -1172,7 +1515,7 @@ async function enter() {
   if (!staff) return S.user.is_anonymous ? deviceScreen() : notStaffScreen(S.user.email);
   shell();
   $('#main').innerHTML = '<p class="adm-boot">Loading…</p>';
-  try { await Promise.all([loadRequests(), loadItems()]); }
+  try { await Promise.all([loadRequests(), loadItems(), loadSettings(), loadPromos(), loadReviews()]); }
   catch (err) { $('#main').innerHTML = `<div class="adm-empty">${esc(friendly(err))}</div>`; return; }
   render();
 }

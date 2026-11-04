@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your cart — Tala Artisan</title>
+<meta name="description" content="Your Tala Artisan cart: the trophies you designed, bulk prices, shipping, promos and checkout. Pay by GCash, Maya or bank transfer.">
+<meta name="theme-color" content="#15140F">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap"></noscript>
+<link rel="stylesheet" href="assets/css/styles.css?v=202611050158">
+<link rel="stylesheet" href="assets/css/cart.css?v=202611050158">
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+
+<body>
+<a class="skip" href="#shop">Skip to your cart</a>
+
+<header class="nav" id="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg>
+      <b>Tala<i>Artisan</i></b>
+    </a>
+    <nav class="nav__links" id="menu" aria-label="Primary">
+      <a href="./#shop">Shop</a>
+      <a href="design.html">Design yours</a>
+      <a href="design.html#guide">Guide</a>
+      <a href="./#studio">Studio</a>
+    </nav>
+    <div class="nav__act">
+      <a class="nav__cart" href="cart.html" aria-label="Your cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11h10.6L20 7H6.2M9 20h.01M17 20h.01"/></svg><span class="nav__count" id="cartCount" hidden>0</span></a>
+      <a class="btn btn--line btn--sm" href="./#quote">Get a quote</a>
+      <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="shopx" id="shop">
+  <div class="wrap">
+    <h1 class="d2 shopx__t" id="title">Shopping cart</h1>
+    <!-- the design just sent from the designer: quantity, bulk prices, shipping, Add to cart / Place order -->
+    <section class="pd" id="product" hidden></section>
+    <!-- the cart -->
+    <section class="ct" id="cart" hidden></section>
+    <!-- orders placed in this browser, to rate once they are done -->
+    <section class="od" id="orders" hidden></section>
+    <!-- checkout: address, products, shipping, vouchers, payment, totals -->
+    <section class="co" id="checkout" hidden></section>
+    <!-- after Place order: the order number, what to pay and where -->
+    <section class="paid" id="paid" hidden></section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <div>
+      <a class="brand" href="./">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg>
+        <b>Tala<i>Artisan</i></b>
+      </a>
+      <p>Acrylic trophies made in Gloria, Oriental Mindoro, shipped nationwide. Printed, laminated and
+         assembled by hand, with no minimum order.</p>
+    </div>
+    <nav class="foot__cols" aria-label="Footer">
+      <div>
+        <h3>Shop</h3>
+        <ul>
+          <li><a href="./#shop">Trophies</a></li>
+          <li><a href="./#shop">Plaques</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Design</h3>
+        <ul>
+          <li><a href="design.html">Trophy designer</a></li>
+          <li><a href="design.html#guide">How to design one</a></li>
+          <li><a href="design.html#ref">Artwork &amp; limits</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Studio</h3>
+        <ul>
+          <li><a href="./#studio">Materials</a></li>
+          <li><a href="./#studio">Delivery areas</a></li>
+          <li><a href="./#quote">Get a quote</a></li>
+          <li><a href="https://m.me/61595841638997" target="_blank" rel="noopener">Message us on Facebook</a></li>
+          <li><a href="https://www.facebook.com/profile.php?id=61595841638997" target="_blank" rel="noopener">Facebook page</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="wrap foot__base">
+    <p>© <span id="yr">2026</span> Tala Artisan · Gloria, Oriental Mindoro</p>
+    <ul><li><a href="design.html">Privacy</a></li><li><a href="design.html">Terms</a></li></ul>
+  </div>
+</footer>
+
+<a class="msg" href="https://m.me/61595841638997" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 3.2 8 7.3s-3.6 7.2-8 7.2c-1 0-2-.2-2.9-.5L5 19.6l1.2-3.5C4.8 14.8 4 13.1 4 11.3 4 7.2 7.6 4 12 4Z"/><path d="m8.3 13 2.6-2.7 2.1 1.6 2.6-2.8"/></svg><span>Message us<span class="msg__more"> on Facebook</span></span></a>
+
+<script src="assets/js/config.js?v=202611050158"></script>
+<script src="assets/js/main.js?v=202611050158" defer></script>
+<script type="module" src="assets/js/cart.js?v=202611050158"></script>
+</body>
+</html>
