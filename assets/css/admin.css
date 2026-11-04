@@ -53,6 +53,7 @@
 .adm-head h1{font-family:var(--f-display);font-size:clamp(1.8rem,3vw,2.4rem);line-height:1;margin:0}
 .adm-head p{margin:4px 0 0;color:var(--mute);font-size:.88rem}
 .adm-head .btn{margin-left:auto}
+.adm-head .btn + .btn{margin-left:0}
 .adm-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
 .adm-tools input[type=search]{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fff}
 .chips{display:flex;gap:6px;flex-wrap:wrap}

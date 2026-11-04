@@ -155,6 +155,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .card__b h3{font-family:var(--f-display);font-size:1.16rem;font-weight:400;margin:0}
 .card__b p{margin:.25em 0 0;font-size:.92rem;color:var(--ink-2)}
 .card__p{font-size:.88rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* six on the home page; the rest behind "See all", under the designer's groups */
+.shop:not(.is-open) .is-more{display:none}
+.grid__g{grid-column:1/-1;margin:clamp(12px,2.2vw,28px) 0 0;font-family:var(--f-display);font-size:clamp(1.35rem,2vw,1.7rem);font-weight:400}
+.shop__all{margin:clamp(28px,3.4vw,44px) 0 0;text-align:center}
 
 .also{
   display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:clamp(30px,3.5vw,46px);

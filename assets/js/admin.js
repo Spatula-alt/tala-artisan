@@ -5,12 +5,12 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611040101';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041252';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611040101';
+} from './trophy.js?v=202611041252';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -583,13 +583,56 @@ function openRequest(r) {
 
 /* ───────────────────────── shop trophies ───────────────────────── */
 
+/* The trophy photos the owner made from the designs, served with the site
+   (assets/img/products, listed in products.json): a shop card's photo, or a
+   designer trophy (`key`) that goes into the shop with its photo. */
+let PRODUCTS = null;
+
 async function loadItems() {
   S.items = chk(await sb.from('shop_items').select('*').order('sort').order('name'));
+  if (!PRODUCTS) {
+    try { PRODUCTS = await fetch(new URL('../img/products/products.json', import.meta.url)).then(r => (r.ok ? r.json() : [])); }
+    catch { PRODUCTS = []; }
+  }
 }
 
-/* Every trophy in the designer, as the shop item it would start as: its own
-   sheet and ink, sample wording, Medium on a black gold bar. The owner asked
-   to see all of them here, not only the shop's handful. */
+/* Photos not in the shop yet: one already on any item is done. */
+const pendingPhotos = () => (PRODUCTS || []).filter(e => !S.items.some(i => i.images?.includes(e.photo))
+  && (e.key ? !!SHAPES[e.key] : S.items.some(i => i.id === e.shop)));
+
+async function importPhotos() {
+  const todo = pendingPhotos();
+  const own = e => (e.shop ? S.items.find(i => i.id === e.shop)
+    : S.items.find(i => i.design?.shape === e.key && i.name === SHAPES[e.key].label));
+  const fresh = todo.filter(e => !own(e)).length;
+  const cards = todo.length - fresh;
+  if (!await confirmBox(`Add ${todo.length} trophy photos to the shop?`,
+    `${fresh} trophies go on the website with their photo${cards ? `, and ${cards} shop cards get theirs` : ''}. `
+    + 'You can change the price, words or photos of any of them afterwards, or hide it.', 'Add them')) return;
+  let sort = Math.max(0, ...S.items.map(i => i.sort ?? 0));
+  const taken = new Set(S.items.map(i => i.id));
+  const rows = [], updates = [];
+  for (const e of todo) {
+    const it = own(e);
+    if (it) { updates.push([it.id, { images: [e.photo, ...(it.images || [])], ...(e.key ? { published: true } : {}) }]); continue; }
+    const { id: _, ...row } = catalogItem(e.key);
+    let id = slug(row.name);
+    for (let n = 2; taken.has(id); n++) id = `${slug(row.name)}-${n}`;
+    taken.add(id);
+    rows.push({ ...row, id, images: [e.photo], published: true, sort: (sort += 10) });
+  }
+  try {
+    if (rows.length) chk(await sb.from('shop_items').insert(rows));
+    for (const [id, patch] of updates) chk(await sb.from('shop_items').update(patch).eq('id', id));
+    toast(`Done: ${todo.length} photos are in the shop.`);
+  } catch (err) { toast(friendly(err), true); }
+  await loadItems(); render();
+}
+
+/* The trophies in the designer that are not in the shop yet, as the shop item
+   each would start as: its own sheet and ink, sample wording, Medium on a black
+   gold bar. The owner asked to see all of them here, not only the shop's
+   handful; the ones already in the shop are in the list above. */
 const CAT_GROUPS = ['Classic', 'Rounds', 'Stars', 'Curves', 'Figures'];
 const catKeys = () => Object.keys(SHAPES).filter(k => k !== 'custom');
 const inShop = k => S.items.filter(i => i.design?.shape === k);
@@ -603,19 +646,20 @@ function catalogItem(k) {
     line: `${MATERIALS[material].label} · ${BASES.goldbar.label.toLowerCase()} base · ${SIZES.m.total} cm` };
 }
 
+const notInShop = () => catKeys().filter(k => !inShop(k).length);
+
 function catalogHtml() {
-  const keys = catKeys();
-  const missing = keys.filter(k => !inShop(k).length).length;
-  return `<div class="adm-head cat-head"><div><h2>Every trophy in the designer</h2>
-      <p>All ${keys.length}. Open one to give it a price and photos: it joins the shop list above, hidden until you switch it on.</p></div>
-      ${missing ? `<button class="btn btn--line btn--sm" id="addAll">Add all ${missing} to the shop (hidden)</button>` : ''}</div>
+  const keys = notInShop();
+  if (!keys.length) return '';
+  return `<div class="adm-head cat-head"><div><h2>Not in the shop yet</h2>
+      <p>${keys.length} of the ${catKeys().length} trophies in the designer. Open one to give it a price and photos: it joins the shop list above, hidden until you switch it on.</p></div>
+      <button class="btn btn--line btn--sm" id="addAll">Add all ${keys.length} (hidden)</button></div>
     ${CAT_GROUPS.map(g => {
       const ks = keys.filter(k => (SHAPES[k].group || 'Figures') === g);
       return ks.length ? `<p class="cat-g">${g}</p><div class="shop-grid">${ks.map(k => {
-        const there = inShop(k).length, it = catalogItem(k), p = autoPrice(it.design);
+        const it = catalogItem(k), p = autoPrice(it.design);
         return `<button class="item" data-cat="${esc(k)}" data-id="cat-${esc(k)}">
-          <div class="item__pic is-3d"><img data-3d src="${esc(stills.get(stillKey(it)) || 'assets/img/poster-hero.svg')}" alt="">
-            <span class="st ${there ? 'st--won' : 'st--hidden'}">${there ? 'In the shop' : 'Not in the shop'}</span></div>
+          <div class="item__pic is-3d"><img data-3d src="${esc(stills.get(stillKey(it)) || 'assets/img/poster-hero.svg')}" alt=""></div>
           <div class="item__b"><div><h3>${esc(SHAPES[k].label)}</h3><p>${esc(it.line)}</p></div><b>${p != null ? peso(p) : '—'}</b></div>
         </button>`;
       }).join('')}</div>` : '';
@@ -623,7 +667,7 @@ function catalogHtml() {
 }
 
 async function addAllToShop() {
-  const todo = catKeys().filter(k => !inShop(k).length);
+  const todo = notInShop();
   if (!await confirmBox(`Add ${todo.length} trophies to the shop?`,
     'They are added hidden: the website does not change until you open one and switch "Show on the website" on.', 'Add them')) return;
   let sort = S.items.at(-1)?.sort ?? 0;
@@ -643,9 +687,11 @@ async function addAllToShop() {
 }
 
 function renderShop() {
+  const pending = pendingPhotos().length;
   $('#main').innerHTML = `
     <div class="adm-head"><div><h1>Shop trophies</h1>
-      <p>What the website's shop shows, in this order. Hidden ones stay here but not on the site.</p></div>
+      <p>What the website's shop shows, in this order: the first 6 on the home page, the rest under "See all". Hidden ones stay here but not on the site.</p></div>
+      ${pending ? `<button class="btn btn--line btn--sm" id="importPhotos">Add ${pending} trophy photos</button>` : ''}
       <button class="btn btn--solid btn--sm" id="add">+ Add a trophy</button></div>
     ${S.items.length ? `<div class="shop-grid">${S.items.map(it => {
       const p = it.price != null ? Number(it.price) : autoPrice(it.design);
@@ -661,12 +707,11 @@ function renderShop() {
     ${catalogHtml()}`;
   $('#add').addEventListener('click', () => openItem({ id: null, name: '', line: '', category: 'Trophy', price: null, design: null, images: [], published: true, sort: (S.items.at(-1)?.sort ?? 0) + 10 }));
   $$('.item:not([data-cat])').forEach(b => b.addEventListener('click', () => openItem(S.items.find(i => i.id === b.dataset.id))));
-  $$('.item[data-cat]').forEach(b => b.addEventListener('click', () => {
-    const there = inShop(b.dataset.cat);
-    openItem(there.length ? there[0] : { ...catalogItem(b.dataset.cat), sort: (S.items.at(-1)?.sort ?? 0) + 10 });
-  }));
+  $$('.item[data-cat]').forEach(b => b.addEventListener('click', () =>
+    openItem({ ...catalogItem(b.dataset.cat), sort: (S.items.at(-1)?.sort ?? 0) + 10 })));
   $('#addAll')?.addEventListener('click', addAllToShop);
-  bakeStills([...S.items, ...catKeys().map(k => ({ ...catalogItem(k), id: `cat-${k}` }))]);
+  $('#importPhotos')?.addEventListener('click', importPhotos);
+  bakeStills([...S.items, ...notInShop().map(k => ({ ...catalogItem(k), id: `cat-${k}` }))]);
 }
 
 function openItem(orig) {

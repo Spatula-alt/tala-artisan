@@ -1,0 +1,182 @@
+[
+ {
+  "photo": "assets/img/products/shop-liga-shield.webp",
+  "shop": "liga-shield"
+ },
+ {
+  "photo": "assets/img/products/shop-fiesta-oval.webp",
+  "shop": "fiesta-oval"
+ },
+ {
+  "photo": "assets/img/products/shop-school-arch.webp",
+  "shop": "school-arch"
+ },
+ {
+  "photo": "assets/img/products/shop-quiz-plaque.webp",
+  "shop": "quiz-plaque"
+ },
+ {
+  "photo": "assets/img/products/shop-corporate-facet.webp",
+  "shop": "corporate-facet"
+ },
+ {
+  "photo": "assets/img/products/crystal.webp",
+  "key": "monolith"
+ },
+ {
+  "photo": "assets/img/products/tablet.webp",
+  "key": "tablet"
+ },
+ {
+  "photo": "assets/img/products/crown-panel.webp",
+  "key": "crownpanel"
+ },
+ {
+  "photo": "assets/img/products/pentagon.webp",
+  "key": "pentagon"
+ },
+ {
+  "photo": "assets/img/products/tulip.webp",
+  "key": "shield"
+ },
+ {
+  "photo": "assets/img/products/diamond-tower.webp",
+  "key": "cat"
+ },
+ {
+  "photo": "assets/img/products/wing-frame.webp",
+  "key": "bkwing"
+ },
+ {
+  "photo": "assets/img/products/crown-crest.webp",
+  "key": "crowncrest"
+ },
+ {
+  "photo": "assets/img/products/trophy-cup.webp",
+  "key": "cup"
+ },
+ {
+  "photo": "assets/img/products/chevron-shield.webp",
+  "key": "chevron"
+ },
+ {
+  "photo": "assets/img/products/hexagon.webp",
+  "key": "hexagon"
+ },
+ {
+  "photo": "assets/img/products/diamond.webp",
+  "key": "diamond"
+ },
+ {
+  "photo": "assets/img/products/rising-sun.webp",
+  "key": "risingsun"
+ },
+ {
+  "photo": "assets/img/products/round.webp",
+  "key": "round"
+ },
+ {
+  "photo": "assets/img/products/ring-round.webp",
+  "key": "bluering"
+ },
+ {
+  "photo": "assets/img/products/colour-round.webp",
+  "key": "colourround"
+ },
+ {
+  "photo": "assets/img/products/clear-round.webp",
+  "key": "clearround"
+ },
+ {
+  "photo": "assets/img/products/faceted-round.webp",
+  "key": "facet"
+ },
+ {
+  "photo": "assets/img/products/onyx-round.webp",
+  "key": "lionround"
+ },
+ {
+  "photo": "assets/img/products/oval.webp",
+  "key": "oval"
+ },
+ {
+  "photo": "assets/img/products/gem.webp",
+  "key": "gem"
+ },
+ {
+  "photo": "assets/img/products/hands-and-disc.webp",
+  "key": "hands"
+ },
+ {
+  "photo": "assets/img/products/laurel-round.webp",
+  "key": "laurel"
+ },
+ {
+  "photo": "assets/img/products/ribbon-medal.webp",
+  "key": "medal"
+ },
+ {
+  "photo": "assets/img/products/gold-star.webp",
+  "key": "goldstar"
+ },
+ {
+  "photo": "assets/img/products/shooting-star.webp",
+  "key": "starstem"
+ },
+ {
+  "photo": "assets/img/products/star-round.webp",
+  "key": "starround"
+ },
+ {
+  "photo": "assets/img/products/star-and-plaque.webp",
+  "key": "starside"
+ },
+ {
+  "photo": "assets/img/products/moon-and-stars.webp",
+  "key": "moonstars"
+ },
+ {
+  "photo": "assets/img/products/twin-stars.webp",
+  "key": "twinstar"
+ },
+ {
+  "photo": "assets/img/products/star-burst.webp",
+  "key": "starburst"
+ },
+ {
+  "photo": "assets/img/products/scallop-sail.webp",
+  "key": "wave"
+ },
+ {
+  "photo": "assets/img/products/half-moon.webp",
+  "key": "halfmoon"
+ },
+ {
+  "photo": "assets/img/products/wing.webp",
+  "key": "wing"
+ },
+ {
+  "photo": "assets/img/products/fin.webp",
+  "key": "fin"
+ },
+ {
+  "photo": "assets/img/products/teardrop.webp",
+  "key": "teardrop"
+ },
+ {
+  "photo": "assets/img/products/flame.webp",
+  "key": "flame"
+ },
+ {
+  "photo": "assets/img/products/torch.webp",
+  "key": "torch"
+ },
+ {
+  "photo": "assets/img/products/ocean-wave.webp",
+  "key": "seawave"
+ },
+ {
+  "photo": "assets/img/products/summit.webp",
+  "key": "summit"
+ }
+]

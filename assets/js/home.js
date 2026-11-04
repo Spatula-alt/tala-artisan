@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611040101';
-import { buildTrophy, disposeGroup, price, peso, artReady } from './trophy.js?v=202611040101';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041252';
+import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES } from './trophy.js?v=202611041252';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -29,8 +29,12 @@ function writePrices() {
 /* The shop grid is run from the Admin Deck (admin.html → shop_items). The six
    cards written into index.html stay as the fallback: offline, Supabase down,
    or nothing published yet. A card shows the trophy's photo when it has one,
-   otherwise its 3D design baked to a still, like the built-in cards. */
+   otherwise its 3D design baked to a still, like the built-in cards. The
+   first six are the home page's "most ordered"; the rest wait behind "See
+   all", in the designer's groups. */
 const SHOP_POSTERS = ['lady', 'shield', 'oval', 'arch', 'plaque', 'facet'];
+const FEATURED = 6;
+const GROUP_ORDER = ['Classic', 'Rounds', 'Stars', 'Curves', 'Figures'];
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 async function loadShop() {
@@ -52,25 +56,52 @@ async function loadShop() {
   } catch { return; }                       // keep the built-in cards
   if (!Array.isArray(rows) || !rows.length) return;
 
-  grid.innerHTML = rows.map(r => {
-    const photo = (r.images || []).find(u => typeof u === 'string' && u.startsWith(photoBase));
-    const d = r.design && typeof r.design === 'object' && r.design.shape !== 'custom' ? r.design : null;
-    if (!photo && !d) return '';
+  // a photo uploaded in the Admin Deck, or one served with the site (assets/img/products)
+  const photoOf = r => (r.images || []).find(u => typeof u === 'string' && (u.startsWith(photoBase) || /^assets\/[\w./-]+$/.test(u)));
+  const designOf = r => (r.design && typeof r.design === 'object' && r.design.shape !== 'custom' ? r.design : null);
+  const items = rows.filter(r => photoOf(r) || designOf(r));
+  if (!items.length) return;
+
+  const card = (r, more) => {
+    const photo = photoOf(r), d = designOf(r);
     const fixed = r.price != null;
     const shown = fixed ? peso(r.price) : 'Ask for a price';
     const pic = photo
       ? `<img class="viz__poster viz__photo" src="${escH(photo)}" alt="${escH(r.name)}" loading="lazy">`
       : `<img class="viz__poster" src="assets/img/${SHOP_POSTERS.includes(d.shape) ? 's-' + d.shape : 'poster-hero'}.svg" alt="${escH(r.name)}, ${escH(r.line)}">`;
-    return `<article class="card in" data-rev${!photo ? ` data-cfg="${escH(JSON.stringify(d))}"` : ''}${fixed ? ' data-fixed' : ''}>
+    // the design prices the card even under a photo; only a card with no photo is baked to a still
+    return `<article class="card in${more ? ' is-more' : ''}" data-rev${d ? ` data-cfg="${escH(JSON.stringify(d))}"` : ''}${photo ? ' data-photo' : ''}${fixed ? ' data-fixed' : ''}>
         <div class="viz">${pic}</div>
         <div class="card__b">
           <div><h3>${escH(r.name)}</h3><p>${escH(r.line || r.category)}</p></div>
           <p class="card__p" data-price>${shown}</p>
         </div>
       </article>`;
-  }).join('');
+  };
+  const rest = items.slice(FEATURED);
+  const groupOf = r => SHAPES[designOf(r)?.shape]?.group || 'More';
+  grid.innerHTML = items.slice(0, FEATURED).map(r => card(r, false)).join('')
+    + [...new Set([...GROUP_ORDER, ...rest.map(groupOf)])].map(g => {
+      const gs = rest.filter(r => groupOf(r) === g);
+      return gs.length ? `<h3 class="grid__g is-more">${escH(g)}</h3>${gs.map(r => card(r, true)).join('')}` : '';
+    }).join('');
+
+  if (rest.length) {
+    const label = `See all ${items.length} trophies`;
+    const wrap = document.createElement('p');
+    wrap.className = 'shop__all';
+    wrap.innerHTML = `<button class="btn btn--line" type="button" aria-expanded="false" aria-controls="shopGrid">${label}</button>`;
+    grid.after(wrap);
+    const btn = wrap.firstElementChild, shop = $('#shop');
+    btn.addEventListener('click', () => {
+      const open = shop.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', String(open));
+      btn.textContent = open ? 'Show fewer' : label;
+      if (!open) shop.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+  }
   const head = $('#shop .sec-head h2');
-  if (head && rows.length !== 6) head.textContent = 'What we make most often.';
+  if (head && items.length < FEATURED) head.textContent = 'What we make most often.';
 }
 
 function liveViewer(vizId, canvasId, cfg) {
@@ -95,7 +126,7 @@ const idle = () => new Promise(r =>
 
 async function bakeThumbnails() {
   await idle();
-  const cards = $$('#shopGrid .card[data-cfg]');
+  const cards = $$('#shopGrid .card[data-cfg]:not([data-photo])');
   if (!cards.length) return;
 
   // a card is at most ~360 css px wide; 560 covers that on a 1.5x screen and
