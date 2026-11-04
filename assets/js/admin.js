@@ -5,12 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611041327';
+import { createViewer, webglAvailable } from './viewer.js?v=202611041504';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, FONTS, stickerCanvas,
-} from './trophy.js?v=202611041327';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
+} from './trophy.js?v=202611041504';
+import { stickerArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611041504';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -145,65 +146,6 @@ function mount3D(box, design) {
   return () => { if (gone) return; gone = true; viewer.scene.remove(model); disposeGroup(model); viewer.dispose(); };
 }
 
-/* The design's sticker as the shop prints it, to stick on the real trophy:
-   the artwork the 3D trophy wears, cut to its shape, at 300 dpi and its real
-   size in cm (the 3D model works in cm). */
-const STICKER_DPI = 300;
-
-async function stickerArt(design) {
-  const model = buildTrophy(design);
-  const dims = model.userData.dims;
-  disposeGroup(model);
-  if (!dims?.dw || !dims?.dh) return null;
-  const f = FONTS[design.font] || FONTS.classic;
-  try {
-    await Promise.all([`${f.titleW || 400} 40px ${f.title}`, `${f.nameStyle || 'normal'} 40px ${f.name}`, `40px ${f.small}`]
-      .map(s => document.fonts.load(s)));
-  } catch { /* draw with what has loaded */ }
-  const src = stickerCanvas(design, dims.dw / dims.dh, Math.max(1024, dims.dw / 2.54 * STICKER_DPI));
-  const W = src.width, H = src.height;
-  const path = new Path2D();
-  (DECALS[design.decal] || DECALS.rect).build(dims.dw, dims.dh).getPoints(120).forEach((p, i) => {
-    const x = (p.x / dims.dw + 0.5) * W, y = (0.5 - p.y / dims.dh) * H;
-    if (i) path.lineTo(x, y); else path.moveTo(x, y);
-  });
-  path.closePath();
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const g = canvas.getContext('2d');
-  g.clip(path);
-  g.drawImage(src, 0, 0);
-  return { canvas, path, w: dims.dw, h: dims.dh };
-}
-
-let CRC_TABLE = null;
-function crc32(bytes) {
-  if (!CRC_TABLE) {
-    CRC_TABLE = new Uint32Array(256);
-    for (let n = 0; n < 256; n++) {
-      let c = n;
-      for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
-      CRC_TABLE[n] = c >>> 0;
-    }
-  }
-  let c = 0xFFFFFFFF;
-  for (const b of bytes) c = CRC_TABLE[(c ^ b) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-
-/* A PNG that carries its own resolution (a pHYs chunk after IHDR), so a photo
-   app prints it at its real size. The browser's PNG has none: printed as it
-   is, a 7 cm sticker came out about 22 cm wide. */
-async function pngAtDpi(canvas, dpi) {
-  const png = new Uint8Array(await (await new Promise(r => canvas.toBlob(r, 'image/png'))).arrayBuffer());
-  const chunk = new Uint8Array(21), v = new DataView(chunk.buffer), ppm = Math.round(dpi / 0.0254);
-  v.setUint32(0, 9);
-  chunk.set([0x70, 0x48, 0x59, 0x73], 4);                  // "pHYs"
-  v.setUint32(8, ppm); v.setUint32(12, ppm); chunk[16] = 1; // pixels per metre, across and down
-  v.setUint32(17, crc32(chunk.subarray(4, 17)));
-  return new Blob([png.subarray(0, 33), chunk, png.subarray(33)], { type: 'image/png' });
-}
-
 async function saveSticker(art, file) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(await pngAtDpi(art.canvas, STICKER_DPI));
@@ -213,24 +155,40 @@ async function saveSticker(art, file) {
 }
 
 /* A page with the sticker at its real size and a dashed line on its edge to
-   cut along; printing at 100% keeps the size. */
+   cut along; printing at 100% keeps the size. The picture runs a little past
+   the cut (sticker.js leaves room for the line), so it is sized by its pixels. */
 function printSticker(art, title) {
   const c = document.createElement('canvas');
   c.width = art.canvas.width; c.height = art.canvas.height;
   const g = c.getContext('2d');
   g.drawImage(art.canvas, 0, 0);
-  g.setLineDash([c.width * 0.014, c.width * 0.01]);
-  g.lineWidth = Math.max(2, c.width * 0.003);
+  g.setLineDash([STICKER_DPI * 0.06, STICKER_DPI * 0.04]);
+  g.lineWidth = Math.max(2, STICKER_DPI / 150);
   g.strokeStyle = 'rgba(0,0,0,.5)';
   g.stroke(art.path);
+  const cm = px => (px / STICKER_DPI * 2.54).toFixed(3);
+  // A4 inside the 12 mm margins: a Large panel sticker is wider than that standing up
+  const pw = +cm(c.width), ph = +cm(c.height);
+  const paper = pw <= 18.6 && ph <= 27.3 ? ''
+    : pw <= 27.3 && ph <= 18.6 ? ' Choose Landscape in the print window: it is too wide for the page standing up.'
+    : ' It is bigger than A4 or short bond paper: choose A3 in the print window, or have a print shop print it.';
   const w = window.open('', '_blank');
   if (!w) { toast('Allow pop-ups for this page to print the sticker.', true); return; }
   w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(title)} · sticker</title>
-<style>@page{margin:12mm}body{margin:0;font:11px/1.5 system-ui,sans-serif;color:#555}img{display:block;width:${art.w.toFixed(2)}cm;height:${art.h.toFixed(2)}cm}p{margin:5mm 0 0}</style>
+<style>@page{margin:12mm}body{margin:0;font:11px/1.5 system-ui,sans-serif;color:#555}img{display:block;width:${cm(c.width)}cm;height:${cm(c.height)}cm}p{margin:5mm 0 0}</style>
 <img src="${c.toDataURL('image/png')}" alt="">
-<p>${esc(title)} · ${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm. Print at 100% ("Actual size"), then cut along the dashed line.</p>
+<p>${esc(title)} · ${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm. Print at 100% ("Actual size"), then cut along the dashed line.${paper}</p>
 <script>addEventListener('load', () => setTimeout(print, 150))</script>`);
   w.document.close();
+}
+
+/* a small copy for the dialog: the full sticker is thousands of pixels across */
+function stickerThumb(canvas, max = 720) {
+  const k = Math.min(1, max / Math.max(canvas.width, canvas.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(canvas.width * k); c.height = Math.round(canvas.height * k);
+  c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
+  return c.toDataURL('image/png');
 }
 
 /* The sticker block under a design: the picture, its size, save and print. */
@@ -243,9 +201,9 @@ async function mountSticker(box, design, name) {
   try { art = await stickerArt(design); } catch { /* no sticker for this design */ }
   if (!art || box.dataset.n !== n) return;
   const where = SHAPES[design.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
-  const film = SCHEMES[design.scheme]?.print ? ' No background: print it on clear sticker film.' : '';
+  const film = art.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '';
   box.innerHTML = `<p class="sec-t">Sticker</p>
-    <div class="stk__pic"><img src="${art.canvas.toDataURL('image/png')}" alt="The sticker of this design"></div>
+    <div class="stk__pic"><img src="${stickerThumb(art.canvas)}" alt="The sticker of this design"></div>
     <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[design.size]?.label || 'Medium'} size.${film}</p>
     <div class="stk__btns"><button class="btn btn--line btn--sm" type="button" data-stk="save">Save sticker</button>
       <button class="btn btn--line btn--sm" type="button" data-stk="print">Print at real size</button></div>`;
