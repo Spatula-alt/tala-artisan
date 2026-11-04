@@ -126,6 +126,15 @@
 .v3d__note{position:absolute;left:10px;bottom:10px;font-size:.72rem;color:var(--mute);background:rgba(251,250,247,.82);padding:2px 8px;border-radius:999px}
 .v3d__empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--mute);font-size:.86rem}
 
+/* the design's sticker, to save or print at its real size; the checks show
+   what has no background (wording printed straight on the acrylic) */
+.stk{margin-top:22px;max-width:336px}   /* as wide as the 3D stage above it (420 tall at 4:5) */
+.stk__pic{display:grid;place-items:center;padding:16px;border:1px solid var(--line-soft);border-radius:10px;
+  background:#fff repeating-conic-gradient(#F1EEE7 0 25%, #fff 0 50%) 0 0/14px 14px}
+.stk__pic img{display:block;max-width:100%;max-height:240px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
+.stk__size{margin:8px 0 0;font-size:.8rem;color:var(--mute);line-height:1.45}
+.stk__btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
 .photos{display:flex;gap:10px;flex-wrap:wrap}
 .ph{position:relative;width:96px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:var(--surface)}
 .ph img{width:100%;height:100%;object-fit:cover}

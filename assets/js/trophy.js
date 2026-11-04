@@ -2348,10 +2348,10 @@ export const PHOTO_FITS = {
  * edge to edge. `cfg.photoImg` is a loaded Image the customer dropped in;
  * it is read in the browser and never uploaded anywhere.
  */
-export function stickerCanvas(cfg, aspect) {
+export function stickerCanvas(cfg, aspect, px = 1024) {
   const sc = SCHEMES[cfg.scheme] || SCHEMES.white;
   const f = FONTS[cfg.font] || FONTS.classic;
-  const PX = 1024;
+  const PX = Math.round(px);       // wider for a sticker printed at 300 dpi (admin.js); every size below follows it
   const c = document.createElement('canvas');
   c.width = PX;
   c.height = Math.max(64, Math.round(PX / aspect));
