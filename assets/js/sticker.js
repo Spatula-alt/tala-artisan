@@ -8,14 +8,19 @@
    medallion: "all the second layer you see in trophies are stickers" -- "and
    the other trophies too" (6 Nov 2026). Before that the white panel ("the
    whole picture not transparent") and Colour Round's rainbow ("this whole
-   rainbow color is sticker too") had joined the face. So the sticker is every
-   layer as the 3D trophy wears it, then the wording where it sits: the body's
-   whole front when the wording is on the body, else cut round all the layers
-   together (sticker-cuts.js), pieces standing apart -- Gem's medallion, Crown
-   Panel's stars -- each with its own cut line on the one sheet.
+   rainbow color is sticker too") had joined the face. So the design sticker
+   is every layer as the 3D trophy wears it: the body's whole front when the
+   wording is on the body, else cut round all the layers together
+   (sticker-cuts.js), pieces standing apart -- Gem's medallion, Crown Panel's
+   stars -- each with its own cut line on the one sheet.
+
+   The wording is not printed on it: "the wording are transparent sticker too"
+   (6 Nov). It is a sticker of its own, printed ink on clear film, laid on the
+   design sticker where the 3D trophy wears it. So one design sticker serves
+   every trophy of that design; only the wording changes from order to order.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611060032';
-import { CUTS } from './sticker-cuts.js?v=202611060032';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611060129';
+import { CUTS } from './sticker-cuts.js?v=202611060129';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
@@ -124,25 +129,9 @@ function paintLayer(g, D, i, art) {
   if (i === D.face.on && (L.mat === 'white' || L.mat === 'tan')) goldRule(g, p, outerRing(L.d), INK[L.mat]);
 }
 
-/* The wording, as the 3D trophy wears it: at its spot on the face, its size,
-   turned as the customer turned it, cut to the decal's shape. Drawn in path
-   units (frame: the body's { k, cx, maxY }, see pathToShape). */
-function paintWords(g, cfg, dims, words) {
-  const { k, cx, maxY } = dims.frame;
-  const { dw, dh, at } = dims;
-  const edge = new Path2D();
-  (DECALS[cfg.decal] || DECALS.rect).build(dw, dh).getPoints(120)
-    .forEach((q, i) => (i ? edge.lineTo(q.x / k, -q.y / k) : edge.moveTo(q.x / k, -q.y / k)));
-  edge.closePath();
-  g.save();
-  g.translate(at.x / k + cx, maxY - at.y / k);
-  g.rotate(-(at.r || 0));                 // turned the other way: the canvas runs y down
-  g.clip(edge);
-  g.drawImage(words, -dw / k / 2, -dh / k / 2, dw / k, dh / k);
-  g.restore();
-}
-
-function faceSticker(D, cfg, dims, words, plan, art) {
+/* The design sticker: the layers, without the wording. Drawn in path units
+   (frame: the body's { k, cx, maxY }, see pathToShape). */
+function designSticker(D, dims, plan, art) {
   const { k } = dims.frame;
   const s = k * PXCM;                     // px per path unit
   const pts = ringsOf(plan.cut).flat();
@@ -158,15 +147,15 @@ function faceSticker(D, cfg, dims, words, plan, art) {
   g.clip(cut, 'evenodd');
   if (plan.fill) { g.fillStyle = plan.fill; g.fill(cut, 'evenodd'); }
   for (const i of plan.members) paintLayer(g, D, i, art);
-  paintWords(g, cfg, dims, words);
   const path = new Path2D();
   path.addPath(cut, toPx);
   return { canvas, path, w: (x1 - x0) * k, h: (y1 - y0) * k, clear: plan.clear };
 }
 
-/* The wording alone, cut to the decal's shape: a figure's base plate, or any
-   other trophy that is not a layered design. */
-function decalSticker(cfg, dims, words) {
+/* The wording, cut to the decal's shape, at its size on the trophy: a figure's
+   base plate, or on a layered design the clear sticker laid on the design's.
+   Clear wherever nothing is printed (a printed-ink scheme has no ground). */
+function wordingSticker(cfg, dims, words) {
   const W = Math.round(dims.dw * PXCM), H = Math.round(dims.dh * PXCM);
   const path = new Path2D();
   (DECALS[cfg.decal] || DECALS.rect).build(dims.dw, dims.dh).getPoints(120).forEach((q, i) => {
@@ -201,9 +190,11 @@ function photoStandIn(fit) {
   return c;
 }
 
-/* -> { canvas, path, w, h, clear, standIn }: the sticker at 300 dpi, the cut
-   line on it in its pixels, its size in cm, whether any of it is left clear,
-   and whether a stand-in holds the place of a photo still to come. */
+/* -> { canvas, path, w, h, clear, standIn, words? }: the sticker at 300 dpi,
+   the cut line on it in its pixels, its size in cm, whether any of it is left
+   clear, and whether a stand-in holds the place of a photo still to come. On a
+   layered design it is the design sticker, and `words` the wording's own
+   sticker (as these, the photo in it) to lay on it. */
 export async function stickerArt(cfg) {
   const standIn = !!(cfg.photo && !cfg.photoImg && cfg.photoTarget !== 'figure');
   if (standIn) cfg = { ...cfg, photoImg: photoStandIn(cfg.photoFit) };
@@ -223,12 +214,12 @@ async function stickerOf(cfg) {
       .map(s => document.fonts.load(s)));
   } catch { /* draw with what has loaded */ }
   // drawn larger than it prints for a small sticker, so the lettering stays sharp
-  const words = stickerCanvas(cfg, dims.dw / dims.dh, Math.max(1024, dims.dw * PXCM));
+  const words = wordingSticker(cfg, dims, stickerCanvas(cfg, dims.dw / dims.dh, Math.max(1024, dims.dw * PXCM)));
   const D = DESIGNS[cfg.shape];
-  const plan = D && dims.at && dims.frame ? planOf(D, cfg.shape, cfg) : null;
-  if (!plan) return decalSticker(cfg, dims, words);
+  const plan = D && dims.frame ? planOf(D, cfg.shape, cfg) : null;
+  if (!plan) return words;
   const art = plan.members.some(i => !FLAT.has(D.layers[i].fin)) ? await artImage(D.art.src) : null;
-  return faceSticker(D, cfg, dims, words, plan, art);
+  return { ...designSticker(D, dims, plan, art), words };
 }
 
 /* What is printed on the cut piece itself, flat and cut along its outline at

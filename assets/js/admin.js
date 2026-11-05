@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611060032';
+import { createViewer, webglAvailable } from './viewer.js?v=202611060129';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611060032';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611060032';
+} from './trophy.js?v=202611060129';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611060129';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -331,14 +331,21 @@ async function mountSticker(box, design, name, opts = {}) {
   const label = SHAPES[d.shape]?.label || 'trophy';
   const along = piece === 'picture' ? 'their outline' : 'the figure';
   const where = SHAPES[d.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
-  const film = art.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '';
+  // a layered design: its layers are one sticker, the wording a clear one of its own laid on it (owner, 6 Nov)
+  const words = art.words;
+  const film = a => (a.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '');
   const wait = art.standIn ? ' Their photo goes in the grey part: add it when they send it.' : '';
   const btn = (k, t) => `<button class="btn btn--line btn--sm" type="button" data-stk="${k}">${t}</button>`;
-  box.innerHTML = `<p class="sec-t">${SHAPES[d.shape]?.decal?.onBase ? 'Sticker for the base' : 'Sticker'}</p>
-    <div class="stk__pic"><img src="${stickerThumb(art.canvas)}" alt="The sticker of this design"></div>
-    <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[d.size]?.label || 'Medium'} size.${film}${wait}</p>
-    <div class="stk__btns">${btn('save', 'Save sticker')}${btn('print', 'Print at real size')}${
-      coming && !onFigure ? btn('photo', got.photo ? 'Change their photo' : 'Add their photo') : ''}</div>
+  const photoBtn = coming && !onFigure ? btn('photo', got.photo ? 'Change their photo' : 'Add their photo') : '';
+  box.innerHTML = `<p class="sec-t">${SHAPES[d.shape]?.decal?.onBase ? 'Sticker for the base' : words ? 'Design sticker' : 'Sticker'}</p>
+    <div class="stk__pic"><img src="${stickerThumb(art.canvas)}" alt="${words ? 'The design sticker: every layer, no wording' : 'The sticker of this design'}"></div>
+    <p class="stk__size">${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm ${where}, ${SIZES[d.size]?.label || 'Medium'} size.${
+      words ? ' The same for every trophy of this design and size: the wording is a sticker of its own.' : ''}${film(art)}${words ? '' : wait}</p>
+    <div class="stk__btns">${btn('save', 'Save sticker')}${btn('print', 'Print at real size')}${words ? '' : photoBtn}</div>
+    ${!words ? '' : `<div class="stk__piece"><p class="sec-t">Wording sticker</p>
+      <div class="stk__pic"><img src="${stickerThumb(words.canvas)}" alt="The wording, on its own clear sticker"></div>
+      <p class="stk__size">${words.w.toFixed(1)} × ${words.h.toFixed(1)} cm, laid on the design sticker where the 3D trophy shows it.${film(words)}${wait}</p>
+      <div class="stk__btns">${btn('wsave', 'Save wording')}${btn('wprint', 'Print at real size')}${photoBtn}</div></div>`}
     ${!piece ? '' : `<div class="stk__piece"><p class="sec-t">${piece === 'picture' ? 'Picture sticker for the cut piece' : 'Photo sticker for the figure'}</p>${
       pa ? `<div class="stk__pic"><img src="${stickerThumb(pa.canvas)}" alt="The print for the cut piece"></div>
         <p class="stk__size">${pa.w.toFixed(1)} × ${pa.h.toFixed(1)} cm, cut along ${along}. Check its edges before printing.</p>
@@ -351,6 +358,10 @@ async function mountSticker(box, design, name, opts = {}) {
   const base = slug(name || label);
   $('[data-stk="save"]', box).addEventListener('click', () => saveSticker(art, `${base}-sticker-${art.w.toFixed(1)}x${art.h.toFixed(1)}cm`));
   $('[data-stk="print"]', box).addEventListener('click', () => printSticker(art, name || 'Sticker'));
+  if (words) {
+    $('[data-stk="wsave"]', box).addEventListener('click', () => saveSticker(words, `${base}-wording-${words.w.toFixed(1)}x${words.h.toFixed(1)}cm`));
+    $('[data-stk="wprint"]', box).addEventListener('click', () => printSticker(words, `${name || label} · wording`));
+  }
   for (const k of ['photo', 'picture']) {
     $(`[data-stk="${k}"]`, box)?.addEventListener('click', async () => {
       const img = await pickImage();

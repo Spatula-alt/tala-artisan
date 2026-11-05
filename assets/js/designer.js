@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611060032';
+import { createViewer, webglAvailable } from './viewer.js?v=202611060129';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611060032';
+} from './trophy.js?v=202611060129';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -334,7 +334,7 @@ const cut = {
 // "Your art"'s picture (with its art on the trophy) and the photo
 const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611060032'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611060129'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
