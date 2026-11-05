@@ -141,6 +141,13 @@
 .pay-form legend{padding:0 6px;font-weight:600}
 .pay-form .btn{justify-self:start}
 @media (max-width:720px){.pay-form fieldset{grid-template-columns:1fr}}
+/* a GCash / Maya QR: across its fieldset, the QR beside its buttons */
+.qr-fld{grid-column:1/-1}
+.qr-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.qr-slot{width:120px;aspect-ratio:4/5;display:grid;place-items:center;border:1px dashed var(--line);border-radius:8px;background:#fff;overflow:hidden}
+.qr-slot img{width:100%;height:100%;object-fit:contain}
+.qr-none{font-size:.76rem;font-weight:400;color:var(--mute)}
+.qr-btns{display:flex;gap:8px;flex-wrap:wrap}
 .rcpt{display:flex;flex-wrap:wrap;gap:10px}
 .rcpt img{display:block;max-width:220px;max-height:260px;border:1px solid var(--line-soft);border-radius:8px}
 /* the designer's order sheet, read back into sections (orderSheet in admin.js) */

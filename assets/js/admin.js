@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611051626';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051643';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611051626';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611051626';
+} from './trophy.js?v=202611051643';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611051643';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -814,7 +814,7 @@ function openRequest(r) {
             <dt>Shipping</dt><dd>${+r.pricing.shipping ? peso(+r.pricing.shipping) : 'Free'}${ZONES[r.pricing.zone] ? ` · ${esc(ZONES[r.pricing.zone].label)}` : ''}</dd>
             ${+r.pricing.discount ? `<dt>Promos</dt><dd>−${peso(+r.pricing.discount)}${r.pricing.voucher ? ` · ${esc(r.pricing.voucher)}` : ''}${Array.isArray(r.pricing.promos) && r.pricing.promos.length ? `<br><small>${esc(r.pricing.promos.join(' · '))}</small>` : ''}</dd>` : ''}
             <dt>Total</dt><dd><b>${peso(+r.pricing.total || 0)}</b></dd>
-            <dt>Pays by</dt><dd>${esc(PAYMENTS[r.pricing.payment]?.label || r.pricing.payment || '—')}${+r.pricing.deposit ? ` · down payment ${peso(+r.pricing.deposit)} (${+r.pricing.deposit_percent}%)` : ''}</dd>
+            <dt>Pays by</dt><dd>${esc(PAYMENTS[r.pricing.payment]?.label || r.pricing.payment || '—')}${+r.pricing.deposit_percent >= 100 ? ` · the whole ${peso(+r.pricing.deposit)} when ordering` : +r.pricing.deposit ? ` · down payment ${peso(+r.pricing.deposit)} (${+r.pricing.deposit_percent}%)` : ''}</dd>
           </dl></div>` : ''}
           ${r.status === 'won' && orderCode(r) ? `<p class="stk__size">Rating link for the customer: <a href="cart.html?rate=${esc(r.ref)}" target="_blank" rel="noopener" style="color:var(--brass)">cart.html?rate=…</a>
             <button class="adm-link" type="button" id="copyRate">Copy</button></p>` : ''}
@@ -910,7 +910,39 @@ async function loadSettings() {
 }
 
 /* Payment details: what the order page shows a customer once they place an
-   order -- where to send the down payment, and how much of the total it is. */
+   order -- where to send the full amount (owner, 5 Nov: "instead of 50
+   percent down payment make it like full payment"): the bank's details, or
+   the GCash / Maya number with its QR beside the receipt button. The QR is
+   saved in the public photo bucket at a fixed place, pay/<gcash|maya>-qr.png;
+   updated_at moves with every change, and the order page asks for the QR by
+   it, so a new QR is never hidden behind an old copy. */
+const QR_PATH = k => `pay/${k}-qr.png`;
+/* the QR as a PNG: crisp edges (no JPEG blur), on white, at most 1600 px, a
+   file every phone's gallery and every wallet's "upload a QR" opens */
+async function qrPng(file) {
+  if (!/^image\//.test(file.type)) throw new Error('That needs to be a picture of your QR.');
+  const src = URL.createObjectURL(file);
+  try {
+    // load, not decode(): decode() can wait for ever in some embedded browsers
+    const img = await new Promise((ok, bad) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = bad;
+      im.src = src;
+    });
+    const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(img, 0, 0, c.width, c.height);
+    const png = await new Promise(r => c.toBlob(r, 'image/png'));
+    if (!png) throw new Error('Could not read that picture. Try a screenshot of the QR.');
+    return png;
+  } catch (err) {
+    throw err instanceof Error && /QR|picture/.test(err.message) ? err : new Error('Could not read that picture. Try a screenshot of the QR.');
+  } finally { URL.revokeObjectURL(src); }
+}
 function renderPay() {
   const st = S.settings;
   if (!st) {
@@ -919,41 +951,90 @@ function renderPay() {
     return;
   }
   const v = k => esc(st[k] ?? '');
+  const qrBox = (k, app) => `<div class="fld qr-fld" data-qr="${k}"><span>${app} QR</span>
+        <div class="qr-row"><div class="qr-slot"><span class="qr-none">No QR yet</span></div>
+          <div class="qr-btns"><label class="btn btn--line btn--sm">Upload your QR<input type="file" accept="image/*" hidden></label>
+            <button class="btn btn--line btn--sm" type="button" data-qr-del hidden>Remove</button></div></div>
+        <small>The QR you save from your ${app} app. Customers who pay by ${app} see it beside the button for their receipt, and can scan it or save it.</small></div>`;
   $('#main').innerHTML = `
     <div class="adm-head"><div><h1>Payment details</h1>
-      <p>Customers see these right after they place an order, with the down payment to send and their order number.
+      <p>Customers see these right after they place an order, with the full amount to pay and their order number.
         Fill in only the ways you take. Leave a number empty to hide that way.</p></div></div>
     <form class="pay-form" id="payForm" novalidate>
       <fieldset><legend>GCash</legend>
         <label class="fld">Account name<input name="gcash_name" maxlength="80" value="${v('gcash_name')}" placeholder="e.g. Juan D."></label>
         <label class="fld">GCash number<input name="gcash_number" inputmode="tel" maxlength="20" value="${v('gcash_number')}" placeholder="0917 123 4567"></label>
+        ${qrBox('gcash', 'GCash')}
       </fieldset>
       <fieldset><legend>Maya</legend>
         <label class="fld">Account name<input name="maya_name" maxlength="80" value="${v('maya_name')}"></label>
         <label class="fld">Maya number<input name="maya_number" inputmode="tel" maxlength="20" value="${v('maya_number')}" placeholder="0918 123 4567"></label>
+        ${qrBox('maya', 'Maya')}
       </fieldset>
       <fieldset><legend>Bank transfer</legend>
         <label class="fld">Bank<input name="bank_name" maxlength="80" value="${v('bank_name')}" placeholder="e.g. BDO, BPI, Landbank"></label>
         <label class="fld">Account name<input name="bank_account_name" maxlength="80" value="${v('bank_account_name')}"></label>
         <label class="fld">Account number<input name="bank_account_number" inputmode="numeric" maxlength="34" value="${v('bank_account_number')}"></label>
       </fieldset>
-      <fieldset><legend>Down payment</legend>
-        <label class="fld">Paid when they order<select name="deposit_percent">${[30, 50, 100].map(n =>
-          `<option value="${n}"${Number(st.deposit_percent) === n ? ' selected' : ''}>${n === 100 ? 'The whole amount' : `${n}% of the total`}</option>`).join('')}</select>
-          <small>The rest is paid before you ship, or on pickup.</small></label>
-        <label class="fld">A line for customers (optional)<input name="pay_note" maxlength="300" value="${v('pay_note')}" placeholder="e.g. We confirm payments within the day."></label>
+      <fieldset><legend>For customers</legend>
+        <label class="fld qr-fld">A line under your details (optional)<input name="pay_note" maxlength="300" value="${v('pay_note')}" placeholder="e.g. We confirm payments within the day.">
+          <small>Customers pay the whole amount when they order (cash: on pickup, or on delivery within Oriental Mindoro).</small></label>
       </fieldset>
       <p class="adm-msg" id="payMsg" role="alert"></p>
       <button class="btn btn--solid btn--sm" type="submit">Save payment details</button>
     </form>`;
   const f = $('#payForm'), msg = $('#payMsg');
+
+  // the QRs: which are up (staff may list the bucket), upload one, remove one
+  const qrUrl = k => `${sb.storage.from(BUCKET).getPublicUrl(QR_PATH(k)).data.publicUrl}?v=${encodeURIComponent(S.settings.updated_at || '')}`;
+  const showQr = (k, on) => {
+    const box = $(`[data-qr="${k}"]`, f);
+    $('.qr-slot', box).innerHTML = on ? `<img src="${esc(qrUrl(k))}" alt="Your ${k === 'gcash' ? 'GCash' : 'Maya'} QR">` : '<span class="qr-none">No QR yet</span>';
+    $('[data-qr-del]', box).hidden = !on;
+  };
+  const touch = async () => {                       // a new updated_at: the order page asks for the new QR
+    const at = new Date().toISOString();
+    chk(await sb.from('shop_settings').update({ updated_at: at }).eq('id', 'shop'));
+    S.settings.updated_at = at;
+  };
+  sb.storage.from(BUCKET).list('pay').then(({ data }) => {
+    const up = new Set((data || []).map(x => x.name));
+    for (const k of ['gcash', 'maya']) showQr(k, up.has(`${k}-qr.png`));
+  }).catch(() => {});
+  for (const k of ['gcash', 'maya']) {
+    const box = $(`[data-qr="${k}"]`, f), app = k === 'gcash' ? 'GCash' : 'Maya';
+    $('input[type=file]', box).addEventListener('change', async e => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      msg.textContent = `Saving your ${app} QR…`; msg.className = 'adm-msg';
+      try {
+        const png = await qrPng(file);
+        chk(await sb.storage.from(BUCKET).upload(QR_PATH(k), png, { contentType: 'image/png', cacheControl: '300', upsert: true }));
+        await touch();
+        showQr(k, true);
+        msg.textContent = '';
+        toast(`${app} QR saved. Customers who pay by ${app} see it now.`);
+      } catch (err) { msg.textContent = friendly(err); msg.className = 'adm-msg bad'; }
+    });
+    $('[data-qr-del]', box).addEventListener('click', async () => {
+      if (!await confirmBox(`Remove your ${app} QR?`, `Customers who pay by ${app} will see your number only.`, 'Remove')) return;
+      try {
+        chk(await sb.storage.from(BUCKET).remove([QR_PATH(k)]));
+        await touch();
+        showQr(k, false);
+        toast(`${app} QR removed.`);
+      } catch (err) { msg.textContent = friendly(err); msg.className = 'adm-msg bad'; }
+    });
+  }
+
   f.addEventListener('submit', async e => {
     e.preventDefault();
     const val = k => f[k].value.trim() || null;
     const fields = {
       gcash_name: val('gcash_name'), gcash_number: val('gcash_number'), maya_name: val('maya_name'), maya_number: val('maya_number'),
       bank_name: val('bank_name'), bank_account_name: val('bank_account_name'), bank_account_number: val('bank_account_number'),
-      deposit_percent: Number(f.deposit_percent.value), pay_note: val('pay_note'), updated_at: new Date().toISOString(),
+      pay_note: val('pay_note'), updated_at: new Date().toISOString(),
     };
     const bad = [['gcash_number', /^[0-9 +()-]{7,20}$/, 'The GCash number'], ['maya_number', /^[0-9 +()-]{7,20}$/, 'The Maya number'],
       ['bank_account_number', /^[0-9 -]{4,34}$/, 'The account number']].find(([k, re]) => fields[k] && !re.test(fields[k]));

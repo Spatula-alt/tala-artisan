@@ -388,9 +388,32 @@ html:not(.js) .shop__all{display:none}
 .pay__t{margin:0 0 8px;font-weight:600}
 .pay__steps{margin:0;padding-left:1.2rem;display:grid;gap:6px;font-size:.9rem;color:var(--ink-2)}
 .pay__steps b{color:var(--ink)}
-.pay__ways{display:grid;gap:6px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:.92rem}
-.pay__ways p{margin:0}
-.pay__ways b{display:inline-block;min-width:7.5em}
+/* where to pay, on the order page: the shop's account, and for GCash / Maya its
+   QR with the receipt button beside it (owner, 5 Nov). Wide: the QR, then the
+   account above the button. Phone: the QR beside the button, the account under. */
+.pay__box{display:grid;gap:14px 18px;margin-top:12px}
+.pay__box.has-qr{grid-template-columns:170px minmax(0,1fr);grid-template-areas:"qr info" "qr act";align-items:start}
+/* named places only with a QR: without one, the account and the button simply stack */
+.pay__box.has-qr .pay__qr{grid-area:qr}
+.pay__box.has-qr .pay__info{grid-area:info}
+.pay__box.has-qr .pay__act{grid-area:act}
+.pay__qr{margin:0;text-align:center}
+.pay__qr img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.pay__save{display:inline-block;margin-top:8px;font-size:.86rem;color:var(--brass);text-decoration:underline;text-underline-offset:3px}
+.pay__info{min-width:0}
+.pay__info .pay__note{margin-top:10px}
+.pay__info .pay__note:first-child{margin-top:0}
+.pay__act .paid__up{margin-top:0}
+.pay__acct{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 14px;margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:.92rem}
+.pay__acct dt{color:var(--mute)}
+.pay__acct dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.pay__copy{margin-left:6px;padding:2px 9px;font:inherit;font-size:.76rem;font-weight:500;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.pay__copy:hover{border-color:var(--ink)}
+@media (max-width:560px){
+  .pay__box.has-qr{grid-template-columns:120px minmax(0,1fr);grid-template-areas:"qr act" "info info";gap:14px}
+  .pay__box.has-qr .pay__act{align-self:center}
+  .pay__box.has-qr .pay__act .btn{white-space:normal;text-align:center;line-height:1.3}
+}
 .pay__note{margin:10px 0 0;font-size:.84rem;color:var(--mute)}
 .paid{align-self:start;padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
 .paid__head{display:flex;gap:12px;align-items:flex-start}

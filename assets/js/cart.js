@@ -14,8 +14,8 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady,
-} from './trophy.js?v=202611051626';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051626';
+} from './trophy.js?v=202611051643';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051643';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -62,7 +62,9 @@ const keepCart = () => {
   store.set('tala.cart', cart.map(({ files, ...it }) => it));   // out of room: the trophies, without their pictures
   return false;
 };
-const depositPct = () => (settings && settings.deposit_percent) || 50;
+/* The owner, 5 Nov: "instead of 50 percent down payment make it like full
+   payment". GCash, Maya and bank: the whole amount once the order is placed;
+   cash: on pickup, or on delivery within the province. */
 
 /* ───────────────────────── prices ───────────────────────── */
 
@@ -117,7 +119,7 @@ function priceOrder(items) {
   discount = Math.min(Math.round(discount), sum(lines.map(l => l.make)));
   const total = merch + shipping - discount;
   const q0 = items.length ? quote({ ...items[0].design, qty: pieces, zone: order.zone || 'pickup', speed: order.speed, payment: 'cash' }) : null;
-  return { lines, merch, shipping, pieces, discount, notes, total, deposit: Math.round(total * depositPct() / 100),
+  return { lines, merch, shipping, pieces, discount, notes, total,
     arrival: q0 && q0.arrival, days: q0 && q0.days };
 }
 
@@ -720,10 +722,9 @@ function renderCheckout() {
         <dt>Shipping subtotal</dt><dd>${p.shipping ? peso(p.shipping) : 'Free'}</dd>
         ${p.discount ? `<dt>Promo discount</dt><dd class="co__minus">−${peso(p.discount)}</dd>` : ''}
         <dt class="co__total">Total payment</dt><dd class="co__total">${peso(p.total)}</dd>
-        ${order.payment === 'cash' ? '' : `<dt>Down payment now (${depositPct()}%)</dt><dd><b>${peso(p.deposit)}</b></dd>`}
       </dl>
       <p class="co__note">${order.payment === 'cash' ? 'Pay in cash when you pick up, or on delivery within Oriental Mindoro.'
-        : `Pay ${depositPct() >= 100 ? 'the whole amount' : 'the down payment'} after you place the order; we show you where. The rest before we ship.`}
+        : 'Pay the full amount once you place the order: we show you where to send it.'}
         Within 2 days we email you a proof to check before we make anything.</p>
       <p class="form__msg" id="placeMsg" role="status"></p>
       <button class="btn btn--solid co__place" type="button" id="placeOrder">Place order</button>
@@ -769,6 +770,7 @@ function renderCheckout() {
   }));
   if ($('#shareBox')) wireShare();
   $('#placeOrder').addEventListener('click', placeOrder);
+  qrFor(order.payment);                  // the shop's GCash / Maya QR, ready for the order page
 }
 
 // the shop vouchers claimed here that are still running
@@ -868,7 +870,7 @@ async function placeOrder() {
     const ref = uuid();
     const pricing = {
       merch: p.merch, shipping: p.shipping, discount: p.discount, total: p.total,
-      deposit_percent: order.payment === 'cash' ? 0 : depositPct(), deposit: order.payment === 'cash' ? 0 : p.deposit,
+      deposit_percent: order.payment === 'cash' ? 0 : 100, deposit: order.payment === 'cash' ? 0 : p.total,   // paid in full
       zone: order.zone, speed: order.speed, payment: order.payment, pieces: p.pieces, items: items.length,
       promos: p.notes.slice(0, 6), voucher: order.voucher ? (order.voucher.kind === 'share' ? `share ${order.voucher.code}` : order.voucher.code) : null,
     };
@@ -887,28 +889,57 @@ async function placeOrder() {
     });
     if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`.slice(0, 300));
     cart = cart.filter(i => !i.on); keepCart(); countBadge();
-    showPaid(ref, p, items);
+    showPaid(ref, p, items, await qrWait(order.payment));
   } catch (err) {
     console.warn('[tala] order not saved:', err);
     msg.textContent = 'Sorry — your order did not go through. Please try again in a moment.'; msg.className = 'form__msg err';
   } finally { btn.disabled = false; }
 }
 
-/* After "Place order": the order number, what to pay now and where, and a
-   place for the receipt (saved beside the order's pictures, where only the
-   shop's staff can see it). */
-function showPaid(ref, p, items) {
+/* The shop's GCash or Maya QR (Admin Deck → Payment details), at a fixed place
+   in the photo bucket and asked for by the settings' updated_at, so a new QR
+   is never hidden behind an old copy. Fetched while the customer checks out
+   (renderCheckout), so it is on the order page the moment the order is
+   placed; null when the shop has none. */
+const qrs = {};
+function qrFor(k) {
+  if (!settings || !BASE || (k !== 'gcash' && k !== 'maya')) return Promise.resolve(null);
+  return qrs[k] ||= new Promise(done => {
+    const src = `${BASE}/storage/v1/object/public/trophy-photos/pay/${k}-qr.png?v=${encodeURIComponent(settings.updated_at || '')}`;
+    const img = new Image();
+    img.onload = () => done(src);
+    img.onerror = () => done(null);
+    img.src = src;
+  });
+}
+const qrWait = k => Promise.race([qrFor(k), new Promise(r => setTimeout(r, 3000, null))]);
+
+/* After "Place order": the order number, the full amount to pay now and where
+   -- the shop's account (bank, GCash or Maya, with a Copy button for the
+   number) and, for GCash or Maya, its QR with the receipt button beside it
+   (owner, 5 Nov) -- and a place for the receipt (saved beside the order's
+   pictures, where only the shop's staff can see it). */
+function showPaid(ref, p, items, qr = null) {
   const code = 'TA-' + ref.slice(0, 8).toUpperCase();
   orders.unshift({ ref, code, at: Date.now(), titles: items.map(i => i.summary?.title || SHAPES[i.design.shape].label).slice(0, 4), rated: false });
   orders = orders.slice(0, 20);
   store.set('tala.orders', orders);
   const st = settings || {};
-  const way = {
-    gcash: st.gcash_number && ['GCash', [st.gcash_name, st.gcash_number]],
-    maya: st.maya_number && ['Maya', [st.maya_name, st.maya_number]],
-    bank: st.bank_account_number && ['Bank transfer', [st.bank_name, st.bank_account_name, st.bank_account_number]],
-  }[order.payment];
-  const cash = order.payment === 'cash';
+  const way = order.payment;
+  const how = { gcash: 'GCash', maya: 'Maya', bank: 'bank transfer' }[way] || 'payment';
+  // the shop's account for the way chosen, as the Admin Deck has it: [what, value, copy]
+  const acct = {
+    gcash: st.gcash_number && [['Name', st.gcash_name], ['GCash number', st.gcash_number, true]],
+    maya: st.maya_number && [['Name', st.maya_name], ['Maya number', st.maya_number, true]],
+    bank: st.bank_account_number && [['Bank', st.bank_name], ['Account name', st.bank_account_name], ['Account number', st.bank_account_number, true]],
+  }[way];
+  const rows = acct ? acct.filter(([, v]) => v).map(([k, v, copy]) => `<dt>${k}</dt><dd>${esc(v)}${copy
+    ? ` <button class="pay__copy" type="button" data-copy="${esc(String(v).replace(/[^\d+]/g, ''))}" aria-label="Copy the ${k.toLowerCase()}">Copy</button>` : ''}</dd>`).join('')
+    + `<dt>Amount</dt><dd><b>${peso(p.total)}</b></dd>` : '';
+  const note = acct || qr
+    ? `${st.pay_note ? esc(st.pay_note) + ' ' : ''}${qr ? `Scan the QR with your ${how} app. On this phone? Save the QR, then upload it in the app's QR scanner. ` : ''}Put <b>${code}</b> in the message of your payment. Pay only this account.`
+    : `We message you our ${esc(how)} details today. Put <b>${code}</b> in the message of your payment.`;
+  const cash = way === 'cash';
   const box = $('#paid');
   box.innerHTML = `
     <div class="paid__head"><span class="form__tick" aria-hidden="true"></span><div>
@@ -920,15 +951,17 @@ function showPaid(ref, p, items) {
       <dt class="paid__tot">Total payment</dt><dd class="paid__tot">${peso(p.total)}</dd></dl>
     <div class="paid__pay">
       ${cash ? `<p class="paid__t">Pay in cash: ${peso(p.total)}</p><p class="pay__note">When you pick up at the studio, or on delivery within Oriental Mindoro.</p>`
-      : `<p class="paid__t">${depositPct() >= 100 ? 'Pay now' : `Pay the down payment now (${depositPct()}%)`}: ${peso(depositPct() >= 100 ? p.total : p.deposit)}</p>
-        ${way ? `<div class="pay__ways"><p><b>${esc(way[0])}</b> ${esc(way[1].filter(Boolean).join(' · '))}</p></div>
-          <p class="pay__note">${st.pay_note ? esc(st.pay_note) + ' ' : ''}Put <b>${code}</b> in the message of your payment. Pay only this account.</p>`
-          : `<p class="pay__note">We message you our ${esc(PAYMENTS[order.payment]?.label || 'payment')} details today. Put <b>${code}</b> in the message of your payment.</p>`}
-        <label class="btn btn--line paid__up">Upload your receipt<input type="file" accept="image/*" hidden></label>
-        <p class="paid__msg" role="status"></p>`}
+      : `<p class="paid__t">Pay ${peso(p.total)} now by ${esc(how)}</p>
+        <div class="pay__box${qr ? ' has-qr' : ''}">
+          ${qr ? `<figure class="pay__qr"><img src="${esc(qr)}" alt="Tala Artisan's ${esc(how)} QR code">
+            <a class="pay__save" href="${esc(qr)}" target="_blank" rel="noopener">Save the QR</a></figure>` : ''}
+          <div class="pay__info">${rows ? `<dl class="pay__acct">${rows}</dl>` : ''}<p class="pay__note">${note}</p></div>
+          <div class="pay__act"><label class="btn btn--line paid__up">Upload your receipt<input type="file" accept="image/*" hidden></label>
+            <p class="paid__msg" role="status"></p></div>
+        </div>`}
     </div>
     <p class="paid__next">Next: within 2 days we email a proof to ${esc(addr.email)} to check before we make anything.
-      ${cash ? '' : 'Pay the rest before we ship.'} Arriving about ${esc(fmtDate(p.arrival))}.</p>
+      Arriving about ${esc(fmtDate(p.arrival))}.</p>
     <p class="paid__links"><a href="${FB}" target="_blank" rel="noopener">Message us on Facebook</a> · <a href="design.html">Design another trophy</a></p>`;
   const file = $('input[type=file]', box), upMsg = $('.paid__msg', box);
   file?.addEventListener('change', async () => {
@@ -936,7 +969,8 @@ function showPaid(ref, p, items) {
     if (!f || !/^image\//.test(f.type)) { upMsg.textContent = 'That needs to be a photo or screenshot of the receipt.'; return; }
     upMsg.textContent = 'Sending your receipt…';
     try {
-      const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
+      // load, not decode(): decode() never finished on a phone-sized screenshot in an embedded browser
+      const img = await new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = URL.createObjectURL(f); });
       const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
       const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
@@ -949,6 +983,38 @@ function showPaid(ref, p, items) {
       }
       throw new Error('not sent');
     } catch { upMsg.textContent = 'The receipt did not go through. Send it to us on Messenger instead.'; }
+  });
+  // the account number, copied as digits for the bank or wallet app. Browsers
+  // inside apps (Facebook's, where many customers come from) may refuse the
+  // clipboard API: then the older way, a selected hidden text box.
+  const copyText = async t => {
+    try { await navigator.clipboard.writeText(t); return true; } catch { /* the older way */ }
+    const ta = Object.assign(document.createElement('textarea'), { value: t, readOnly: true });
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.append(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    ta.remove();
+    return ok;
+  };
+  $$('.pay__copy', box).forEach(b => b.addEventListener('click', async () => {
+    if (!await copyText(b.dataset.copy)) { toast('Could not copy it. Please type it in.', true); return; }
+    b.textContent = 'Copied';
+    setTimeout(() => { b.textContent = 'Copy'; }, 1800);
+  }));
+  // the QR saved as a file, to upload in the wallet's scanner on this phone
+  // (a link to another site cannot simply be downloaded); else it opens on its own
+  $('.pay__save', box)?.addEventListener('click', async e => {
+    e.preventDefault();
+    try {
+      const res = await fetch(qr);
+      if (!res.ok) throw new Error(String(res.status));
+      const url = URL.createObjectURL(await res.blob());
+      const a = Object.assign(document.createElement('a'), { href: url, download: `tala-artisan-${way}-qr.png` });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch { window.open(qr, '_blank', 'noopener'); }
   });
   show('paid');
 }
