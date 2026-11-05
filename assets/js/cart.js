@@ -14,8 +14,8 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady,
-} from './trophy.js?v=202611051930';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051930';
+} from './trophy.js?v=202611052318';
+import { createViewer, webglAvailable } from './viewer.js?v=202611052318';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -316,7 +316,7 @@ function renderProduct() {
           <button class="btn btn--cart" type="button" id="addCart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11h10.6L20 7H6.2M9 20h.01M17 20h.01M12 9v4M10 11h4"/></svg>Add to cart</button>
           <button class="btn btn--solid" type="button" id="buyNow">Place order</button>
         </div>
-        ${shopItem ? '<a class="pd__edit" href="design.html">Or design your own in 3D</a>' : '<a class="pd__edit" href="design.html">Change the design</a>'}
+        ${shopItem ? '<a class="pd__edit" href="design.html">Or design your own in 3D</a>' : '<a class="pd__edit" href="design.html?edit">Change the design</a>'}
       </div>
     </div>
 

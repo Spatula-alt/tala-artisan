@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051930';
+import { createViewer, webglAvailable } from './viewer.js?v=202611052318';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611051930';
+} from './trophy.js?v=202611052318';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -330,8 +330,11 @@ const cut = {
   detail: 0, result: null, busy: false,     // 0 = smoothest edge; the owner found more detail only roughened it
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
+// the pictures as they came back from the cart (restoreSpec), sent again as they are while they are still in use:
+// "Your art"'s picture (with its art on the trophy) and the photo
+const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611051930'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611052318'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1146,7 +1149,8 @@ async function shrinkToFit(draw, w, h, type, sizes) {
 }
 async function orderFiles() {
   const files = {};
-  if (cfg.shape === 'custom' && cfg.cutPrint && cfg.cutArt && cfg.cutBox && cut.img) {
+  if (cfg.shape === 'custom' && cfg.cutPrint && cfg.cutArt && cfg.cutArt === restored.art) files.picture = restored.picture;
+  else if (cfg.shape === 'custom' && cfg.cutPrint && cfg.cutArt && cfg.cutBox && cut.img) {
     const img = cut.img, [bx, by, bw, bh] = cfg.cutBox;
     const sw = bw * img.naturalWidth, sh = bh * img.naturalHeight;
     const url = await shrinkToFit((g, w, h) => {
@@ -1157,7 +1161,8 @@ async function orderFiles() {
     }, sw, sh, 'image/webp', [2400, 1600, 1100]);
     if (url) files.picture = url;
   }
-  if (cfg.photoImg) {
+  if (cfg.photoImg && cfg.photoImg === restored.photoImg) files.photo = restored.photo;
+  else if (cfg.photoImg) {
     const img = cfg.photoImg;
     const url = await shrinkToFit((g, w, h) => g.drawImage(img, 0, 0, w, h),
       img.naturalWidth, img.naturalHeight, 'image/webp', [2000, 1400, 1000]);   // WebP keeps a logo's clear background
@@ -1340,6 +1345,75 @@ if (ADMIN_MODE) {
     setTimeout(() => window.close(), 700);
   });
 }
+
+/* ───────────────────────── back from the cart ─────────────────────────
+   The cart's "Change the design" opens design.html?edit. The design sent to
+   the cart is still in this tab (sessionStorage tala.spec), so it comes back
+   as it was -- options, wording, quantity and the customer's pictures --
+   instead of the page starting over (owner, 5 Nov). */
+function restoreSpec() {
+  let spec = null;
+  try { spec = JSON.parse(sessionStorage.getItem('tala.spec') || 'null'); } catch { return; }
+  const d = spec?.design;
+  if (!d || typeof d !== 'object' || !SHAPES[d.shape]) return;
+  const ownCut = d.shape === 'custom';
+  if (ownCut && !(typeof d.outline === 'string' && d.outline.length <= 20000 && /^[MLHVCQZmlhvcqz\d\s.,eE+-]+$/.test(d.outline))) return;
+  const TABLES = { material: MATERIALS, size: SIZES, baseKind: BASES, baseFinish: BASE_FINISHES, decal: DECALS, scheme: SCHEMES,
+    font: FONTS, laminate: LAMINATES, motif: MOTIFS, photoFit: PHOTO_FITS, photoTarget: PHOTO_TARGETS, speed: SPEEDS, zone: ZONES, payment: PAYMENTS };
+  for (const [k, v] of Object.entries(d)) {
+    if (!(k in cfg) || k.startsWith('_') || (v !== null && typeof v === 'object')) continue;
+    if (TABLES[k] && !TABLES[k][v]) continue;               // a choice the site no longer has: keep the default
+    cfg[k] = v;
+  }
+  cfg._occasion = null;
+  cfg.variant = cfg.variant || 0;
+  setVariant(cfg.shape, cfg.variant);
+  if (ownCut) {
+    setCustomOutline(d.outline);
+    cfg.cutBox = Array.isArray(d.cutBox) && d.cutBox.length === 4 && d.cutBox.every(Number.isFinite) ? d.cutBox : null;
+    outlineReady = true;
+  }
+  for (const [id, prop] of Object.entries(TEXT_FIELDS)) { const el = $('#' + id); if (el) { el.value = cfg[prop] ?? ''; countField(id); } }
+  if ($('#fQty')) $('#fQty').value = cfg.qty;
+  if ($('#fNeed')) $('#fNeed').value = cfg.needBy || '';
+  if ($('#fExtraSticker')) $('#fExtraSticker').checked = !!cfg.extraSticker;
+  if ($('#fLogo')) $('#fLogo').checked = !!cfg.logo;
+  if ($('#cutPrint')) $('#cutPrint').checked = !!cfg.cutPrint;
+
+  // the pictures come back as they were sent: "Your art" already cut out, the photo whole
+  const files = spec.files || {};
+  const pic = s => typeof s === 'string' && /^data:image\/(webp|png|jpeg);base64,/.test(s);
+  const open = src => new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = src; });
+  if (ownCut && cfg.cutPrint && pic(files.picture)) {
+    cutNote('Your trophy is cut to your picture from before. Choose a new picture here to change it.');
+    open(files.picture).then(im => {
+      if (cfg.shape !== 'custom' || cut.img) return;                // a new picture was chosen meanwhile
+      const k = Math.min(1, 1024 / Math.max(im.naturalWidth, im.naturalHeight));   // as the Admin Deck draws it
+      const c = Object.assign(document.createElement('canvas'),
+        { width: Math.max(1, Math.round(im.naturalWidth * k)), height: Math.max(1, Math.round(im.naturalHeight * k)) });
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      cfg.cutArt = c; restored.art = c; restored.picture = files.picture;
+      rebuild(); sync();
+    }).catch(() => cutNote('Choose your picture again to print it on the trophy.', true));
+  } else if (ownCut) {
+    cutNote(cfg.cutPrint ? 'Choose your picture again to print it on the trophy.' : 'Your trophy is cut to your shape from before. Choose a new picture here to change it.', cfg.cutPrint);
+  }
+  if (d.photo && pic(files.photo)) {
+    open(files.photo).then(im => {
+      if (cfg.photoImg) return;                                       // a new photo was dropped meanwhile
+      cfg.photoImg = im; restored.photoImg = im; restored.photo = files.photo;
+      const prev = $('#photoPrev');
+      if (prev) { prev.src = files.photo; prev.hidden = false; }
+      $('#dropZone')?.classList.add('has');
+      const opts = $('#photoOpts');
+      if (opts) opts.hidden = false;
+      photoNote(`${im.naturalWidth} × ${im.naturalHeight} px`);
+      if (cfg.photoTarget === 'figure') rebuild(); else repaintSticker();
+      sync();
+    }).catch(() => {});
+  }
+}
+if (!ADMIN_MODE && adminQ.has('edit')) restoreSpec();
 
 /* ───────────────────────── wire up ───────────────────────── */
 
