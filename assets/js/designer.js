@@ -4,7 +4,7 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051913';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051930';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +12,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611051913';
+} from './trophy.js?v=202611051930';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -331,7 +331,7 @@ const cut = {
   hand: false, brush: 'erase', size: 18, history: [], future: [],
 };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611051913'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611051930'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -1175,11 +1175,7 @@ function orderSummary() {
   let preview = null;
   try {
     viewer.renderNow();
-    const src = viewer.renderer.domElement, k = Math.min(1, 360 / src.width);
-    const c = document.createElement('canvas');
-    c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
-    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
-    preview = c.toDataURL('image/jpeg', 0.82);
+    preview = stagePicture(viewer.renderer.domElement);
   } catch { /* the card goes without a picture */ }
   return {
     title: `${SHAPES[cfg.shape].label} · ${SIZES[cfg.size].label}`, qty: cfg.qty, unit: q.unit, make: q.make,
@@ -1187,6 +1183,34 @@ function orderSummary() {
     speed: q.speed.label, days: q.days, arrival: q.arrival.toISOString(),
     zone: cfg.zone, zoneLabel: q.zone.label, payment: cfg.payment, payLabel: q.pay.label, preview,
   };
+}
+
+/* The cart's picture of the design, as the Admin Deck's "Their design" shows it
+   (owner, 5 Nov): on its light stage, 4:5, cropped to the trophy and its shadow.
+   The 3D canvas is see-through, and saved straight as a JPEG it came out on black. */
+function stagePicture(src) {
+  const W = 480, H = 600;
+  const t = Object.assign(document.createElement('canvas'), { width: src.width, height: src.height });
+  const tg = t.getContext('2d', { willReadFrequently: true });
+  tg.drawImage(src, 0, 0);
+  const px = tg.getImageData(0, 0, t.width, t.height).data;
+  let x0 = t.width, y0 = t.height, x1 = -1, y1 = -1;
+  for (let y = 0, i = 3; y < t.height; y++) {
+    for (let x = 0; x < t.width; x++, i += 4) {
+      if (px[i] > 10) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+  }
+  if (x1 < 0) { x0 = 0; y0 = 0; x1 = t.width - 1; y1 = t.height - 1; }   // nothing drawn: the whole view
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1, k = Math.min(W * 0.8 / bw, H * 0.72 / bh);
+  const c = Object.assign(document.createElement('canvas'), { width: W, height: H });
+  const g = c.getContext('2d');
+  const stage = g.createLinearGradient(0, 0, 0, H);
+  stage.addColorStop(0, '#EFECE4'); stage.addColorStop(1, '#DDD7CA');     // .v3d in admin.css
+  g.fillStyle = stage;
+  g.fillRect(0, 0, W, H);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(t, x0, y0, bw, bh, (W - bw * k) / 2, (H - bh * k) / 2, bw * k, bh * k);
+  return c.toDataURL('image/jpeg', 0.86);
 }
 
 async function sendToStudio() {
