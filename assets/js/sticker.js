@@ -3,31 +3,34 @@
    A design's sticker, flat, to print and stick on the real trophy: 300 dpi,
    its real size in cm (the 3D model works in cm), cut to its own outline.
 
-   On a panel design the sticker is the whole printed face, not the wording
-   alone. The owner pointed at the white panel -- "the trophy white is the
-   whole picture not transparent" -- and at Colour Round's rim: "this whole
-   rainbow color is sticker too". So it is the face layer with everything
-   printed on or round it: its gold double rule, a black rule laid on it, the
-   rainbow's faceted segments, then the wording where the 3D trophy wears it.
-   Gold and silver (mirror and glitter acrylic), frost, crystal and wood stay
-   pieces of their own, laid on top of it.
+   On a panel design only the body is cut from acrylic; everything laid on it
+   is printed. The owner, of Gem's red panel, its gold frame and its star
+   medallion: "all the second layer you see in trophies are stickers" -- "and
+   the other trophies too" (6 Nov 2026). Before that the white panel ("the
+   whole picture not transparent") and Colour Round's rainbow ("this whole
+   rainbow color is sticker too") had joined the face. So the sticker is every
+   layer as the 3D trophy wears it, then the wording where it sits: the body's
+   whole front when the wording is on the body, else cut round all the layers
+   together (sticker-cuts.js), pieces standing apart -- Gem's medallion, Crown
+   Panel's stars -- each with its own cut line on the one sheet.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611052318';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611060032';
+import { CUTS } from './sticker-cuts.js?v=202611060032';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
 const PAD = Math.round(0.12 * PXCM);      // round the cut, so the cut line drawn on it is not clipped
 
-/* What a layer's finish says it is: printed (flat colour, or a pattern drawn
-   from the design's art), or a piece cut from its own sheet. */
-const PRINTED = new Set(['panel', 'gloss', 'facets', 'brush', 'ribbon']);
-const PATTERN = new Set(['facets', 'brush', 'ribbon']);
+/* How a layer's finish prints: flat colour (gloss, and a panel with its gold
+   rule, as the shop has printed them), or the finish itself from the design's
+   art -- foil, glitter, frost, crystal, wood, facets, brush, ribbon. */
+const FLAT = new Set(['gloss', 'panel']);
 
 /* Print colours: design_art.py's COL, with white the sticker's own white. */
 const INK = {
   white: '#FFFFFF', black: '#1A1A1B', navy: '#172661', blue: '#1C4AA8', sky: '#59A6DE', red: '#C22424',
   wine: '#7A1A2B', green: '#1A7A42', yellow: '#EDC21F', orange: '#E07A17', tan: '#E6D6B0', wood: '#8A592E',
-  gold: '#D4AB4D', silver: '#C7CCD4',
+  gold: '#D4AB4D', silver: '#C7CCD4', frost: 'rgba(242,245,247,.8)',
 };
 
 /* ───────────── a design's paths, as rings (trophy-designs.py writes polygons: M L Z) ───────────── */
@@ -41,68 +44,8 @@ const ringsOf = d => d.split('M').slice(1).map(sp => {
 
 const area = r => Math.abs(r.reduce((s, [x, y], i) => { const [u, v] = r[(i + 1) % r.length]; return s + x * v - u * y; }, 0)) / 2;
 const outerRing = d => ringsOf(d).reduce((b, r) => (area(r) > area(b) ? r : b));
-const ringPath = r => r.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y}`).join(' ') + ' Z';
-
-function inRing([x, y], r) {
-  let c = false;
-  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
-    const [xi, yi] = r[i], [xj, yj] = r[j];
-    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
-  }
-  return c;
-}
-function toRing([px, py], r) {
-  let m = Infinity;
-  for (let i = 0; i < r.length; i++) {
-    const [ax, ay] = r[i], [bx, by] = r[(i + 1) % r.length];
-    const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
-    const t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0;
-    m = Math.min(m, Math.hypot(px - ax - t * dx, py - ay - t * dy));
-  }
-  return m;
-}
-const NEAR = 1.5;                         // path units: a point this close to an edge is on it
-// inside a layer: its holes are not (even-odd, as pathToShape reads them)
-const onLayer = (p, rings) => rings.some(r => toRing(p, r) < NEAR) || rings.filter(r => inRing(p, r)).length % 2 === 1;
-const covers = (o, q) => q.every(p => inRing(p, o) || toRing(p, o) < NEAR);
-const gap = (A, B) => Math.min(...A.flatMap(a => B.map(b => Math.min(...a.map(p => toRing(p, b)), ...b.map(p => toRing(p, a))))));
-
-function hull(pts) {
-  const P = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const half = list => list.reduce((h, p) => {
-    while (h.length > 1 && cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop();
-    h.push(p);
-    return h;
-  }, []);
-  const lo = half(P), hi = half([...P].reverse());
-  return lo.slice(0, -1).concat(hi.slice(0, -1));
-}
 
 /* ───────────────────────── what the sticker covers ───────────────────────── */
-
-/* The face, and the printed layers that join it: one laid straight on a
-   member (Pentagon's black rule, the Crown Panel's navy hexagon), or a printed
-   pattern beside one on its own level (Colour Round's rainbow segments). A
-   plain coloured piece beside the face -- the Wing Frame's black frame -- is
-   acrylic, as gold is. `start` -1 is the body. */
-function grow(D, start) {
-  const layer = i => (i < 0 ? { d: D.body, level: 0 } : D.layers[i]);
-  const rings = new Map();
-  const ringsAt = i => { if (!rings.has(i)) rings.set(i, ringsOf(layer(i).d)); return rings.get(i); };
-  const members = [start];
-  for (let grew = true; grew;) {
-    grew = false;
-    D.layers.forEach((L, i) => {
-      if (members.includes(i) || !PRINTED.has(L.fin)) return;
-      const under = members.filter(j => layer(j).level === L.level - 1);
-      const sits = under.length && ringsAt(i).every(r => r.every(p => under.some(j => onLayer(p, ringsAt(j)))));
-      const beside = PATTERN.has(L.fin) && members.some(j => layer(j).level === L.level && gap(ringsAt(i), ringsAt(j)) < 3);
-      if (sits || beside) { members.push(i); grew = true; }
-    });
-  }
-  return members.filter(i => i >= 0).sort((a, b) => D.layers[a].level - D.layers[b].level || a - b);
-}
 
 /* The sheet's colour, where the sticker prints it: never a clear, mirror or
    wood-grain sheet, which show through instead. */
@@ -113,25 +56,18 @@ function sheetInk(cfg, D) {
   return key === 'white' ? INK.white : '#' + m.color.toString(16).padStart(6, '0');
 }
 
-/* -> { members, cut, fill, clear }, or null when the sticker is the wording
-   alone: a frosted or mirror face, or a clear sheet with nothing printed on it. */
-function planOf(D, cfg) {
+/* -> { members, cut, fill, clear }: every layer, the lowest level first. The
+   cut: the body's whole front when the wording sits on the body, else round
+   all the layers (sticker-cuts.py). Where the cut takes in some of the body --
+   a gap closed, what a ring holds -- the sheet's colour is printed, or that
+   part is left clear on a clear, mirror or wood sheet, as is frost on one. */
+function planOf(D, key, cfg) {
   const ground = sheetInk(cfg, D);
-  if (D.face.on >= 0) {
-    if (!PRINTED.has(D.layers[D.face.on].fin)) return null;
-    const members = grow(D, D.face.on);
-    const outers = members.map(i => outerRing(D.layers[i].d));
-    // cut round the member that holds the rest; a rim of separate segments is cut round its hull,
-    // the sheet's colour printed in the gaps between them
-    const lead = outers.find(o => outers.every(q => q === o || covers(o, q)));
-    return lead
-      ? { members, cut: ringPath(lead), fill: null, clear: false }
-      : { members, cut: ringPath(hull(outers.flat())), fill: ground, clear: !ground };
-  }
-  // the wording sits on the body: the sticker is the body's whole front
-  const members = grow(D, -1);
-  if (!members.length && !ground) return null;
-  return { members, cut: D.body, fill: ground, clear: !ground };
+  const members = D.layers.map((_, i) => i).sort((a, b) => D.layers[a].level - D.layers[b].level || a - b);
+  const c = D.face.on >= 0 && CUTS[key];
+  if (!c) return { members, cut: D.body, fill: ground, clear: !ground };
+  const frosted = D.layers.some(L => L.fin === 'frost');
+  return { members, cut: c.d, fill: ground, clear: !ground && (c.gaps || frosted) };
 }
 
 /* ───────────────────────── drawing ───────────────────────── */
@@ -173,8 +109,8 @@ function goldRule(g, p, ring, ground) {
 
 function paintLayer(g, D, i, art) {
   const L = D.layers[i], p = new Path2D(L.d);
-  if (PATTERN.has(L.fin) && art) {
-    // the pattern as the 3D trophy wears it: the design's art, through its box
+  if (!FLAT.has(L.fin) && art) {
+    // the finish as the 3D trophy wears it: the design's art, through its box, cut sharp on the layer's edge
     const [x0, y0, x1, y1] = D.art.box;
     g.save();
     g.clip(p, 'evenodd');
@@ -228,8 +164,8 @@ function faceSticker(D, cfg, dims, words, plan, art) {
   return { canvas, path, w: (x1 - x0) * k, h: (y1 - y0) * k, clear: plan.clear };
 }
 
-/* The wording alone, cut to the decal's shape: a figure's base plate, a
-   frosted or mirror face, a clear sheet with nothing else printed. */
+/* The wording alone, cut to the decal's shape: a figure's base plate, or any
+   other trophy that is not a layered design. */
 function decalSticker(cfg, dims, words) {
   const W = Math.round(dims.dw * PXCM), H = Math.round(dims.dh * PXCM);
   const path = new Path2D();
@@ -289,9 +225,9 @@ async function stickerOf(cfg) {
   // drawn larger than it prints for a small sticker, so the lettering stays sharp
   const words = stickerCanvas(cfg, dims.dw / dims.dh, Math.max(1024, dims.dw * PXCM));
   const D = DESIGNS[cfg.shape];
-  const plan = D && dims.at && dims.frame ? planOf(D, cfg) : null;
+  const plan = D && dims.at && dims.frame ? planOf(D, cfg.shape, cfg) : null;
   if (!plan) return decalSticker(cfg, dims, words);
-  const art = plan.members.some(i => PATTERN.has(D.layers[i].fin)) ? await artImage(D.art.src) : null;
+  const art = plan.members.some(i => !FLAT.has(D.layers[i].fin)) ? await artImage(D.art.src) : null;
   return faceSticker(D, cfg, dims, words, plan, art);
 }
 
