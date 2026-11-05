@@ -129,6 +129,16 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 .viz__canvas.is-grabbing{cursor:grabbing}
 .viz.is-live .viz__canvas{opacity:1}
 .viz.is-live .viz__poster{opacity:0}
+/* a 3D box whose real picture is on its way: the flat drawing stays hidden and
+   a soft sweep of light shows instead (data-wait, until home.js has the picture) */
+.js .viz[data-wait] .viz__poster{opacity:0}
+.js .viz[data-wait]::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);
+  background-size:220% 100%;animation:viz-wait 1.4s linear infinite}
+@keyframes viz-wait{from{background-position:130% 0}to{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.js .viz[data-wait]::after{animation:none}}
+.js-late .viz[data-wait] .viz__poster{opacity:1}
+.js-late .viz[data-wait]::after{display:none}
 .viz__hint{
   position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
   display:flex;align-items:center;gap:7px;padding:7px 14px;

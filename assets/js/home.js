@@ -4,11 +4,68 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051411';
-import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611051411';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051423';
+import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611051423';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+
+/* The flat drawings in the 3D boxes stay hidden (index.html, data-wait) until
+   the real picture is in. This script has started, so the 8-second fallback
+   is off; with no WebGL the drawings are all there is, so they show now. */
+clearTimeout(window.__talaLate);
+const GL = webglAvailable();
+const ready = viz => viz?.removeAttribute('data-wait');
+if (!GL) $$('.viz[data-wait]').forEach(ready);
+
+/* The pictures drawn here are kept between visits (Cache Storage, one cache
+   per build, so an update draws them again), so a reload shows the real
+   trophies at once. */
+const BUILD = new URL(import.meta.url).searchParams.get('v') || 'dev';
+const STILLS = `tala-stills-${BUILD}`;
+const stillStore = (async () => {
+  try {
+    if (!('caches' in window) || !crypto.subtle) return null;
+    for (const k of await caches.keys()) if (k.startsWith('tala-stills-') && k !== STILLS) caches.delete(k);
+    return await caches.open(STILLS);
+  } catch { return null; }
+})();
+async function stillKey(text) {
+  const hash = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(text));
+  return new URL(`__stills/${[...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('')}`, location.href).href;
+}
+async function cachedStill(text) {
+  try {
+    const store = await stillStore;
+    const hit = store && await store.match(await stillKey(text));
+    return hit ? URL.createObjectURL(await hit.blob()) : null;
+  } catch { return null; }
+}
+async function keepStill(text, blob) {
+  try {
+    const store = await stillStore;
+    if (store && blob) await store.put(await stillKey(text), new Response(blob, { headers: { 'Content-Type': blob.type } }));
+  } catch { /* drawn again next time */ }
+}
+// a picture into its box, shown once it can paint whole (it fades in over the
+// waiting box). Never waited on: a lazy picture far down "See all" would hold
+// everything up, so it loads at once (it is made here, nothing to download).
+function showStill(viz, src) {
+  const img = viz?.querySelector('.viz__poster');
+  if (!img) return;
+  img.loading = 'eager';
+  img.src = src;
+  Promise.race([img.decode(), new Promise(r => setTimeout(r, 3000))]).catch(() => {}).then(() => ready(viz));
+}
+// the shop's pictures already drawn on an earlier visit
+async function applyCachedStills() {
+  await Promise.all($$('#shopGrid .card[data-cfg]:not([data-photo]):not([data-baked])').map(async card => {
+    const url = await cachedStill(card.dataset.cfg);
+    if (!url || card.hasAttribute('data-baked')) return;
+    card.dataset.baked = '';
+    showStill(card.querySelector('.viz'), url);
+  }));
+}
 
 /* Prices come from the same model the designer uses, so the two can never
    drift apart. The HTML carries a fallback for the no-JS case. */
@@ -92,7 +149,7 @@ async function loadShop() {
     const name = ITEM_ID.test(r.id || '') && d ? `<a class="card__go" href="cart.html?item=${r.id}">${escH(r.name)}</a>` : escH(r.name);
     // the design prices the card even under a photo; only a card with no photo is baked to a still
     return `<article class="card in${more ? ' is-more' : ''}" data-rev${d ? ` data-cfg="${escH(JSON.stringify(d))}"` : ''}${photo ? ' data-photo' : ''}${fixed ? ' data-fixed' : ''}>
-        <div class="viz">${pic}</div>
+        <div class="viz"${!photo && GL ? ' data-wait' : ''}>${pic}</div>
         <div class="card__b">
           <div><h3>${name}</h3><p>${escH(r.line || r.category)}</p></div>
           <p class="card__p" data-price>${shown}</p>
@@ -107,7 +164,7 @@ async function loadShop() {
       ? `<img class="viz__poster viz__photo" src="${escH(photo)}" alt="${escH(SHAPES[k].label)}" loading="lazy">`
       : `<img class="viz__poster" src="${DESIGNS[k]?.tile ? `assets/${escH(DESIGNS[k].tile)}` : 'assets/img/poster-hero.svg'}" alt="${escH(SHAPES[k].label)}" loading="lazy">`;
     return `<article class="card in is-more" data-rev data-cat data-cfg="${escH(JSON.stringify(d))}"${photo ? ' data-photo' : ''}>
-        <div class="viz">${pic}</div>
+        <div class="viz"${!photo && GL ? ' data-wait' : ''}>${pic}</div>
         <div class="card__b">
           <div><h3><a class="card__go" href="cart.html?shape=${k}">${escH(SHAPES[k].label)}</a></h3><p>${escH(line)}</p></div>
           <p class="card__p" data-price></p>
@@ -167,6 +224,7 @@ function liveViewer(vizId, canvasId, cfg) {
   viewer.frameObject(model);
   viewer.invalidate();
   viz.classList.add('is-live');
+  ready(viz);
   return { viewer, model };
 }
 
@@ -195,25 +253,31 @@ async function bakeThumbnails() {
   });
 
   for (const card of cards) {
-    let cfg;
-    try { cfg = JSON.parse(card.dataset.cfg); } catch { continue; }
+    const viz = card.querySelector('.viz');
+    try {
+      const cfg = JSON.parse(card.dataset.cfg);
 
-    // Frosted engraving needs a dark ground or the piece reads as empty.
-    if (cfg.material === 'clear' || cfg.material === 'white') card.querySelector('.viz')?.classList.add('is-dark');
+      // Frosted engraving needs a dark ground or the piece reads as empty.
+      if (cfg.material === 'clear' || cfg.material === 'white') viz?.classList.add('is-dark');
 
-    // a printed piece: wait for its print, or the still is taken bare (4 s at most)
-    await Promise.race([artReady(cfg), new Promise(r => setTimeout(r, 4000))]);
-    const model = buildTrophy(cfg);
-    viewer.scene.add(model);
-    viewer.frameObject(model);
-    viewer.renderNow();
+      // a printed piece: wait for its print, or the still is taken bare (4 s at most)
+      await Promise.race([artReady(cfg), new Promise(r => setTimeout(r, 4000))]);
+      const model = buildTrophy(cfg);
+      viewer.scene.add(model);
+      viewer.frameObject(model);
+      viewer.renderNow();
 
-    const url = canvas.toDataURL('image/png');
-    const img = card.querySelector('.viz__poster');
-    if (img) img.src = url;
-
-    viewer.scene.remove(model);
-    disposeGroup(model);
+      // WebP where the browser writes it (a fifth of the PNG), kept for the next visit
+      let blob = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.9));
+      if (!blob || blob.type !== 'image/webp') blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      viewer.scene.remove(model);
+      disposeGroup(model);
+      if (!blob) throw new Error('no picture');
+      keepStill(card.dataset.cfg, blob);
+      showStill(viz, URL.createObjectURL(blob));
+    } catch {
+      ready(viz);                              // its drawing, rather than a box that waits for ever
+    }
 
     // Yield so the page stays responsive. setTimeout rather than rAF: a
     // backgrounded tab still runs timers, but stops animation frames.
@@ -392,8 +456,9 @@ async function boot() {
 
 writePrices();
 // the hero must not wait for the network: only the shop stills wait for the shop
-const shopReady = loadShop().then(writePrices, () => {});
+const shopReady = loadShop().then(applyCachedStills).then(writePrices, () => {});
 boot().catch(err => {
-  // A failure here just means the SVG posters stay on screen.
+  // A failure here just means the SVG posters stay on screen: show them.
+  document.documentElement.classList.add('js-late');
   console.warn('[tala] 3D unavailable:', err);
 });
