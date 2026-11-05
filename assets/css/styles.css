@@ -185,7 +185,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 /* six on the home page; the rest behind "See all", under the designer's groups */
 .shop:not(.is-open) .is-more{display:none}
 .grid__g{grid-column:1/-1;margin:clamp(12px,2.2vw,28px) 0 0;font-family:var(--f-display);font-size:clamp(1.35rem,2vw,1.7rem);font-weight:400}
-.shop__all{margin:clamp(28px,3.4vw,44px) 0 0;text-align:center}
+/* "See all trophies" sits under the shop's intro, in its column (owner, 5 Nov).
+   It is in index.html so the cards never move when it is wired; no script, no button. */
+.shop__all{grid-column:2;grid-row:2}
+html:not(.js) .shop__all{display:none}
 
 .also{
   display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:clamp(30px,3.5vw,46px);
@@ -298,6 +301,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
   .nav__links.open{transform:none;opacity:1;visibility:visible}
   .nav__links a{padding:13px 0;font-size:1rem;border-bottom:1px solid var(--line-soft)}
   .sec-head{grid-template-columns:1fr}
+  .shop__all{grid-column:auto;grid-row:auto}
   .steps{grid-template-columns:1fr}
   /* phones: the shop two across, so six trophies are three short rows, not six screens */
   .grid{grid-template-columns:repeat(2,1fr);gap:22px 12px}

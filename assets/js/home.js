@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611051423';
-import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611051423';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051624';
+import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611051624';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -194,22 +194,8 @@ async function loadShop() {
     return gs.length || cs.length ? `<h3 class="grid__g is-more">${escH(g)}</h3>${gs.map(r => card(r, true)).join('')}${cs.map(catCard).join('')}` : '';
   }).join(''));
 
-  const total = (items.length || $$('.card:not(.is-more)', grid).length) + cat.length;
-  if (rest.length || cat.length) {
-    const label = `See all ${total} trophies`;
-    const wrap = document.createElement('p');
-    wrap.className = 'shop__all';
-    wrap.innerHTML = `<button class="btn btn--line" type="button" aria-expanded="false" aria-controls="shopGrid">${label}</button>`;
-    grid.after(wrap);
-    const btn = wrap.firstElementChild, shop = $('#shop');
-    btn.addEventListener('click', () => {
-      const open = shop.classList.toggle('is-open');
-      btn.setAttribute('aria-expanded', String(open));
-      btn.textContent = open ? 'Show fewer' : label;
-      if (open) bakeThumbnails();          // the cards just shown that have no photo
-      else shop.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    });
-  }
+  // nothing more to show: no "See all" (it is in index.html, wired at the end of this file)
+  if (!rest.length && !cat.length) $('#shop .shop__all')?.remove();
   const head = $('#shop .sec-head h2');
   if (head && items.length && items.length < FEATURED) head.textContent = 'What we make most often.';
 }
@@ -405,7 +391,7 @@ async function assembleOnScroll(sel, live) {
   // one clock: the scrubbed (smoothed) timeline drives parts, camera and captions alike
   tl.eventCallback('onUpdate', () => apply(tl.progress()));
 
-  // The page above can grow after this was measured: "See all 53 trophies"
+  // The page above can grow after this was measured: "See all trophies"
   // opens the whole shop. Measure again whenever the page's height changes, or
   // the section pins where it used to be -- over the trophies (owner, 5 Nov).
   let measured = document.documentElement.scrollHeight, again = 0;
@@ -457,6 +443,18 @@ async function boot() {
 writePrices();
 // the hero must not wait for the network: only the shop stills wait for the shop
 const shopReady = loadShop().then(applyCachedStills).then(writePrices, () => {});
+
+/* "See all trophies" (index.html, under the shop's intro) opens the rest of
+   the shop. Wired now, not once the shop has loaded: cards added later still
+   show, being .is-more under .is-open. It sits above the list, so closing it
+   needs no scroll back. */
+const allBtn = $('#shop .shop__all button');
+allBtn?.addEventListener('click', () => {
+  const open = $('#shop').classList.toggle('is-open');
+  allBtn.setAttribute('aria-expanded', String(open));
+  allBtn.textContent = open ? 'Show fewer' : 'See all trophies';
+  if (open && GL) shopReady.then(bakeThumbnails);   // the cards just shown that have no photo
+});
 boot().catch(err => {
   // A failure here just means the SVG posters stay on screen: show them.
   document.documentElement.classList.add('js-late');

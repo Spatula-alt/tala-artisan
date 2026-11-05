@@ -12,7 +12,7 @@
    Gold and silver (mirror and glitter acrylic), frost, crystal and wood stay
    pieces of their own, laid on top of it.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611051423';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611051624';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
