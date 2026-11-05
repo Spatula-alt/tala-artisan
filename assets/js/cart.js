@@ -13,9 +13,9 @@
    ══════════════════════════════════════════════════════════════ */
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
-  buildTrophy, disposeGroup, artReady,
-} from './trophy.js?v=202611060129';
-import { createViewer, webglAvailable } from './viewer.js?v=202611060129';
+  buildTrophy, disposeGroup, artReady, shopDesignOk,
+} from './trophy.js?v=202611060204';
+import { createViewer, webglAvailable } from './viewer.js?v=202611060204';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -479,7 +479,7 @@ const loadShopItems = () => (shopItemsJob ||= !LIVE ? Promise.resolve([])
   : fetch(`${BASE}/rest/v1/shop_items?published=is.true&select=id,name,line,price,design,images&order=sort.asc,name.asc`, { headers: AUTH })
     .then(r => (r.ok ? r.json() : [])).catch(() => [])
     .then(rows => (Array.isArray(rows) ? rows : []).filter(r => r && typeof r.id === 'string' && /^[a-z0-9][a-z0-9-]{1,79}$/.test(r.id)
-      && typeof r.name === 'string' && r.design && SHAPES[r.design.shape] && r.design.shape !== 'custom')
+      && typeof r.name === 'string' && shopDesignOk(r.design))   // "Your art" only as the owner made it from a picture
       .map(r => ({ ...r, price: r.price != null && +r.price > 0 ? +r.price : null }))));
 /* A designer trophy as the shop would list it -- the same as the Admin Deck's
    "Not in the shop yet": its own sheet and ink, Medium on a black gold bar,

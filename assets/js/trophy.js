@@ -1821,9 +1821,42 @@ function artTexture(art) {
   return tx;
 }
 
+/* A shop trophy the owner made from a picture in the Admin Deck (6 Nov) is
+   "Your art" whose cut-out picture is kept in the shop's photo storage, named
+   by the design's `cutUrl`. Only that storage is read: an order's design comes
+   from the customer. Loaded once; every model of the trophy then wears it, as
+   "Your art" wears the customer's own picture. */
+const SHOP_ART = new Map();                 // cutUrl -> { img, ready, waiting }
+export function shopArtOk(url) {
+  const base = String(globalThis.TALA_CONFIG?.supabaseUrl || '').replace(/\/+$/, '');
+  const dir = `${base}/storage/v1/object/public/trophy-photos/art/`;
+  return !!base && typeof url === 'string' && url.startsWith(dir) && /^[\w.-]+$/.test(url.slice(dir.length));
+}
+// a shop item's design the site can show: a designer trophy, or one made from a picture with its outline and cut-out
+export const shopDesignOk = d => !!(d && typeof d === 'object' && SHAPES[d.shape]
+  && (d.shape !== 'custom' || (typeof d.outline === 'string' && shopArtOk(d.cutUrl))));
+function shopArt(cfg) {
+  if (cfg.shape !== 'custom' || cfg.cutArt || !cfg.cutPrint || !shopArtOk(cfg.cutUrl)) return null;
+  let e = SHOP_ART.get(cfg.cutUrl);
+  if (!e) {
+    e = { img: null, waiting: [] };
+    const img = new Image();
+    img.crossOrigin = 'anonymous';           // the sticker is printed from it: the canvas must stay readable
+    e.ready = new Promise(done => {
+      img.onload = () => { e.img = img; e.waiting.splice(0).forEach(f => f()); done(); window.dispatchEvent(new Event('tala:art')); };
+      img.onerror = () => done();
+    });
+    img.src = cfg.cutUrl;
+    SHOP_ART.set(cfg.cutUrl, e);
+  }
+  return e;
+}
+
 /* Resolves once the print a trophy carries has loaded (at once if it has none),
    for a still that is taken once and kept, like the shop's. */
 export function artReady(cfg) {
+  const own = shopArt(cfg);
+  if (own) return own.ready;
   const art = figureArt(cfg.shape, cfg.variant) || DESIGNS[cfg.shape]?.art;
   if (!art) return Promise.resolve();
   artTexture(art);
@@ -3136,13 +3169,15 @@ function buildTrophyNow(cfg) {
      outline's box, so mapping the texture through the cut's own bounding box
      lines picture and edge up; the background is transparent, and alphaTest
      drops it, so nothing prints past the cut. */
-  if (cfg.shape === 'custom' && cfg.cutArt && cfg.cutPrint) {
+  const shopPrint = shopArt(cfg);              // a shop trophy made from a picture: its stored cut-out
+  if (cfg.shape === 'custom' && cfg.cutPrint && (cfg.cutArt || shopPrint)) {
     const artGeo = safeExtrude(pieces(shape.build(w, h, cfg.variant)), {
       depth: 0.03, bevelEnabled: false, curveSegments: 24,
     });
     artGeo.computeBoundingBox();
     const bb = artGeo.boundingBox;
-    const tex = new THREE.CanvasTexture(cfg.cutArt);
+    const tex = cfg.cutArt ? new THREE.CanvasTexture(cfg.cutArt) : new THREE.Texture(shopPrint.img || undefined);
+    if (!cfg.cutArt && shopPrint.img) tex.needsUpdate = true;
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
     tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -3154,6 +3189,10 @@ function buildTrophyNow(cfg) {
     }));
     printed.position.set(-bx, blade.position.y, faceZ + 0.004);
     printed.name = 'cutPrint';
+    if (shopPrint && !shopPrint.img) {        // shown when the stored picture has loaded (viewers redraw on tala:art)
+      printed.visible = false;
+      shopPrint.waiting.push(() => { tex.image = shopPrint.img; tex.needsUpdate = true; printed.visible = true; });
+    }
     group.add(printed);
   }
 

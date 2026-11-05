@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611060129';
-import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611060129';
+import { createViewer, webglAvailable } from './viewer.js?v=202611060204';
+import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611060204';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -133,7 +133,7 @@ async function loadShop() {
 
   // a photo uploaded in the Admin Deck, or one served with the site (assets/img/products)
   const photoOf = r => (r.images || []).find(u => typeof u === 'string' && (u.startsWith(photoBase) || /^assets\/[\w./-]+$/.test(u)));
-  const designOf = r => (r.design && typeof r.design === 'object' && SHAPES[r.design.shape] && r.design.shape !== 'custom' ? r.design : null);
+  const designOf = r => (shopDesignOk(r.design) ? r.design : null);    // "Your art" only as the owner made it from a picture
   const items = (Array.isArray(rows) ? rows : []).filter(r => r && typeof r.name === 'string' && (photoOf(r) || designOf(r)));
   // the owner's photos of designer trophies (products.json `key`)
   const photoKey = Object.fromEntries((Array.isArray(products) ? products : [])

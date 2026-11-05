@@ -19,7 +19,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/';
-const MODEL = 'assets/models/u2netp.onnx';
+const MODEL = new URL('../models/u2netp.onnx', import.meta.url).href;   // beside this file, whichever page loads it
 const MAX = 900;                       // work at up to 900 px on the long side
 
 /* ── image in ── */
@@ -330,7 +330,7 @@ export async function autoMask(img, mode = 'auto', onStatus, tol = 38) {
   return { c, m, mode };
 }
 
-export { toCanvas };
+export { toCanvas, simplify };
 
 /* Step 2: a mask -- automatic or painted by hand -- made fit to cut, traced,
    and the picture cropped to it for printing. */

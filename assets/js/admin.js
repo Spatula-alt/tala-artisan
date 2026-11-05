@@ -5,13 +5,13 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611060129';
+import { createViewer, webglAvailable } from './viewer.js?v=202611060204';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady,
-} from './trophy.js?v=202611060129';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611060129';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
+} from './trophy.js?v=202611060204';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611060204';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -266,6 +266,8 @@ async function requestFiles(d) {
       got[k] = img;
     } catch (err) { console.warn('[tala] could not open', path, err); }
   }
+  // a shop trophy made from a picture: its stored cut-out is the picture to print
+  if (!got.picture) { const own = await pictureOf(d); if (own) got.picture = own; }
   if (got.picture) got.pictureBox = [0, 0, 1, 1];
   return got;
 }
@@ -329,7 +331,8 @@ async function mountSticker(box, design, name, opts = {}) {
   }
 
   const label = SHAPES[d.shape]?.label || 'trophy';
-  const along = piece === 'picture' ? 'their outline' : 'the figure';
+  // opts.own: the shop's own trophy made from a picture -- its picture is changed with "Change the picture"
+  const along = piece === 'picture' ? (opts.own ? 'its outline' : 'their outline') : 'the figure';
   const where = SHAPES[d.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
   // a layered design: its layers are one sticker, the wording a clear one of its own laid on it (owner, 6 Nov)
   const words = art.words;
@@ -349,7 +352,7 @@ async function mountSticker(box, design, name, opts = {}) {
     ${!piece ? '' : `<div class="stk__piece"><p class="sec-t">${piece === 'picture' ? 'Picture sticker for the cut piece' : 'Photo sticker for the figure'}</p>${
       pa ? `<div class="stk__pic"><img src="${stickerThumb(pa.canvas)}" alt="The print for the cut piece"></div>
         <p class="stk__size">${pa.w.toFixed(1)} × ${pa.h.toFixed(1)} cm, cut along ${along}. Check its edges before printing.</p>
-        <div class="stk__btns">${btn('psave', 'Save picture')}${btn('pprint', 'Print at real size')}${btn(piece, `Change their ${piece}`)}</div>`
+        <div class="stk__btns">${btn('psave', 'Save picture')}${btn('pprint', 'Print at real size')}${opts.own ? '' : btn(piece, `Change their ${piece}`)}</div>`
       : canLine ? `<p class="stk__size">Their ${piece} did not come with this request. Add the one they send you and it is ${
           piece === 'picture' ? 'cropped where they cropped it and ' : ''}cut along ${along}, at real size.</p>
         <div class="stk__btns">${btn(piece, `Add their ${piece}`)}</div>`
@@ -468,6 +471,88 @@ async function deletePhotos(urls) {
   const paths = (urls || []).filter(u => u.startsWith(pre)).map(u => u.slice(pre.length));
   if (paths.length) await sb.storage.from(BUCKET).remove(paths);   // best effort: an orphan photo costs nothing visible
 }
+
+/* ───────── a shop trophy made from a picture (owner, 6 Nov) ─────────
+   "Add trophy by just putting the picture and you generate it as trophy": the
+   picture is cut out as "Your art" is in the designer -- its background taken
+   off, the acrylic cut to its outline, the picture printed on it -- on the
+   shop's usual Medium gold bar. The cut-out is stored under art/ when the
+   trophy is saved and named by the design's `cutUrl`, so the shop, the cart
+   and orders all wear it. Old ones are kept: orders still point at them. */
+const OUTLINE_MAX = 6500;               // shop_items.design holds 8 kB, and the outline is most of it
+
+async function trophyFromPicture(file, prev, say) {
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error('Use a JPG, PNG or WebP picture.');
+  const lib = await import('./cutout.js?v=202611060204');
+  const { img, url } = await lib.readImage(file);
+  try {
+    const base = prev?.shape === 'custom' ? prev : catalogItem('custom').design;
+    const size = SIZES[base.size] || SIZES.m;
+    const { c, m, mode } = await lib.autoMask(img, 'auto', say);
+    say('Cutting it to its outline…');
+    const r = lib.finishCut(c, m, mode, { detail: 0, heightCm: size.total - size.baseH * 1.35 });
+    const outline = fitOutline(r.d, lib.simplify);
+    if (!outline) throw new Error('That outline is too detailed to keep. Try a simpler picture, or one on a plain background.');
+    const cutBox = [r.x0 / c.width, r.y0 / c.height, r.art.width / c.width, r.art.height / c.height].map(v => +v.toFixed(5));
+    // the print: the original picture cropped to the cut, kept where the cut-out kept it, up to 2048 px
+    const iw = img.naturalWidth, ih = img.naturalHeight, sw = cutBox[2] * iw, sh = cutBox[3] * ih;
+    const k = Math.min(1, 2048 / Math.max(sw, sh));
+    const art = document.createElement('canvas');
+    art.width = Math.max(1, Math.round(sw * k)); art.height = Math.max(1, Math.round(sh * k));
+    const g = art.getContext('2d');
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(img, cutBox[0] * iw, cutBox[1] * ih, sw, sh, 0, 0, art.width, art.height);
+    g.globalCompositeOperation = 'destination-in';
+    g.drawImage(r.art, 0, 0, art.width, art.height);
+    const blob = await new Promise(ok => art.toBlob(ok, 'image/webp', 0.9));
+    if (!blob) throw new Error('That picture could not be prepared. Try another one.');
+    const { cutUrl: _, ...keep } = base;
+    return { blob, design: { ...keep, shape: 'custom', variant: 0, outline, cutBox, cutAspect: r.aspect, cutPrint: true, cutMode: r.mode, cutArt: art } };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* The traced outline made to fit the design column: simplified a little more
+   each time (outline units, 300 = its height) until it does; null if never. */
+function fitOutline(d, simplify) {
+  const rings = d.split('M').slice(1).map(sp => {
+    const n = (sp.match(/-?\d*\.?\d+/g) || []).map(Number), r = [];
+    for (let i = 0; i + 1 < n.length; i += 2) r.push([n[i], n[i + 1]]);
+    return r;
+  });
+  for (const tol of [0, 0.3, 0.6, 1, 1.5]) {
+    const out = rings.map(r => (tol ? simplify([...r, r[0]], tol).slice(0, -1) : r)).filter(r => r.length > 2)
+      .map(r => r.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ') + ' Z').join(' ');
+    if (out.length <= OUTLINE_MAX) return out;
+  }
+  return null;
+}
+
+async function uploadArt(blob, id) {
+  const ext = blob.type === 'image/png' ? 'png' : 'webp';    // Safari makes a PNG when asked for WebP
+  const path = `art/${id}-${Date.now().toString(36)}.${ext}`;
+  chk(await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false }));
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+/* A picture-made trophy's cut-out, for its print: the one just made, or the stored one. */
+function pictureOf(d) {
+  if (d?.shape !== 'custom') return Promise.resolve(null);
+  if (d.cutArt) return Promise.resolve(Object.assign(d.cutArt, { naturalWidth: d.cutArt.width, naturalHeight: d.cutArt.height }));
+  if (!shopArtOk(d.cutUrl)) return Promise.resolve(null);
+  return new Promise(ok => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => ok(im); im.onerror = () => ok(null);
+    im.src = d.cutUrl;
+  });
+}
+
+// a picture's file name as a trophy's name, unless it is a camera's or an app's
+const nameFromFile = n => {
+  const s = String(n).replace(/\.[a-z0-9]+$/i, '').replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!s || /^(img|dsc|pxl|screenshot|photo|image|received|messenger|fb|whatsapp|viber|download)\b|^\d/i.test(s)) return '';
+  return s.replace(/\b\w/g, ch => ch.toUpperCase()).slice(0, 80);
+};
 
 const slug = s => String(s).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'trophy';
@@ -1445,6 +1530,8 @@ function openItem(orig) {
       <div><p class="sec-t">3D design</p>
         <div class="v3d" id="v3d"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn btn--line btn--sm" type="button" id="fromPic">Make it from a picture</button>
+          <input type="file" id="cutIn" accept="image/png,image/jpeg,image/webp" hidden>
           <button class="btn btn--line btn--sm" type="button" id="design">${it.design ? 'Change in the designer' : 'Design it in 3D'}</button>
           <button class="btn btn--line btn--sm" type="button" id="noDesign"${it.design ? '' : ' hidden'}>Remove design</button>
         </div>
@@ -1467,10 +1554,16 @@ function openItem(orig) {
   const showDesign = () => {
     dispose();
     dispose = mount3D($('#v3d', dlg), it.design);
-    mountSticker($('#stk', dlg), it.design, f.name.value.trim() || it.name);
+    // a picture-made trophy's print is its own cut-out picture
+    const d = it.design;
+    pictureOf(d).then(picture => {
+      if (it.design === d) mountSticker($('#stk', dlg), d, f.name.value.trim() || it.name, picture ? { got: { picture, pictureBox: [0, 0, 1, 1] }, own: true } : {});
+    });
     mountTrophyPromo($('#trophyPromo', dlg), it.design?.shape);
     $('#noDesign', dlg).hidden = !it.design;
-    $('#design', dlg).textContent = it.design ? 'Change in the designer' : 'Design it in 3D';
+    const fromPicture = it.design?.shape === 'custom';     // the designer does not take a picture cut from here
+    $('#design', dlg).textContent = !it.design ? 'Design it in 3D' : fromPicture ? 'Design it in 3D instead' : 'Change in the designer';
+    $('#fromPic', dlg).textContent = fromPicture ? 'Change the picture' : 'Make it from a picture';
     const a = autoPrice(it.design);
     $('#autoP', dlg).textContent = a != null ? `Leave empty to use ${peso(a)} from the design.` : 'Leave empty to show "Ask for a price".';
   };
@@ -1514,13 +1607,38 @@ function openItem(orig) {
     } catch { /* not ours */ }
   };
   window.addEventListener('storage', onStorage);
+  /* "Make it from a picture": cut out here, shown at once, stored when it is saved */
+  let cutBlob = null;
+  $('#fromPic', dlg).addEventListener('click', () => $('#cutIn', dlg).click());
+  $('#cutIn', dlg).addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const msg = $('#dMsg', dlg), say = t => { msg.textContent = t; };
+    const btn = $('#fromPic', dlg);
+    btn.disabled = true;
+    say('Reading your picture…');
+    try {
+      const made = await trophyFromPicture(file, it.design, say);
+      cutBlob = made.blob;
+      it.design = made.design;
+      if (!f.name.value.trim()) f.name.value = nameFromFile(file.name);
+      if (!f.line.value.trim()) f.line.value = catalogItem('custom').line;
+      showDesign();
+      say('Made from your picture: the acrylic cut to its outline, the picture printed on it. Save to put it in the shop.');
+    } catch (err) {
+      console.warn('[tala] trophy from a picture:', err);
+      say(err.message || 'That picture could not be cut. Try another one.');
+    } finally { btn.disabled = false; }
+  });
+
   $('#design', dlg).addEventListener('click', () => {
     try { localStorage.removeItem(DESIGN_KEY); } catch { /* ignore */ }
-    const q = it.design ? '&from=' + encodeURIComponent(JSON.stringify(it.design)) : '';
+    const q = it.design && it.design.shape !== 'custom' ? '&from=' + encodeURIComponent(JSON.stringify(it.design)) : '';
     window.open(`design.html?admin=1${q}`, '_blank');
     $('#dMsg', dlg).textContent = 'Design it in the new tab, then press "Use in the Admin Deck" there. This window picks it up.';
   });
-  $('#noDesign', dlg).addEventListener('click', () => { it.design = null; showDesign(); });
+  $('#noDesign', dlg).addEventListener('click', () => { it.design = null; cutBlob = null; showDesign(); });
 
   // every way out comes through here; the close event alone is not dependable
   // (Chrome can hold it back in a background tab), so it is only the Esc path
@@ -1538,15 +1656,23 @@ function openItem(orig) {
     if (e.submitter?.value !== 'save') { finish(); return; }
     const name = f.name.value.trim();
     if (name.length < 2) { toast('Give the trophy a name.', true); f.name.focus(); return; }
+    // a trophy just made from a picture: the cut-out picture is stored with it, the design names it
+    const { cutArt: _, ...design } = it.design || {};
     const row = {
       name, line: f.line.value.trim(), category: f.category.value,
       price: f.price.value === '' ? null : Math.max(0, Number(f.price.value)),
       sort: Number.isFinite(+f.sort.value) ? Math.round(+f.sort.value) : 100,
-      published: f.published.checked, design: it.design, images: it.images,
+      published: f.published.checked, design: it.design ? design : null, images: it.images,
     };
     if (row.published && !row.images.length && !row.design) { toast('Add a photo or a 3D design before showing it on the website.', true); return; }
     const btn = $('#save', dlg); btn.disabled = true;
     try {
+      if (it.design?.cutArt) {
+        if (!cutBlob) throw new Error('Choose the picture again: it was not kept.');
+        toast('Saving the picture…');
+        row.design.cutUrl = await uploadArt(cutBlob, it.id || slug(name));
+        it.design = row.design; cutBlob = null;
+      }
       if (isNew) {
         let id = slug(name);
         if (S.items.some(i => i.id === id)) id = `${id}-${Date.now().toString(36).slice(-4)}`;
