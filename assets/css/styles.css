@@ -185,9 +185,10 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 /* six on the home page; the rest behind "See all", under the designer's groups */
 .shop:not(.is-open) .is-more{display:none}
 .grid__g{grid-column:1/-1;margin:clamp(12px,2.2vw,28px) 0 0;font-family:var(--f-display);font-size:clamp(1.35rem,2vw,1.7rem);font-weight:400}
-/* "See all trophies" sits under the shop's intro, in its column (owner, 5 Nov).
+/* "See all trophies" sits under the shop's intro, at its right-hand side, in
+   line with the last card (owner, 5 Nov: "in the side not in the middle").
    It is in index.html so the cards never move when it is wired; no script, no button. */
-.shop__all{grid-column:2;grid-row:2}
+.shop__all{grid-column:2;grid-row:2;justify-self:end}
 html:not(.js) .shop__all{display:none}
 
 .also{
