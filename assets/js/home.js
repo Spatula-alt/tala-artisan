@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611050158';
-import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611050158';
+import { createViewer, webglAvailable } from './viewer.js?v=202611051411';
+import { buildTrophy, disposeGroup, price, peso, artReady, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611051411';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -340,6 +340,19 @@ async function assembleOnScroll(sel, live) {
   });
   // one clock: the scrubbed (smoothed) timeline drives parts, camera and captions alike
   tl.eventCallback('onUpdate', () => apply(tl.progress()));
+
+  // The page above can grow after this was measured: "See all 53 trophies"
+  // opens the whole shop. Measure again whenever the page's height changes, or
+  // the section pins where it used to be -- over the trophies (owner, 5 Nov).
+  let measured = document.documentElement.scrollHeight, again = 0;
+  new ResizeObserver(() => {
+    clearTimeout(again);
+    again = setTimeout(() => {
+      if (Math.abs(document.documentElement.scrollHeight - measured) < 2) return;
+      ScrollTrigger.refresh();
+      measured = document.documentElement.scrollHeight;
+    }, 120);
+  }).observe(document.body);
 }
 
 /* Run `fn` once, when `sel` comes within a screen of the viewport. Each live
