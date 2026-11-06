@@ -32,6 +32,7 @@
 .adm-link{font-size:.82rem;color:var(--mute);text-decoration:underline;text-underline-offset:3px;justify-self:center}
 .adm-link:hover{color:var(--ink)}
 .adm-msg.bad{color:var(--bad)}
+.adm-msg.ok{color:var(--ok)}
 
 /* ─── top bar ─── */
 .adm-top{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--paper)}

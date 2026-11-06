@@ -5,15 +5,15 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611061731';
+import { createViewer, webglAvailable } from './viewer.js?v=202611061748';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
-} from './trophy.js?v=202611061731';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611061731';
-import { simplify } from './cutout.js?v=202611061731';
-import { mountCutEditor } from './cut-editor.js?v=202611061731';
+} from './trophy.js?v=202611061748';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611061748';
+import { simplify } from './cutout.js?v=202611061748';
+import { mountCutEditor } from './cut-editor.js?v=202611061748';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -1122,26 +1122,52 @@ function renderPay() {
     });
   }
 
-  f.addEventListener('submit', async e => {
-    e.preventDefault();
+  /* Saving (owner, 6 Nov: "the infos are not saving" -- typed in, nothing in the
+     database). An update the database's rules turn away changes no row and
+     reports no error, so the deck used to say "saved" anyway: now the row comes
+     back with the answer, and no row is said plainly. Each detail saves as soon
+     as its box is left (the button too), and the status stays on the page. */
+  const btn = $('button[type=submit]', f);
+  let dirty = false, saving = null;
+  const say = (text, kind = '') => { msg.textContent = text; msg.className = `adm-msg${kind ? ' ' + kind : ''}`; };
+  async function save() {
     const val = k => f[k].value.trim() || null;
     const fields = {
       gcash_name: val('gcash_name'), gcash_number: val('gcash_number'), maya_name: val('maya_name'), maya_number: val('maya_number'),
       bank_name: val('bank_name'), bank_account_name: val('bank_account_name'), bank_account_number: val('bank_account_number'),
       pay_note: val('pay_note'), updated_at: new Date().toISOString(),
     };
-    const bad = [['gcash_number', /^[0-9 +()-]{7,20}$/, 'The GCash number'], ['maya_number', /^[0-9 +()-]{7,20}$/, 'The Maya number'],
-      ['bank_account_number', /^[0-9 -]{4,34}$/, 'The account number']].find(([k, re]) => fields[k] && !re.test(fields[k]));
-    if (bad) { msg.textContent = `${bad[2]} should be numbers only (spaces and dashes are fine).`; msg.className = 'adm-msg bad'; f[bad[0]].focus(); return; }
-    const btn = $('button[type=submit]', f); btn.disabled = true;
+    const bad = [['gcash_number', /^[0-9 +()-]{7,20}$/, 'the GCash number'], ['maya_number', /^[0-9 +()-]{7,20}$/, 'the Maya number'],
+      ['bank_account_number', /^[0-9 -]{4,34}$/, 'the account number']].find(([k, re]) => fields[k] && !re.test(fields[k]));
+    if (bad) { say(`Not saved: ${bad[2]} should be numbers only (spaces and dashes are fine).`, 'bad'); return false; }
+    btn.disabled = true;
+    dirty = false;
+    say('Saving…');
     try {
-      chk(await sb.from('shop_settings').update(fields).eq('id', 'shop'));
+      const rows = chk(await sb.from('shop_settings').update(fields).eq('id', 'shop').select('id'));
+      if (!rows?.length) {
+        throw new Error('Not saved: the database did not let this sign-in change the payment details. '
+          + 'Sign out (bottom of the menu), sign in again, and save once more. If it still will not save, send me a screenshot of this.');
+      }
       Object.assign(S.settings, fields);
-      toast('Payment details saved. The order page shows them now.');
-      msg.textContent = '';
-    } catch (err) { msg.textContent = friendly(err); msg.className = 'adm-msg bad'; }
-    finally { btn.disabled = false; }
-  });
+      say(`Saved at ${new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}. Customers see these on the order page now.`, 'ok');
+      return true;
+    } catch (err) {
+      dirty = true;
+      console.warn('[tala] payment details not saved:', err);
+      say(err.message?.startsWith('Not saved') ? err.message : `Not saved: ${friendly(err)}`, 'bad');
+      return false;
+    } finally { btn.disabled = false; }
+  }
+  const run = () => (saving = (saving || Promise.resolve()).then(save));   // one save at a time, in order
+  f.addEventListener('input', e => { if (e.target.type !== 'file') { dirty = true; say('Not saved yet: it saves when you leave the box, or press Save.'); } });
+  f.addEventListener('change', e => { if (e.target.type !== 'file' && dirty) run(); });
+  f.addEventListener('submit', e => { e.preventDefault(); run(); });
+  // closing the page with something typed and not saved asks first
+  const leaving = e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } };
+  window.addEventListener('beforeunload', leaving);
+  const stop = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('beforeunload', leaving); stop.disconnect(); } });
+  stop.observe($('#main'), { childList: true });
 }
 
 /* Promos (supabase/orders.sql): the owner asked to "edit each trophy with

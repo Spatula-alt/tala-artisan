@@ -2954,7 +2954,7 @@ function fitFigure(shape, w, h, variant) {
     const feet = pts.filter(p => p.y <= bot + span * 0.03).map(p => p.x);
     const mid = (Math.min(...feet) + Math.max(...feet)) / 2;
     const xs = pts.map(p => p.x);
-    return { mid, reach: Math.max(mid - Math.min(...xs), Math.max(...xs) - mid) };
+    return { mid, foot: (Math.max(...feet) - Math.min(...feet)) / 2, reach: Math.max(mid - Math.min(...xs), Math.max(...xs) - mid) };
   };
   let at = place();
   const room = baseWidth(w) / 2 - w * FIG_EDGE;
