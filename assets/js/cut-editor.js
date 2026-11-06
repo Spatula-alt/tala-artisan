@@ -10,7 +10,7 @@
    base. Here the mask is trimmed at the base line, painted by hand, and cut
    again (finishCut) after every change; the cut goes back through onCut.
    ══════════════════════════════════════════════════════════════ */
-import { readImage, autoMask, maskPlain, finishCut, findBase, fillHoles } from './cutout.js?v=202611070056';
+import { readImage, autoMask, maskPlain, finishCut, findBase, fillHoles } from './cutout.js?v=202611070107';
 
 const TYPES = /^image\/(png|jpeg|webp)$/;
 const MAX_MB = 10;
@@ -52,6 +52,7 @@ export function mountCutEditor(box, o) {
         <button type="button" class="btn btn--line btn--sm" data-act="restart">Start over</button>
         <button type="button" class="btn btn--line btn--sm" data-act="another">Another picture</button></div>
       <p class="cutx__note">Faded parts are cut away. Below the red line is the base in the picture: it is cut off too, since the trophy gets its own base.</p>
+      <p class="cutx__note">Zoomed in? Look round by scrolling, dragging with Move, or holding Space (or the right mouse button) and dragging; two fingers on a phone. Ctrl + scroll or a pinch zooms where you point.</p>
     </div>`;
   const q = s => box.querySelector(s);
   const drop = q('.cutx__drop'), input = q('input[type=file]'), cv = q('.cutx__cv'), tools = q('.cutx__tools');
@@ -66,8 +67,9 @@ export function mountCutEditor(box, o) {
   let painting = false, dragging = null, queued = false, fade = null;
 
   /* where the picture sits in the frame: fitted, times the zoom, round the point in view */
+  const fitK = () => Math.min((S - 16) / st.c.width, (S - 16) / st.c.height);
   function view() {
-    const W = st.c.width, H = st.c.height, k = Math.min((S - 16) / W, (S - 16) / H) * st.zoom;
+    const W = st.c.width, H = st.c.height, k = fitK() * st.zoom;
     const keep = (v, n) => (n * k <= S ? n / 2 : Math.min(n - S / 2 / k, Math.max(S / 2 / k, v)));
     st.cx = keep(st.cx, W); st.cy = keep(st.cy, H);
     return { k, ox: S / 2 - st.cx * k, oy: S / 2 - st.cy * k, W, H };
@@ -188,6 +190,14 @@ export function mountCutEditor(box, o) {
     out('zoom').textContent = `${Math.round(st.zoom * 100)}%`;
     draw();
   }
+  // zoom, keeping the picture's point under (clientX, clientY) where it is
+  function zoomAt(clientX, clientY, z, quiet = false) {
+    const rect = cv.getBoundingClientRect(), { k, ox, oy } = view();
+    const px = (clientX - rect.left) * S / rect.width, py = (clientY - rect.top) * S / rect.height;
+    const zoom = Math.min(ZOOM_MAX, Math.max(1, z)), k2 = fitK() * zoom;
+    st.cx = (px - ox) / k - (px - S / 2) / k2; st.cy = (py - oy) / k - (py - S / 2) / k2;
+    if (quiet) { st.zoom = zoom; zoomIn.value = zoom; out('zoom').textContent = `${Math.round(zoom * 100)}%`; } else setZoom(zoom);
+  }
   zoomIn.addEventListener('input', () => setZoom(+zoomIn.value));
   box.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => {
     if (!st.c) return;
@@ -221,29 +231,86 @@ export function mountCutEditor(box, o) {
     }
     last = [px, py];
   }
+  /* Looking round a zoomed picture (owner, 7 Nov: "i cant hover the different
+     part when zooming in"): drag with Move; with Erase or Keep, hold Space or
+     drag with the right button; scroll with the mouse or trackpad; two fingers
+     on a phone. Ctrl + scroll, or a pinch, zooms in where it points. */
+  const touches = new Map();                    // fingers down: pointerId -> [x, y]
+  let gesture = null, space = false, over = false;
+  const per = () => S / cv.getBoundingClientRect().width / view().k;     // picture px per screen px
+  const pair = () => { const [a, b] = [...touches.values()]; return { mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1 }; };
   cv.addEventListener('pointerdown', e => {
     if (!st.c) return;
     e.preventDefault();
-    cv.setPointerCapture(e.pointerId);
-    if (st.tool === 'move') {
-      dragging = { x: e.clientX, y: e.clientY, cx: st.cx, cy: st.cy, per: S / cv.getBoundingClientRect().width / view().k };
+    try { cv.setPointerCapture(e.pointerId); } catch { /* a pointer the browser has already let go */ }
+    if (e.pointerType === 'touch') {
+      touches.set(e.pointerId, [e.clientX, e.clientY]);
+      if (touches.size >= 2) {
+        // a second finger: what the first began was a pinch or a drag, not a stroke
+        if (painting) { painting = false; st.edits = st.history.pop(); undoState(); rebuild(); draw(); }
+        dragging = null;
+        gesture = { ...pair(), zoom: st.zoom, cx: st.cx, cy: st.cy };
+        return;
+      }
+    }
+    if (st.tool === 'move' || space || e.button === 1 || e.button === 2) {
+      dragging = { x: e.clientX, y: e.clientY, cx: st.cx, cy: st.cy, per: per() };
       return;
     }
+    if (e.button !== 0) return;
     remember(); painting = true; last = null; paint(e); draw();
   });
   cv.addEventListener('pointermove', e => {
-    if (dragging) {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, [e.clientX, e.clientY]);
+    if (gesture && touches.size >= 2) {
+      // from where the gesture began: pinch round the first midpoint, then follow the fingers
+      const now = pair();
+      Object.assign(st, { zoom: gesture.zoom, cx: gesture.cx, cy: gesture.cy });
+      zoomAt(gesture.mid[0], gesture.mid[1], gesture.zoom * now.d / gesture.d, true);
+      const p = per();
+      st.cx -= (now.mid[0] - gesture.mid[0]) * p; st.cy -= (now.mid[1] - gesture.mid[1]) * p;
+      redraw();
+    } else if (dragging) {
       st.cx = dragging.cx - (e.clientX - dragging.x) * dragging.per;
       st.cy = dragging.cy - (e.clientY - dragging.y) * dragging.per;
       redraw();
     } else if (painting) { paint(e); redraw(); }
   });
-  const end = () => {
+  const end = e => {
+    if (touches.delete(e.pointerId) && gesture) { if (touches.size < 2) gesture = null; return; }
     if (dragging) { dragging = null; return; }
     if (painting) { painting = false; apply(); }
   };
   cv.addEventListener('pointerup', end);
   cv.addEventListener('pointercancel', end);
+  cv.addEventListener('contextmenu', e => { if (st.c) e.preventDefault(); });   // the right button drags
+  cv.addEventListener('wheel', e => {
+    if (!st.c) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? S : 1;
+    if (e.ctrlKey || e.metaKey) {               // Ctrl + scroll, and a trackpad's pinch
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, st.zoom * Math.exp(-e.deltaY * unit * 0.0025));
+      return;
+    }
+    if (st.zoom <= 1) return;                   // all of it in view: the page scrolls as usual
+    e.preventDefault();
+    const p = per();
+    st.cx += e.deltaX * unit * p; st.cy += e.deltaY * unit * p;
+    redraw();
+  }, { passive: false });
+  // Space held over the picture: drag to look round, whatever the tool (not while typing in a box)
+  cv.addEventListener('pointerenter', () => { over = true; });
+  cv.addEventListener('pointerleave', () => { over = false; });
+  const typing = el => !!el && (el.tagName === 'TEXTAREA' || el.isContentEditable
+    || (el.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'file', 'submit'].includes(el.type)));
+  const onSpace = e => {
+    if (e.code !== 'Space' || !st.c || typing(document.activeElement) || (e.type === 'keydown' && !over && !space)) return;
+    e.preventDefault();                         // not the page scrolling
+    space = e.type === 'keydown';
+    cv.dataset.pan = space ? 'on' : '';
+  };
+  document.addEventListener('keydown', onSpace);
+  document.addEventListener('keyup', onSpace);
 
   /* ── undo, redo, start over ── */
   function undoState() { q('[data-act=undo]').disabled = !st.history.length; q('[data-act=redo]').disabled = !st.future.length; }
@@ -270,5 +337,8 @@ export function mountCutEditor(box, o) {
     Object.assign(st, { img: null, url: null, c: null, m: null, auto: null, autoRow: null, autoAtRow: null, edits: null, r: null, history: [], future: [] });
     cv.hidden = true; q('.cutx__hint').hidden = false; tools.hidden = true; drop.classList.remove('has');
   }
-  return { choose: () => input.click(), clear, destroy() { clear(); box.innerHTML = ''; } };
+  return {
+    choose: () => input.click(), clear,
+    destroy() { clear(); document.removeEventListener('keydown', onSpace); document.removeEventListener('keyup', onSpace); box.innerHTML = ''; },
+  };
 }

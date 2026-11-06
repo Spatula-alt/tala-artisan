@@ -14,8 +14,8 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady, shopDesignOk,
-} from './trophy.js?v=202611070056';
-import { createViewer, webglAvailable } from './viewer.js?v=202611070056';
+} from './trophy.js?v=202611070107';
+import { createViewer, webglAvailable } from './viewer.js?v=202611070107';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');

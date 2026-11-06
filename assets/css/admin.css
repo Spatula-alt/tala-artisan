@@ -157,6 +157,7 @@
 .cutx__cv[data-tool=move]{cursor:grab}
 .cutx__cv[data-tool=move]:active{cursor:grabbing}
 .cutx__cv[data-tool=erase],.cutx__cv[data-tool=keep]{cursor:crosshair}
+.cutx__cv[data-pan=on]{cursor:grab}
 .cutx__tools{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 .cutx__row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--mute)}
 .cutx__row>span{min-width:3.4em}
