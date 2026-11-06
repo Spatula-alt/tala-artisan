@@ -2945,7 +2945,7 @@ const baseWidth = w => w * 2 * 0.86 + 2.8;    // a base's nominal width, for a b
 
 function fitFigure(shape, w, h, variant) {
   let cut = shape.build(w, h, variant);
-  if (!cut) return { cut, h, bx: 0 };
+  if (!cut) return { cut, h, bx: 0, foot: 0 };
   const place = () => {
     const pts = pieces(cut).flatMap(r => r.getPoints(160));
     const ys = pts.map(p => p.y);
@@ -2963,7 +2963,7 @@ function fitFigure(shape, w, h, variant) {
     cut = shape.build(w, h, variant);
     at = place();
   }
-  return { cut, h, bx: at.mid };
+  return { cut, h, bx: at.mid, foot: at.foot };
 }
 
 /* How tall a trophy really stands, in cm: its size's full height, or less for
@@ -3003,9 +3003,9 @@ function buildTrophyNow(cfg) {
   /* A figure stands in the middle of its base, cut smaller if it would reach
      past it -- see fitFigure. Pieces that are not figures keep the old rule
      below: the base widens to reach anything that touches down. */
-  let cut, bx = 0, bw = baseWidth(w);
+  let cut, bx = 0, foot = 0, bw = baseWidth(w);
   const figure = onBase;
-  if (figure) ({ cut, h, bx } = fitFigure(shape, w, h, cfg.variant));
+  if (figure) ({ cut, h, bx, foot } = fitFigure(shape, w, h, cfg.variant));
   else cut = shape.build(w, h, cfg.variant);
   if (cut && !figure) {
     const pts = pieces(cut).flatMap(r => r.getPoints(240));
@@ -3048,7 +3048,12 @@ function buildTrophyNow(cfg) {
      deep: a light strip showed beside the Lady's shoe, along the gown's hem and
      behind the runner's back toe until the figure sank by that much as well. */
   blade.position.y = baseTop - h * 0.015 - (figure ? h * 0.0045 + bevel * 1.5 : 0);
-  blade.position.x = -bx;                   // the feet on the centre line
+  /* The owner can slide a figure along its base (a piece made from a picture,
+     Admin Deck, 6 Nov: "move it to side ... recenter"): `shift` -1..1 takes
+     its feet from one end of the base to the other, never off it. 0: centred. */
+  const slide = figure ? Math.max(-1, Math.min(1, +cfg.shift || 0)) * Math.max(0, bw / 2 - foot - w * 0.05) : 0;
+  const px = slide - bx;
+  blade.position.x = px;                    // the feet on the centre line, or where they were slid to
   blade.name = 'blade';
   group.add(blade);
 
@@ -3077,7 +3082,7 @@ function buildTrophyNow(cfg) {
       skin = [capMaterial(design.layers[i]?.fin, finish), skin];
     }
     const m = new THREE.Mesh(lg, skin);
-    m.position.set(-bx, blade.position.y, faceZ + 0.002 + lift(L.level - 1));
+    m.position.set(px, blade.position.y, faceZ + 0.002 + lift(L.level - 1));
     m.castShadow = true;
     m.name = 'layer' + i;
     group.add(m);
@@ -3105,7 +3110,7 @@ function buildTrophyNow(cfg) {
       clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.9,
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     }));
-    colour.position.set(-bx, blade.position.y, faceZ + 0.003);
+    colour.position.set(px, blade.position.y, faceZ + 0.003);
     colour.name = 'figurePrint';
     group.add(colour);
     /* The blade's bevel and sides carry the picture too, through the same frame,
@@ -3133,7 +3138,7 @@ function buildTrophyNow(cfg) {
       color: ink, roughness: 0.45, metalness: 0,
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     }));
-    print.position.set(-bx, blade.position.y, faceZ + 0.003);
+    print.position.set(px, blade.position.y, faceZ + 0.003);
     print.name = 'figurePrint';
     group.add(print);
   }
@@ -3159,7 +3164,7 @@ function buildTrophyNow(cfg) {
       map: tex, roughness: 0.28, metalness: 0,
       clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.0,
     }));
-    artMesh.position.set(-bx, blade.position.y + (h - ah) / 2, faceZ + 0.004);
+    artMesh.position.set(px, blade.position.y + (h - ah) / 2, faceZ + 0.004);
     artMesh.name = 'figurePhoto';
     group.add(artMesh);
   }
@@ -3187,7 +3192,7 @@ function buildTrophyNow(cfg) {
       map: tex, transparent: true, alphaTest: 0.5, roughness: 0.28, metalness: 0,
       clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.0,
     }));
-    printed.position.set(-bx, blade.position.y, faceZ + 0.004);
+    printed.position.set(px, blade.position.y, faceZ + 0.004);
     printed.name = 'cutPrint';
     if (shopPrint && !shopPrint.img) {        // shown when the stored picture has loaded (viewers redraw on tala:art)
       printed.visible = false;

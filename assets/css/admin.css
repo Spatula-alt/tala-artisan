@@ -137,6 +137,12 @@
 .stk__btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .stk__piece{margin-top:20px}
 
+/* "Left – right" under a picture trophy's 3D: slides the piece along its base */
+.slide{display:flex;align-items:center;gap:10px;margin-top:10px}
+.slide__row{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:.8rem;color:var(--mute)}
+.slide__row input{flex:1;min-width:0;accent-color:var(--ink)}
+.slide__row output{min-width:5.6em;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+
 /* the picture cutter under the 3D design (cut-editor.js): a drop box, then the picture to edit with zoom */
 .cutx{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px}   /* not the canvas's 720 px */
 .cutx__drop{display:grid;place-items:center;min-height:132px;padding:16px;border:1.5px dashed rgba(21,20,15,.28);border-radius:10px;

@@ -5,15 +5,15 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611061748';
+import { createViewer, webglAvailable } from './viewer.js?v=202611070056';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
-} from './trophy.js?v=202611061748';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611061748';
-import { simplify } from './cutout.js?v=202611061748';
-import { mountCutEditor } from './cut-editor.js?v=202611061748';
+} from './trophy.js?v=202611070056';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611070056';
+import { simplify } from './cutout.js?v=202611070056';
+import { mountCutEditor } from './cut-editor.js?v=202611070056';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -180,13 +180,22 @@ function mount3D(box, design) {
   note.className = 'v3d__note'; note.textContent = 'Drag to turn';
   box.append(note);
   const viewer = createViewer(canvas, { autoRotate: true, maxDpr: 2 });
-  const model = buildTrophy(design);
+  let model = buildTrophy(design);
   viewer.scene.add(model);
   viewer.frameObject(model);
   viewer.invalidate();
   let gone = false;                          // a dialog can close twice (button, then the close event)
   // the canvas goes with it: give its WebGL context back now (a picture being edited redraws this often)
-  return () => { if (gone) return; gone = true; viewer.scene.remove(model); disposeGroup(model); viewer.dispose(); viewer.renderer.forceContextLoss(); };
+  const dispose = () => { if (gone) return; gone = true; viewer.scene.remove(model); disposeGroup(model); viewer.dispose(); viewer.renderer.forceContextLoss(); };
+  // the same design changed a little (a piece slid along its base): the model again, the camera kept
+  dispose.update = d => {
+    if (gone || !canBuild(d)) return;
+    viewer.scene.remove(model); disposeGroup(model);
+    model = buildTrophy(d);
+    viewer.scene.add(model);
+    viewer.invalidate();
+  };
+  return dispose;
 }
 
 async function saveSticker(art, file) {
@@ -1553,6 +1562,12 @@ function openItem(orig) {
       </div>
       <div><p class="sec-t">3D design</p>
         <div class="v3d" id="v3d"></div>
+        <div class="slide" id="slide" hidden>
+          <label class="slide__row"><span>Left – right</span>
+            <input type="range" min="-1" max="1" step="0.01" value="0" aria-label="Slide the piece along its base">
+            <output>centred</output></label>
+          <button class="btn btn--line btn--sm" type="button" id="slideMid">Center</button>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
           <button class="btn btn--line btn--sm" type="button" id="fromPic">Make it from a picture</button>
           <button class="btn btn--line btn--sm" type="button" id="design">${it.design ? 'Change in the designer' : 'Design it in 3D'}</button>
@@ -1588,9 +1603,28 @@ function openItem(orig) {
     const fromPicture = it.design?.shape === 'custom';     // the designer does not take a picture cut from here
     $('#design', dlg).textContent = !it.design ? 'Design it in 3D' : fromPicture ? 'Design it in 3D instead' : 'Change in the designer';
     $('#fromPic', dlg).textContent = fromPicture ? 'Change the picture' : 'Make it from a picture';
+    $('#slide', dlg).hidden = !fromPicture;
+    if (fromPicture) showSlide(+it.design.shift || 0);
     const a = autoPrice(it.design);
     $('#autoP', dlg).textContent = a != null ? `Leave empty to use ${peso(a)} from the design.` : 'Leave empty to show "Ask for a price".';
   };
+  /* "Left – right": a trophy made from a picture slides along its base (owner,
+     6 Nov: "move it to side ... recenter the cut shape"); `shift` -1..1, saved
+     with the design, 0 (Center) its feet in the middle. The 3D follows the bar. */
+  const slideIn = $('#slide input', dlg), slideOut = $('#slide output', dlg);
+  function showSlide(v) {
+    slideIn.value = v;
+    slideOut.textContent = Math.abs(v) < 0.01 ? 'centred' : `${Math.round(Math.abs(v) * 100)}% ${v < 0 ? 'left' : 'right'}`;
+  }
+  function setSlide(v) {
+    if (it.design?.shape !== 'custom') return;
+    const { shift: _, ...rest } = it.design;
+    it.design = Math.abs(v) < 0.01 ? rest : { ...rest, shift: +v.toFixed(2) };
+    showSlide(+it.design.shift || 0);
+    dispose.update?.(it.design);
+  }
+  slideIn.addEventListener('input', () => setSlide(+slideIn.value));
+  $('#slideMid', dlg).addEventListener('click', () => setSlide(0));
   const showPhotos = () => {
     const box = $('#photos', dlg);
     box.innerHTML = it.images.map((u, i) => `<div class="ph">${i === 0 ? '<span class="ph__cover">Shown</span>' : ''}
