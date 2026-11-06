@@ -78,18 +78,26 @@ function maskFromAlpha(c) {
 /* flood the background in from the border: anything connected to the edge
    and close in colour to the border's median colour. Interior white (a logo's
    inner white) is kept, because the flood never reaches it. */
-function maskPlain(c, tol = 38) {
-  const W = c.width, H = c.height;
-  const d = c.getContext('2d').getImageData(0, 0, W, H).data;
+/* -> near(i): is pixel i the colour of the picture's background (its border's median) */
+function background(d, W, H, tol) {
   const border = [];
   for (let x = 0; x < W; x += 2) border.push(x, (H - 1) * W + x);
   for (let y = 0; y < H; y += 2) border.push(y * W, y * W + W - 1);
   const med = ch => { const v = border.map(i => d[i * 4 + ch]).sort((a, b) => a - b); return v[v.length >> 1]; };
   const bg = [med(0), med(1), med(2)];
-  const near = i => Math.hypot(d[i * 4] - bg[0], d[i * 4 + 1] - bg[1], d[i * 4 + 2] - bg[2]) <= tol
-                    || d[i * 4 + 3] < 128;
+  return { border, near: i => Math.hypot(d[i * 4] - bg[0], d[i * 4 + 1] - bg[1], d[i * 4 + 2] - bg[2]) <= tol || d[i * 4 + 3] < 128 };
+}
+
+/* `below`: rows from there down are taken as background too (the base cut off,
+   cut-editor.js), so the flood also opens a gap they closed in -- the white
+   between a star's two points and the base they stood on. */
+export function maskPlain(c, tol = 38, below = Infinity) {
+  const W = c.width, H = c.height;
+  const d = c.getContext('2d').getImageData(0, 0, W, H).data;
+  const { border, near } = background(d, W, H, tol);
   const seen = new Uint8Array(W * H), stack = [];
   for (const i of border) if (!seen[i] && near(i)) { seen[i] = 1; stack.push(i); }
+  for (let i = Math.max(0, below) * W; i < W * H; i++) if (!seen[i]) { seen[i] = 1; stack.push(i); }
   while (stack.length) {
     const i = stack.pop(), x = i % W, y = (i / W) | 0;
     for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, y > 0 ? i - W : -1, y < H - 1 ? i + W : -1])
@@ -331,6 +339,71 @@ export async function autoMask(img, mode = 'auto', onStatus, tol = 38) {
 }
 
 export { toCanvas, simplify };
+
+/* Every hole in the main piece filled: in a photo the clear panel inside a
+   frame (a star of gold round clear acrylic) shows the background through it,
+   so it comes out as a hole -- on the trophy it is part of the piece. */
+export function fillHoles(m, W, H) {
+  const inv = new Uint8Array(W * H); for (let i = 0; i < inv.length; i++) inv[i] = m[i] ? 0 : 1;
+  const bl = label(inv, W, H), edge = new Set();
+  for (let x = 0; x < W; x++) { edge.add(bl.lab[x]); edge.add(bl.lab[(H - 1) * W + x]); }
+  for (let y = 0; y < H; y++) { edge.add(bl.lab[y * W]); edge.add(bl.lab[y * W + W - 1]); }
+  const out = m.slice();
+  for (let i = 0; i < out.length; i++) if (bl.lab[i] && !edge.has(bl.lab[i])) out[i] = 1;
+  return out;
+}
+
+/* Where the base a photographed trophy stands on begins. The owner (6 Nov),
+   of a star trophy on a black block: "only cut the cut shape and yet not the
+   base", since the site stands every trophy on a base of its own. Going up
+   from the foot, a base is solid and one piece wide, its sides straight or
+   slowly slanting -- until the trophy starts, where the sides jump in or out
+   (two star points, a narrow stem, an overhanging wing). -> { top, foot, cut }:
+   the main piece's first and last rows, and the row the base starts at, or
+   cut null when the bottom is not a base (a figure's feet, a plain panel).
+   On a plain background (`c` given) the background's colour shut in by the
+   piece -- the white between a star's points and its base -- does not count,
+   or the points and the base read as one solid block. */
+export function findBase(m, W, H, c = null) {
+  if (c) {
+    const { near } = background(c.getContext('2d').getImageData(0, 0, W, H).data, W, H, 38);
+    m = m.slice();
+    for (let i = 0; i < m.length; i++) if (m[i] && near(i)) m[i] = 0;
+  }
+  const { lab, sizes, n } = label(m, W, H);
+  if (!n) return null;
+  let big = 1; for (let k = 2; k <= n; k++) if (sizes[k] > sizes[big]) big = k;
+  const L = new Int32Array(H).fill(-1), R = new Int32Array(H).fill(-1), N = new Int32Array(H), runs = new Int32Array(H);
+  let top = -1, foot = -1;
+  for (let y = 0; y < H; y++) {
+    let was = false;
+    for (let x = 0; x < W; x++) {
+      const on = lab[y * W + x] === big;
+      if (on) { if (L[y] < 0) L[y] = x; R[y] = x; N[y]++; if (!was) runs[y]++; }
+      was = on;
+    }
+    if (N[y]) { if (top < 0) top = y; foot = y; }
+  }
+  const tall = foot - top + 1, out = { top, foot, cut: null };
+  const solid = y => N[y] > 0 && runs[y] === 1 && N[y] >= 0.9 * (R[y] - L[y] + 1);
+  let y = foot;
+  while (y > top && !solid(y)) y--;                      // past a ragged edge or a shadow under it
+  if (foot - y > tall * 0.05) return out;
+  const wide = R[y] - L[y] + 1;
+  if (wide < W * 0.08) return out;
+  const step = 2 + wide * 0.015;                          // how far a side may move from one row to the next
+  let lastL = L[y], lastR = R[y], start = y, miss = 0;
+  for (let k = y - 1; k >= top; k--) {
+    if (solid(k) && Math.abs(L[k] - lastL) <= step * (miss + 1) && Math.abs(R[k] - lastR) <= step * (miss + 1)) {
+      start = k; lastL = L[k]; lastR = R[k]; miss = 0;
+    } else if (++miss > 2) break;
+  }
+  const deep = foot - start + 1;
+  // a base is a band at the bottom, not the whole piece (a plain panel is solid all the way up);
+  // cut a hair above its top, so its soft edge goes with it and cannot shut a gap above it in
+  if (deep >= Math.max(6, tall * 0.04) && deep <= tall * 0.45) out.cut = Math.max(top, start - Math.max(2, Math.round(tall * 0.006)));
+  return out;
+}
 
 /* Step 2: a mask -- automatic or painted by hand -- made fit to cut, traced,
    and the picture cropped to it for printing. */

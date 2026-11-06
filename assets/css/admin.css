@@ -111,7 +111,7 @@
 .btn-danger:hover{border-color:var(--bad)}
 
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
-@media (max-width:720px){.two{grid-template-columns:1fr}}
+@media (max-width:720px){.two{grid-template-columns:minmax(0,1fr)}}   /* 1fr let the widest row push the dialog past a phone's edge */
 
 .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem}
 .kv dt{color:var(--mute)}
@@ -135,6 +135,36 @@
 .stk__size{margin:8px 0 0;font-size:.8rem;color:var(--mute);line-height:1.45}
 .stk__btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .stk__piece{margin-top:20px}
+
+/* the picture cutter under the 3D design (cut-editor.js): a drop box, then the picture to edit with zoom */
+.cutx{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px}   /* not the canvas's 720 px */
+.cutx__drop{display:grid;place-items:center;min-height:132px;padding:16px;border:1.5px dashed rgba(21,20,15,.28);border-radius:10px;
+  background:var(--paper);text-align:center;cursor:pointer;transition:border-color .15s var(--ease),background .15s var(--ease)}
+.cutx__drop:hover,.cutx__drop:focus-visible,.cutx__drop.over{border-color:var(--ink);background:#fff;outline:none}
+.cutx__drop.has{display:block;min-height:0;padding:0;border-style:solid;border-color:var(--line);overflow:hidden;cursor:default}
+.cutx__hint{display:grid;justify-items:center;gap:4px;font-size:.8rem;color:var(--mute)}
+.cutx__hint svg{width:22px;height:22px;margin-bottom:4px;fill:none;stroke:var(--ink);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cutx__hint b{font-size:.92rem;font-weight:600;color:var(--ink)}
+.cutx__cv{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;
+  background:#fff repeating-conic-gradient(#F1EEE7 0 25%,#fff 0 50%) 0 0/16px 16px}
+.cutx__cv[data-tool=move]{cursor:grab}
+.cutx__cv[data-tool=move]:active{cursor:grabbing}
+.cutx__cv[data-tool=erase],.cutx__cv[data-tool=keep]{cursor:crosshair}
+.cutx__tools{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.cutx__row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--mute)}
+.cutx__row>span{min-width:3.4em}
+.cutx__row input[type=range]{flex:1;min-width:0;accent-color:var(--ink)}
+.cutx__out{min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cutx__out--wide{min-width:9em}
+.cutx__step{flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font:500 1rem/1 var(--f-body);cursor:pointer}
+.cutx__step:hover{border-color:var(--ink)}
+.cutx__tool{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cutx__tool button{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;text-align:left;font:inherit;cursor:pointer}
+.cutx__tool button b{font-size:.8rem;font-weight:600;color:var(--ink)}
+.cutx__tool button span{font-size:.7rem;line-height:1.3;color:var(--mute)}
+.cutx__tool button[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.cutx__btns{display:flex;flex-wrap:wrap;gap:8px}
+.cutx__note{margin:0;font-size:.76rem;line-height:1.45;color:var(--mute)}
 /* Payment details (renderPay) and a customer's receipt in a request */
 .pay-form{display:grid;gap:18px;max-width:680px}
 .pay-form fieldset{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0;padding:14px 16px;border:1px solid var(--line-soft);border-radius:10px}

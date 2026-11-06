@@ -5,13 +5,15 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611060204';
+import { createViewer, webglAvailable } from './viewer.js?v=202611061731';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
-} from './trophy.js?v=202611060204';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611060204';
+} from './trophy.js?v=202611061731';
+import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611061731';
+import { simplify } from './cutout.js?v=202611061731';
+import { mountCutEditor } from './cut-editor.js?v=202611061731';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -183,7 +185,8 @@ function mount3D(box, design) {
   viewer.frameObject(model);
   viewer.invalidate();
   let gone = false;                          // a dialog can close twice (button, then the close event)
-  return () => { if (gone) return; gone = true; viewer.scene.remove(model); disposeGroup(model); viewer.dispose(); };
+  // the canvas goes with it: give its WebGL context back now (a picture being edited redraws this often)
+  return () => { if (gone) return; gone = true; viewer.scene.remove(model); disposeGroup(model); viewer.dispose(); viewer.renderer.forceContextLoss(); };
 }
 
 async function saveSticker(art, file) {
@@ -476,39 +479,32 @@ async function deletePhotos(urls) {
    "Add trophy by just putting the picture and you generate it as trophy": the
    picture is cut out as "Your art" is in the designer -- its background taken
    off, the acrylic cut to its outline, the picture printed on it -- on the
-   shop's usual Medium gold bar. The cut-out is stored under art/ when the
-   trophy is saved and named by the design's `cutUrl`, so the shop, the cart
-   and orders all wear it. Old ones are kept: orders still point at them. */
+   shop's usual Medium gold bar. The picture is taken in, its base cut off and
+   edited by hand in cut-editor.js (6 Nov); every cut becomes the design here.
+   The cut-out is stored under art/ when the trophy is saved and named by the
+   design's `cutUrl`, so the shop, the cart and orders all wear it. Old ones
+   are kept: orders still point at them. */
 const OUTLINE_MAX = 6500;               // shop_items.design holds 8 kB, and the outline is most of it
 
-async function trophyFromPicture(file, prev, say) {
-  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error('Use a JPG, PNG or WebP picture.');
-  const lib = await import('./cutout.js?v=202611060204');
-  const { img, url } = await lib.readImage(file);
-  try {
-    const base = prev?.shape === 'custom' ? prev : catalogItem('custom').design;
-    const size = SIZES[base.size] || SIZES.m;
-    const { c, m, mode } = await lib.autoMask(img, 'auto', say);
-    say('Cutting it to its outline…');
-    const r = lib.finishCut(c, m, mode, { detail: 0, heightCm: size.total - size.baseH * 1.35 });
-    const outline = fitOutline(r.d, lib.simplify);
-    if (!outline) throw new Error('That outline is too detailed to keep. Try a simpler picture, or one on a plain background.');
-    const cutBox = [r.x0 / c.width, r.y0 / c.height, r.art.width / c.width, r.art.height / c.height].map(v => +v.toFixed(5));
-    // the print: the original picture cropped to the cut, kept where the cut-out kept it, up to 2048 px
-    const iw = img.naturalWidth, ih = img.naturalHeight, sw = cutBox[2] * iw, sh = cutBox[3] * ih;
-    const k = Math.min(1, 2048 / Math.max(sw, sh));
-    const art = document.createElement('canvas');
-    art.width = Math.max(1, Math.round(sw * k)); art.height = Math.max(1, Math.round(sh * k));
-    const g = art.getContext('2d');
-    g.imageSmoothingQuality = 'high';
-    g.drawImage(img, cutBox[0] * iw, cutBox[1] * ih, sw, sh, 0, 0, art.width, art.height);
-    g.globalCompositeOperation = 'destination-in';
-    g.drawImage(r.art, 0, 0, art.width, art.height);
-    const blob = await new Promise(ok => art.toBlob(ok, 'image/webp', 0.9));
-    if (!blob) throw new Error('That picture could not be prepared. Try another one.');
-    const { cutUrl: _, ...keep } = base;
-    return { blob, design: { ...keep, shape: 'custom', variant: 0, outline, cutBox, cutAspect: r.aspect, cutPrint: true, cutMode: r.mode, cutArt: art } };
-  } finally { URL.revokeObjectURL(url); }
+/* a cut (finishCut's result on the working picture `c`) as the trophy's design,
+   keeping the options of the one before if that was made from a picture too */
+function pictureDesign(img, c, r, prev) {
+  const base = prev?.shape === 'custom' ? prev : catalogItem('custom').design;
+  const outline = fitOutline(r.d, simplify);
+  if (!outline) throw new Error('That outline is too detailed to keep. Erase the fine bits, or try a simpler picture.');
+  const cutBox = [r.x0 / c.width, r.y0 / c.height, r.art.width / c.width, r.art.height / c.height].map(v => +v.toFixed(5));
+  // the print: the original picture cropped to the cut, kept where the cut kept it, up to 2048 px
+  const iw = img.naturalWidth, ih = img.naturalHeight, sw = cutBox[2] * iw, sh = cutBox[3] * ih;
+  const k = Math.min(1, 2048 / Math.max(sw, sh));
+  const art = document.createElement('canvas');
+  art.width = Math.max(1, Math.round(sw * k)); art.height = Math.max(1, Math.round(sh * k));
+  const g = art.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, cutBox[0] * iw, cutBox[1] * ih, sw, sh, 0, 0, art.width, art.height);
+  g.globalCompositeOperation = 'destination-in';
+  g.drawImage(r.art, 0, 0, art.width, art.height);
+  const { cutUrl: _, cutArt: __, ...keep } = base;
+  return { ...keep, shape: 'custom', variant: 0, outline, cutBox, cutAspect: r.aspect, cutPrint: true, cutMode: r.mode, cutArt: art };
 }
 
 /* The traced outline made to fit the design column: simplified a little more
@@ -527,7 +523,9 @@ function fitOutline(d, simplify) {
   return null;
 }
 
-async function uploadArt(blob, id) {
+async function uploadArt(canvas, id) {
+  const blob = await new Promise(ok => canvas.toBlob(ok, 'image/webp', 0.9));
+  if (!blob) throw new Error('The picture could not be prepared. Choose it again.');
   const ext = blob.type === 'image/png' ? 'png' : 'webp';    // Safari makes a PNG when asked for WebP
   const path = `art/${id}-${Date.now().toString(36)}.${ext}`;
   chk(await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false }));
@@ -1531,11 +1529,11 @@ function openItem(orig) {
         <div class="v3d" id="v3d"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
           <button class="btn btn--line btn--sm" type="button" id="fromPic">Make it from a picture</button>
-          <input type="file" id="cutIn" accept="image/png,image/jpeg,image/webp" hidden>
           <button class="btn btn--line btn--sm" type="button" id="design">${it.design ? 'Change in the designer' : 'Design it in 3D'}</button>
           <button class="btn btn--line btn--sm" type="button" id="noDesign"${it.design ? '' : ' hidden'}>Remove design</button>
         </div>
-        <p class="adm-msg" id="dMsg" style="margin-top:8px;font-size:.8rem;color:var(--mute)"></p>
+        <div class="cutx" id="cutx"></div>
+        <p class="adm-msg" id="dMsg" style="margin-top:8px;font-size:.8rem;color:var(--mute)" role="status"></p>
         <div id="trophyPromo" hidden></div>
         <div class="stk" id="stk" hidden></div>
       </div>
@@ -1607,30 +1605,26 @@ function openItem(orig) {
     } catch { /* not ours */ }
   };
   window.addEventListener('storage', onStorage);
-  /* "Make it from a picture": cut out here, shown at once, stored when it is saved */
-  let cutBlob = null;
-  $('#fromPic', dlg).addEventListener('click', () => $('#cutIn', dlg).click());
-  $('#cutIn', dlg).addEventListener('change', async e => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    const msg = $('#dMsg', dlg), say = t => { msg.textContent = t; };
-    const btn = $('#fromPic', dlg);
-    btn.disabled = true;
-    say('Reading your picture…');
-    try {
-      const made = await trophyFromPicture(file, it.design, say);
-      cutBlob = made.blob;
-      it.design = made.design;
+  /* "Make it from a picture", or a picture dropped in the box under it: cut out in
+     cut-editor.js (base cut off, edited by hand), shown in 3D after every cut,
+     stored when the trophy is saved */
+  let showSoon = 0;
+  const say = t => { $('#dMsg', dlg).textContent = t; };
+  const editor = mountCutEditor($('#cutx', dlg), {
+    heightCm: () => { const s = SIZES[it.design?.size] || SIZES.m; return s.total - s.baseH * 1.35; },
+    say,
+    onPicture: file => {
       if (!f.name.value.trim()) f.name.value = nameFromFile(file.name);
       if (!f.line.value.trim()) f.line.value = catalogItem('custom').line;
-      showDesign();
-      say('Made from your picture: the acrylic cut to its outline, the picture printed on it. Save to put it in the shop.');
-    } catch (err) {
-      console.warn('[tala] trophy from a picture:', err);
-      say(err.message || 'That picture could not be cut. Try another one.');
-    } finally { btn.disabled = false; }
+    },
+    onCut: (r, pic) => {
+      try { it.design = pictureDesign(pic.img, pic.c, r, it.design); }
+      catch (err) { say(err.message); return; }
+      clearTimeout(showSoon);
+      showSoon = setTimeout(showDesign, 300);   // one 3D redraw after a run of quick edits
+    },
   });
+  $('#fromPic', dlg).addEventListener('click', () => editor.choose());
 
   $('#design', dlg).addEventListener('click', () => {
     try { localStorage.removeItem(DESIGN_KEY); } catch { /* ignore */ }
@@ -1638,7 +1632,7 @@ function openItem(orig) {
     window.open(`design.html?admin=1${q}`, '_blank');
     $('#dMsg', dlg).textContent = 'Design it in the new tab, then press "Use in the Admin Deck" there. This window picks it up.';
   });
-  $('#noDesign', dlg).addEventListener('click', () => { it.design = null; cutBlob = null; showDesign(); });
+  $('#noDesign', dlg).addEventListener('click', () => { it.design = null; editor.clear(); clearTimeout(showSoon); showDesign(); });
 
   // every way out comes through here; the close event alone is not dependable
   // (Chrome can hold it back in a background tab), so it is only the Esc path
@@ -1646,6 +1640,7 @@ function openItem(orig) {
   const finish = () => {
     if (finished) return; finished = true;
     dispose(); window.removeEventListener('storage', onStorage);
+    clearTimeout(showSoon); editor.destroy();
     if (!saved && added.length) deletePhotos(added).catch(() => {});
     if (dlg.open) dlg.close();
     dlg.remove();
@@ -1668,10 +1663,9 @@ function openItem(orig) {
     const btn = $('#save', dlg); btn.disabled = true;
     try {
       if (it.design?.cutArt) {
-        if (!cutBlob) throw new Error('Choose the picture again: it was not kept.');
         toast('Saving the picture…');
-        row.design.cutUrl = await uploadArt(cutBlob, it.id || slug(name));
-        it.design = row.design; cutBlob = null;
+        row.design.cutUrl = await uploadArt(it.design.cutArt, it.id || slug(name));
+        it.design = row.design;
       }
       if (isNew) {
         let id = slug(name);
