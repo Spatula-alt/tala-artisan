@@ -5,15 +5,15 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611070107';
+import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
-} from './trophy.js?v=202611070107';
-import { stickerArt, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611070107';
-import { simplify } from './cutout.js?v=202611070107';
-import { mountCutEditor } from './cut-editor.js?v=202611070107';
+} from './trophy.js?v=202611072231';
+import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611072231';
+import { simplify } from './cutout.js?v=202611072231';
+import { mountCutEditor } from './cut-editor.js?v=202611072231';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -147,7 +147,8 @@ function specRows(d) {
     ['Size', SIZES[d.size] ? `${SIZES[d.size].label} · ${canBuild(d) ? Math.round(standingHeight(d) * 2) / 2 : SIZES[d.size].total} cm` : null],
     ['Base', BASES[d.baseKind] ? `${BASES[d.baseKind].label} · ${BASE_FINISHES[d.baseFinish]?.label || ''}` : null],
     ['Sticker', SCHEMES[d.scheme] ? [SCHEMES[d.scheme].label, DECALS[d.decal]?.label, LAMINATES[d.laminate]?.label].filter(Boolean).join(' · ') : null],
-    ['Wording', [d.org, d.title, d.name, d.date].filter(Boolean).join(' / ')],
+    ['Wording', [d.org, ...(Array.isArray(d.names) && d.names.length ? [`a different title and name on each of the ${d.names.length}`] : [d.title, d.name]), d.date]
+      .filter(Boolean).join(' / ')],
   ];
   if (SHAPES[d.shape] && printNote(d)) rows.push(['Print', printNote(d)]);
   if (d.shape === 'custom') rows.push(['Cut', `From the customer's own picture${d.cutPrint ? ', picture printed on it' : ''}. Ask them to send the original file.`]);
@@ -231,6 +232,56 @@ function printSticker(art, title) {
 <img src="${c.toDataURL('image/png')}" alt="">
 <p>${esc(title)} · ${art.w.toFixed(1)} × ${art.h.toFixed(1)} cm. Print at 100% ("Actual size"), then cut along the dashed line.${paper}</p>
 <script>addEventListener('load', () => setTimeout(print, 150))</script>`);
+  w.document.close();
+}
+
+/* Every trophy's wording sticker in a list (design.names), at real size on as
+   many pages as it takes, a dashed cut line round each and its number and name
+   under it. The window opens at once -- a pop-up has to come straight from the
+   click -- and fills when the stickers are drawn. */
+async function printEach(design, rows, title) {
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups for this page to print the stickers.', true); return; }
+  const head = `<!doctype html><meta charset="utf-8"><title>${esc(title)} · ${rows.length} stickers</title>`;
+  w.document.write(`${head}<p id="busy" style="font:14px system-ui,sans-serif;padding:20px">Drawing the ${rows.length} stickers…</p>`);
+  const cm = px => (px / STICKER_DPI * 2.54).toFixed(3);
+  const figs = [];
+  let size = null, clear = false;
+  try {
+    await eachWording(design, rows, async (art, i) => {
+      const c = document.createElement('canvas');
+      c.width = art.canvas.width; c.height = art.canvas.height;
+      const g = c.getContext('2d');
+      g.drawImage(art.canvas, 0, 0);
+      g.setLineDash([STICKER_DPI * 0.06, STICKER_DPI * 0.04]);
+      g.lineWidth = Math.max(2, STICKER_DPI / 150);
+      g.strokeStyle = 'rgba(0,0,0,.5)';
+      g.stroke(art.path);
+      const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+      c.width = c.height = 0;
+      size ||= { w: cm(art.canvas.width), h: cm(art.canvas.height), cw: art.w, ch: art.h };
+      clear ||= art.clear;
+      figs.push(`<figure><img src="${URL.createObjectURL(blob)}" alt=""><figcaption>${i + 1} · ${esc(rows[i].title || '')} — ${esc(rows[i].name || '')}</figcaption></figure>`);
+      const busy = w.document.getElementById('busy');
+      if (busy) busy.textContent = `Drawing sticker ${i + 1} of ${rows.length}…`;
+      if (w.closed) throw new Error('closed');
+    });
+  } catch (err) {
+    if (w.closed) return;
+    console.warn('[tala] wording stickers:', err);
+    w.document.body.textContent = `The stickers could not be drawn: ${friendly(err)}`;
+    return;
+  }
+  if (!size) { w.document.body.textContent = 'This design has no wording sticker to print.'; return; }
+  w.document.open();
+  w.document.write(`${head}
+<style>@page{margin:10mm}body{margin:0;font:9px/1.4 system-ui,sans-serif;color:#555}p{margin:0 0 4mm;font-size:11px}
+figure{display:inline-block;vertical-align:top;margin:0 5mm 4mm 0}
+img{display:block;width:${size.w}cm;height:${size.h}cm}figcaption{margin-top:1mm;max-width:${size.w}cm}</style>
+<p>${esc(title)} · ${rows.length} stickers, ${size.cw.toFixed(1)} × ${size.ch.toFixed(1)} cm each. Print at 100% ("Actual size"),
+then cut along each dashed line.${clear ? ' The clear parts go on clear sticker film.' : ''}</p>
+<div class="sheet">${figs.join('')}</div>
+<script>addEventListener('load', () => setTimeout(print, 300))</script>`);
   w.document.close();
 }
 
@@ -348,6 +399,9 @@ async function mountSticker(box, design, name, opts = {}) {
   const where = SHAPES[d.shape]?.decal?.onBase ? 'on the base front' : 'on the trophy';
   // a layered design: its layers are one sticker, the wording a clear one of its own laid on it (owner, 6 Nov)
   const words = art.words;
+  // a different title and name on each trophy (owner, 7 Nov): one wording sticker per name
+  const names = (Array.isArray(d.names) ? d.names : []).slice(0, 200).filter(r => r && typeof r === 'object')
+    .map(r => ({ title: String(r.title ?? '').slice(0, 26), name: String(r.name ?? '').slice(0, 30) }));
   const film = a => (a.clear ? ' The checkered parts are clear: print it on clear sticker film.' : '');
   const wait = art.standIn ? ' Their photo goes in the grey part: add it when they send it.' : '';
   const btn = (k, t) => `<button class="btn btn--line btn--sm" type="button" data-stk="${k}">${t}</button>`;
@@ -368,9 +422,14 @@ async function mountSticker(box, design, name, opts = {}) {
       : canLine ? `<p class="stk__size">Their ${piece} did not come with this request. Add the one they send you and it is ${
           piece === 'picture' ? 'cropped where they cropped it and ' : ''}cut along ${along}, at real size.</p>
         <div class="stk__btns">${btn(piece, `Add their ${piece}`)}</div>`
-      : `<p class="stk__size">Their outline did not come with this request, so their picture cannot be lined up here. Ask them for the file.</p>`}</div>`}`;
+      : `<p class="stk__size">Their outline did not come with this request, so their picture cannot be lined up here. Ask them for the file.</p>`}</div>`}
+    ${!names.length ? '' : `<div class="stk__piece"><p class="sec-t">Wording on each trophy · ${names.length}</p>
+      <p class="stk__size">A different title and name on each one: a ${words ? 'clear wording' : 'base'} sticker for every trophy, all the same size. The one above is trophy 1.</p>
+      <ol class="stk__names">${names.map(r => `<li><b>${esc(r.title || '—')}</b>${esc(r.name || '—')}</li>`).join('')}</ol>
+      <div class="stk__btns">${btn('nprint', `Print all ${names.length} at real size`)}</div></div>`}`;
   box.hidden = false;
   const base = slug(name || label);
+  $('[data-stk="nprint"]', box)?.addEventListener('click', () => printEach(d, names, name || label));
   $('[data-stk="save"]', box).addEventListener('click', () => saveSticker(art, `${base}-sticker-${art.w.toFixed(1)}x${art.h.toFixed(1)}cm`));
   $('[data-stk="print"]', box).addEventListener('click', () => printSticker(art, name || 'Sticker'));
   if (words) {
@@ -1462,7 +1521,7 @@ function catalogItem(k) {
   const s = SHAPES[k];
   const material = MATERIALS[s.sheet] ? s.sheet : 'white';
   const design = { shape: k, variant: 0, material, size: 'm', baseKind: 'goldbar', baseFinish: 'black', decal: 'rect',
-    scheme: s.ink || 'black', laminate: 'gloss', font: 'classic', motif: 'star',
+    scheme: s.ink || 'black', laminate: 'gloss', font: 'classic',
     org: 'Gloria Awards Night', title: 'Champion', name: 'Juan Dela Cruz', date: '2026' };
   return { id: null, name: s.label, category: 'Trophy', price: null, design, images: [], published: false,
     line: `${MATERIALS[material].label} · ${BASES.goldbar.label.toLowerCase()} base · ${SIZES.m.total} cm` };

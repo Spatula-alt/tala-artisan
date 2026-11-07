@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&family=Great+Vibes&display=swap"></noscript>
-<link rel="stylesheet" href="assets/css/styles.css?v=202611070107">
-<link rel="stylesheet" href="assets/css/designer.css?v=202611070107">
+<link rel="stylesheet" href="assets/css/styles.css?v=202611072231">
+<link rel="stylesheet" href="assets/css/designer.css?v=202611072231">
 
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -300,10 +300,27 @@
                 </div>
               </div>
 
-              <p class="sub">Motif</p>
-              <div class="opts opts--4" id="optMotif" role="group" aria-label="Motif"></div>
-              <p class="step__note" style="margin-top:10px">Lady, Gentleman and Couple are our pageant set &mdash; they print
-                 as clean silhouettes rather than clip art.</p>
+              <label class="check">
+                <input type="checkbox" id="fEach">
+                <span>A different name or title on each trophy <em>one row per trophy &middot; the organisation and date stay the same</em></span>
+              </label>
+              <div class="each" id="each" hidden>
+                <ol class="each__rows" id="eachRows" aria-label="The wording on each trophy"></ol>
+                <div class="each__btns">
+                  <button type="button" class="btn btn--line btn--sm" id="eachAdd">+ Add a trophy</button>
+                  <button type="button" class="btn btn--line btn--sm" id="eachPasteBtn">Paste a list</button>
+                </div>
+                <div class="each__paste" id="eachPaste" hidden>
+                  <textarea id="eachText" rows="6" placeholder="Champion, Maria C. Lualhati&#10;1st Runner-Up, Ana R. Santos&#10;2nd Runner-Up, Liza M. Reyes"></textarea>
+                  <p class="step__note">One trophy per line: the title, a comma, then the name. Or copy two columns (title, name)
+                    from Excel or Google Sheets and paste them here. A line with only a name keeps the title of the line before.</p>
+                  <div class="each__btns">
+                    <button type="button" class="btn btn--solid btn--sm" id="eachUse">Use this list</button>
+                    <button type="button" class="btn btn--line btn--sm" id="eachCancel">Cancel</button>
+                  </div>
+                </div>
+                <p class="step__note" id="eachNote">Quantity follows the list. The 3D shows the trophy you click.</p>
+              </div>
 
               <label class="check">
                 <input type="checkbox" id="fExtraSticker">
@@ -323,7 +340,8 @@
               <svg class="step__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             </summary>
             <div class="step__body">
-              <p class="step__note">All pieces share the title and layout; the recipient line can differ at no extra cost.</p>
+              <p class="step__note" id="qtyNote">All pieces share the layout. Each can have its own name or title at no extra cost: turn on
+                "A different name or title on each trophy" in Wording.</p>
               <div class="qty">
                 <button type="button" id="qtyDown" aria-label="Fewer">&minus;</button>
                 <input id="fQty" type="number" min="1" max="2000" step="1" value="6" aria-label="Quantity">
@@ -622,7 +640,7 @@
 
 <a class="msg" href="https://m.me/61595841638997" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 3.2 8 7.3s-3.6 7.2-8 7.2c-1 0-2-.2-2.9-.5L5 19.6l1.2-3.5C4.8 14.8 4 13.1 4 11.3 4 7.2 7.6 4 12 4Z"/><path d="m8.3 13 2.6-2.7 2.1 1.6 2.6-2.8"/></svg><span>Message us<span class="msg__more"> on Facebook</span></span></a>
 
-<script src="assets/js/main.js?v=202611070107" defer></script>
-<script type="module" src="assets/js/designer.js?v=202611070107"></script>
+<script src="assets/js/main.js?v=202611072231" defer></script>
+<script type="module" src="assets/js/designer.js?v=202611072231"></script>
 </body>
 </html>

@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611070107';
-import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611070107';
+import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
+import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611072231';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -104,7 +104,7 @@ const ITEM_ID = /^[a-z0-9][a-z0-9-]{1,79}$/;
 function catalogDesign(k) {
   const s = SHAPES[k];
   return { shape: k, variant: 0, material: MATERIALS[s.sheet] ? s.sheet : 'white', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
-    decal: 'rect', scheme: s.ink || 'black', laminate: 'gloss', font: 'classic', motif: 'star',
+    decal: 'rect', scheme: s.ink || 'black', laminate: 'gloss', font: 'classic',
     org: 'Gloria Awards Night', title: 'Champion', name: 'Juan Dela Cruz', date: '2026' };
 }
 
@@ -426,13 +426,13 @@ async function boot() {
 
   liveViewer('#heroViz', '#heroCanvas', {
     shape: 'lady', material: 'gold', size: 'l', baseKind: 'goldbar', baseFinish: 'black',
-    decal: 'rect', scheme: 'black', font: 'script', laminate: 'gloss', motif: 'crown',
+    decal: 'rect', scheme: 'black', font: 'script', laminate: 'gloss',
     org: 'Mutya ng Gloria', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026',
   });
 
   whenNear('#bandViz', () => assembleOnScroll('#bandViz', liveViewer('#bandViz', '#bandCanvas', {
     shape: 'shield', material: 'blue', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
-    decal: 'shield', scheme: 'navy', font: 'sport', laminate: 'gloss', motif: 'laurel',
+    decal: 'shield', scheme: 'navy', font: 'sport', laminate: 'gloss',
     org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Gloria',
   })));
 

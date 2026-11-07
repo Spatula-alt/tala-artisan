@@ -2250,133 +2250,6 @@ function splitEven(text) {
   return best;
 }
 
-/* ── motifs, including the pageant silhouettes ── */
-
-/* A true five-point star. The old eight-point version read as an asterisk
-   at small sizes, which is not the mark. */
-function starPath(g, cx, cy, r) {
-  g.beginPath();
-  for (let i = 0; i < 10; i++) {
-    const a = (Math.PI / 5) * i - Math.PI / 2;
-    const rad = i % 2 ? r * 0.40 : r;
-    const x = cx + Math.cos(a) * rad, y = cy + Math.sin(a) * rad;
-    i ? g.lineTo(x, y) : g.moveTo(x, y);
-  }
-  g.closePath();
-}
-
-function heartPath(g, cx, cy, r) {
-  g.beginPath();
-  g.moveTo(cx, cy + r * 0.82);
-  g.bezierCurveTo(cx - r * 1.45, cy - r * 0.15, cx - r * 0.55, cy - r * 1.05, cx, cy - r * 0.34);
-  g.bezierCurveTo(cx + r * 0.55, cy - r * 1.05, cx + r * 1.45, cy - r * 0.15, cx, cy + r * 0.82);
-  g.closePath();
-}
-
-/* A real laurel wreath: two branches curving up either side, a thin stem
-   and pointed leaves set alternately along it. The old one stacked ellipses
-   on top of each other and printed as a gold blob. Filled in one go by the
-   caller, so leaves and stems are separate sub-paths that never overlap. */
-function laurelPath(g, cx, cy, r) {
-  g.beginPath();
-  const R = r * 0.86, ccx = cx, ccy = cy + r * 0.04;
-  const leaf = (x, y, ang, L, Wd) => {          // an almond, base at (x,y), pointing along ang
-    const ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux;
-    const tx = x + ux * L, ty = y + uy * L;
-    g.moveTo(x, y);
-    g.quadraticCurveTo(x + ux * L * 0.5 + nx * Wd, y + uy * L * 0.5 + ny * Wd, tx, ty);
-    g.quadraticCurveTo(x + ux * L * 0.5 - nx * Wd, y + uy * L * 0.5 - ny * Wd, x, y);
-    g.closePath();
-  };
-  for (const dir of [-1, 1]) {
-    // canvas angles, y down: the branch climbs from just off the bottom to near the top
-    const a0 = Math.PI / 2 + dir * -0.28, a1 = Math.PI / 2 + dir * -2.55;
-    // stem: a thin ring segment
-    const sw = r * 0.035;
-    g.moveTo(ccx + (R + sw) * Math.cos(a0), ccy + (R + sw) * Math.sin(a0));
-    g.arc(ccx, ccy, R + sw, a0, a1, dir > 0);
-    g.arc(ccx, ccy, R - sw, a1, a0, dir < 0);
-    g.closePath();
-    const N = 7;
-    for (let i = 0; i < N; i++) {
-      const t = (i + 0.5) / N;
-      const a = a0 + (a1 - a0) * t;
-      const px = ccx + R * Math.cos(a), py = ccy + R * Math.sin(a);
-      const tangent = a - dir * Math.PI / 2;     // direction of growth, up the branch
-      const L = r * (0.40 - t * 0.12), Wd = L * 0.30;
-      leaf(px, py, tangent - dir * 0.62, L, Wd);  // outer leaf
-      if (i < N - 1) leaf(px, py, tangent + dir * 0.55, L * 0.82, Wd * 0.85);  // inner leaf
-    }
-    // a berry-like bud at the tip
-    const ta = a1 - dir * 0.10;
-    g.moveTo(ccx + R * Math.cos(ta) + r * 0.07, ccy + R * Math.sin(ta));
-    g.arc(ccx + R * Math.cos(ta), ccy + R * Math.sin(ta), r * 0.07, 0, Math.PI * 2);
-  }
-}
-
-function crownPath(g, cx, cy, r) {
-  g.beginPath();
-  g.moveTo(cx - r, cy + r * 0.52);
-  g.lineTo(cx - r * 0.78, cy - r * 0.46);
-  g.lineTo(cx - r * 0.38, cy + r * 0.06);
-  g.lineTo(cx, cy - r * 0.72);
-  g.lineTo(cx + r * 0.38, cy + r * 0.06);
-  g.lineTo(cx + r * 0.78, cy - r * 0.46);
-  g.lineTo(cx + r, cy + r * 0.52);
-  g.closePath();
-}
-
-/* Gown silhouette: head, shoulders, flaring skirt. */
-function gownPath(g, cx, cy, r) {
-  const u = r / 1.05;
-  g.beginPath();
-  g.arc(cx, cy - u * 0.82, u * 0.20, 0, Math.PI * 2);
-  g.closePath();
-  g.moveTo(cx - u * 0.17, cy - u * 0.56);
-  g.lineTo(cx + u * 0.17, cy - u * 0.56);
-  g.quadraticCurveTo(cx + u * 0.30, cy - u * 0.16, cx + u * 0.22, cy + u * 0.12);
-  g.lineTo(cx + u * 0.72, cy + u * 1.00);
-  g.lineTo(cx - u * 0.72, cy + u * 1.00);
-  g.lineTo(cx - u * 0.22, cy + u * 0.12);
-  g.quadraticCurveTo(cx - u * 0.30, cy - u * 0.16, cx - u * 0.17, cy - u * 0.56);
-  g.closePath();
-}
-
-/* Suit silhouette: head, shoulders, jacket, trousers. */
-function suitPath(g, cx, cy, r) {
-  const u = r / 1.05;
-  g.beginPath();
-  g.arc(cx, cy - u * 0.80, u * 0.20, 0, Math.PI * 2);
-  g.closePath();
-  g.moveTo(cx - u * 0.18, cy - u * 0.54);
-  g.lineTo(cx + u * 0.18, cy - u * 0.54);
-  g.quadraticCurveTo(cx + u * 0.52, cy - u * 0.40, cx + u * 0.50, cy + u * 0.16);
-  g.lineTo(cx + u * 0.40, cy + u * 1.00);
-  g.lineTo(cx + u * 0.08, cy + u * 1.00);
-  g.lineTo(cx, cy + u * 0.42);
-  g.lineTo(cx - u * 0.08, cy + u * 1.00);
-  g.lineTo(cx - u * 0.40, cy + u * 1.00);
-  g.lineTo(cx - u * 0.50, cy + u * 0.16);
-  g.quadraticCurveTo(cx - u * 0.52, cy - u * 0.40, cx - u * 0.18, cy - u * 0.54);
-  g.closePath();
-}
-
-function pairPath(g, cx, cy, r) {
-  suitPath(g, cx - r * 0.54, cy, r * 0.86);
-  gownPath(g, cx + r * 0.54, cy, r * 0.86);
-}
-
-export const MOTIFS = {
-  none:   { label: 'None',      draw: null },
-  star:   { label: 'Star',      draw: starPath },
-  laurel: { label: 'Laurel',    draw: laurelPath },
-  crown:  { label: 'Crown',     draw: crownPath },
-  gown:   { label: 'Lady',      draw: gownPath },
-  suit:   { label: 'Gentleman', draw: suitPath },
-  pair:   { label: 'Couple',    draw: pairPath },
-  heart:  { label: 'Heart',     draw: heartPath },
-};
-
 /* object-fit: cover, onto a canvas of the given proportions. */
 function coverCanvas(img, boxW, boxH) {
   const PX = 760;
@@ -2476,9 +2349,6 @@ export function stickerCanvas(cfg, aspect, px = 1024) {
     return Math.max(W * 0.2, (hw * (W / 2 - W * ins) - W * 0.035) * 2);
   };
 
-  const motif = MOTIFS[cfg.motif];
-  const hasMotif = motif && motif.draw && fit !== 'badge';
-
   if (fit === 'badge') {
     const r = Math.min(H * 0.17, room * 0.30);
     const cy = top + r;
@@ -2491,13 +2361,6 @@ export function stickerCanvas(cfg, aspect, px = 1024) {
     g.beginPath(); g.arc(W / 2, cy, r, 0, Math.PI * 2);
     g.strokeStyle = accent; g.lineWidth = Math.max(2, H * 0.014); g.stroke();
     const used = r * 2 + H * 0.05;
-    top += used; room -= used;
-  } else if (hasMotif) {
-    const mr = Math.min(H * 0.095, room * 0.17);
-    g.fillStyle = accent;
-    motif.draw(g, W / 2, top + mr, mr);
-    g.fill();
-    const used = mr * 2 + H * 0.04;
     top += used; room -= used;
   }
 
@@ -2730,37 +2593,37 @@ export const OCCASIONS = {
   pageant: {
     label: 'Pageant', hint: 'Mutya, Mr & Ms, coronation',
     cfg: { shape: 'lady', material: 'white', size: 'l', baseKind: 'goldbar', baseFinish: 'gold',
-           decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script', motif: 'crown',
+           decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script',
            org: 'Mutya ng Gloria', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026' },
   },
   liga: {
     label: 'Sports / Liga', hint: 'Basketball, volleyball, athletics',
     cfg: { shape: 'shield', material: 'blue', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
-           decal: 'shield', scheme: 'navy', laminate: 'gloss', font: 'sport', motif: 'laurel',
+           decal: 'shield', scheme: 'navy', laminate: 'gloss', font: 'sport',
            org: 'Barangay Liga 2026', title: 'Champion', name: "Men's Basketball", date: 'Gloria' },
   },
   school: {
     label: 'School awards', hint: 'Recognition day, honour roll',
     cfg: { shape: 'arch', material: 'white', size: 'm', baseKind: 'block', baseFinish: 'black',
-           decal: 'rect', scheme: 'white', laminate: 'matte', font: 'classic', motif: 'star',
+           decal: 'rect', scheme: 'white', laminate: 'matte', font: 'classic',
            org: 'Gloria NHS', title: 'Most Outstanding', name: 'Juan D. Reyes', date: 'SY 2025 – 2026' },
   },
   fiesta: {
     label: 'Fiesta', hint: 'Street dance, float, palaro',
     cfg: { shape: 'oval', material: 'red', size: 'm', baseKind: 'octbox', baseFinish: 'black',
-           decal: 'circle', scheme: 'gold', laminate: 'gloss', font: 'sport', motif: 'star',
+           decal: 'circle', scheme: 'gold', laminate: 'gloss', font: 'sport',
            org: 'Barangay Fiesta', title: '1st Place', name: 'Street Dance', date: 'May 2026' },
   },
   contest: {
     label: 'Contest / Quiz', hint: 'Quiz bee, debate, science fair',
     cfg: { shape: 'plaque', material: 'green', size: 's', baseKind: 'utilbox', baseFinish: 'black',
-           decal: 'rect', scheme: 'green', laminate: 'matte', font: 'formal', motif: 'laurel',
+           decal: 'rect', scheme: 'green', laminate: 'matte', font: 'formal',
            org: 'Division Quiz Bee', title: '2nd Place', name: 'Team Naujan', date: '2026' },
   },
   corporate: {
     label: 'Corporate', hint: 'Service, sales, partner awards',
     cfg: { shape: 'facet', material: 'black', size: 'm', baseKind: 'utilbox', baseFinish: 'silver',
-           decal: 'rect', scheme: 'gold', laminate: 'matte', font: 'modern', motif: 'none',
+           decal: 'rect', scheme: 'gold', laminate: 'matte', font: 'modern',
            org: 'Mindoro Growers Co-op', title: 'Partner of the Year', name: 'Tala Artisan', date: '2026' },
   },
 };

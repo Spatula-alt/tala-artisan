@@ -4,15 +4,15 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611070107';
+import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
 import {
   buildTrophy, disposeGroup, setSticker,
-  SHAPES, MATERIALS, SIZES, MOTIFS, DECALS, SCHEMES, LAMINATES, FONTS,
+  SHAPES, MATERIALS, SIZES, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611070107';
+} from './trophy.js?v=202611072231';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -22,35 +22,22 @@ const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const cfg = {
   shape: 'lady', variant: 0, material: 'white', size: 'l',
   baseKind: 'goldbar', baseFinish: 'gold',
-  decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script', motif: 'crown',
+  decal: 'rect', scheme: 'black', laminate: 'gloss', font: 'script',
   org: 'Mutya ng Gloria', title: '1st Runner-Up',
   name: 'Maria C. Lualhati', date: '2026',
   photoImg: null, photoFit: 'badge', photoTarget: 'sticker',
   place: null,            // the customer's own sticker placement, or null for the design's box
   cutArt: null, cutPrint: true, cutMode: null, cutAspect: null, cutBox: null,   // "Your art" cut from a picture
   extraSticker: false, logo: false, qty: 6,
+  names: null,            // a different title and name on each trophy: [{ title, name }], one per piece (see "each")
   speed: 'standard', zone: 'province', payment: 'cash',
   needBy: '', _occasion: 'pageant',
 };
 
 const TEXT_FIELDS = { fOrg: 'org', fTitle: 'title', fName: 'name', fDate: 'date' };
 
-/* Glyphs for the sticker MOTIFS — printed clip art, not cut shapes. The cut
-   shape tiles draw the real outline instead (see outlinePath). */
-const ICON_GOWN = 'M20 5a3.4 3.4 0 1 1 0 6.8A3.4 3.4 0 0 1 20 5Zm-2.6 7.6h5.2c.6 2.4 1.9 3.4 3.4 4.2l1.2 8.4-1.9.3-1-7v3.1L31 44H9l6.7-27.4v-3.1l-1 7-1.9-.3 1.2-8.4c1.5-.8 2.8-1.8 3.4-4.2Z';
-const ICON_SUIT = 'M20 5a3.4 3.4 0 1 1 0 6.8A3.4 3.4 0 0 1 20 5Zm-2.8 7.6h5.6c2.2.5 3.6 1.5 4.3 3.1l1.4 10.5-1.9.3-1.3-8.6v4.4L27 44h-4.3l-1.6-11.8V44h-2.2V32.2L17.3 44H13l1.7-21.7v-4.4l-1.3 8.6-1.9-.3 1.4-10.5c.7-1.6 2.1-2.6 4.3-3.1Z';
+/* the "Your art" tile before a picture is cut: a framed picture */
 const FIG_CUSTOM = 'M8 10h24v24H8Zm3 3v18h18V13Zm2.6 14.4 4.6-6 3.4 4.2 2.8-3.2 4 5Z';
-
-const MOTIF_ICONS = {
-  none:   '',
-  star:   'M20 8l2.4 7.3L30 13l-3.6 7L34 22l-7.6 2 3.6 7-7.6-2.3L20 36l-2.4-7.3L10 31l3.6-7L6 22l7.6-2L10 13l7.6 2.3Z',
-  laurel: 'M20 8v28M20 14c-5-4-9-3-11 0 2 4 7 4 11 0Zm0 8c-5-4-9-3-11 0 2 4 7 4 11 0Zm0-8c5-4 9-3 11 0-2 4-7 4-11 0Zm0 8c5-4 9-3 11 0-2 4-7 4-11 0Z',
-  crown:  'M6 34 8 12l7 8 5-11 5 11 7-8 2 22Z',
-  gown:   ICON_GOWN,
-  suit:   ICON_SUIT,
-  pair:   'M11 7.6a2.6 2.6 0 1 1 0 5.2 2.6 2.6 0 0 1 0-5.2ZM8.8 14.2h4.4c2.5.7 3.7 2.2 3.7 5v7.4L15.5 39h-3.6l-1-9.2-1 9.2H6.3L4.9 26.6v-7.4c0-2.8 1.2-4.3 3.9-5ZM29 7.6a2.6 2.6 0 1 1 0 5.2 2.6 2.6 0 0 1 0-5.2Zm-2 6.6h4c.7 2.8 1.4 4.4.9 6.7L37 39H21l5.1-18.1c-.5-2.3.2-3.9.9-6.7Z',
-  heart:  'M20 34S7 25.5 7 17.5C7 13 10.4 10 14.3 10c2.6 0 4.7 1.4 5.7 3.4 1-2 3.1-3.4 5.7-3.4 3.9 0 7.3 3 7.3 7.5C33 25.5 20 34 20 34Z',
-};
 
 const OCC_ICONS = {
   pageant:   'M6 31 8 11l7 7 5-10 5 10 7-7 2 20Zm0 3h28v4H6Z',
@@ -313,7 +300,7 @@ $('#placeRot')?.addEventListener('input', e => {
 /* for tests/designer-check.js: does every design's own sticker box fit its face? */
 window.__talaPlace = { fits: () => placementFits(placement()), placement, cfg };
 // what "Send this design to the studio" hands over, without going anywhere (for tests)
-window.__talaOrder = async () => ({ design: designSpec(), text: specText(), summary: orderSummary(), files: await orderFiles() });
+window.__talaOrder = async () => ({ design: await fitDesign(designSpec()), text: specText(), summary: orderSummary(), files: await orderFiles() });
 $('#placeCentre')?.addEventListener('click', () => { tryPlace({ x: 0 }); custom(); sync(); });
 $('#placeReset')?.addEventListener('click', () => { cfg.place = null; rebuild(); custom(); sync(); });
 
@@ -334,7 +321,7 @@ const cut = {
 // "Your art"'s picture (with its art on the trophy) and the photo
 const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611070107'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611072231'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -608,7 +595,6 @@ const GROUPS = [
   ['#optScheme',     () => cfg.scheme],
   ['#optFont',       () => cfg.font],
   ['#optLaminate',   () => cfg.laminate],
-  ['#optMotif',      () => cfg.motif],
   ['#optPhotoTarget',() => cfg.photoTarget],
   ['#optPhotoFit',   () => cfg.photoFit],
   ['#optSpeed',      () => cfg.speed],
@@ -746,12 +732,6 @@ function buildTiles() {
     k => { cfg.laminate = k; custom(); repaintSticker(); },
     (k, v) => `<b>${v.label}</b>`);
 
-  tiles('#optMotif', Object.entries(MOTIFS),
-    k => { cfg.motif = k; custom(); repaintSticker(); },
-    (k, v) => k === 'none'
-      ? `<svg viewBox="0 0 40 44" aria-hidden="true"></svg><b>None</b>`
-      : `<svg viewBox="0 0 40 44" aria-hidden="true"><path d="${MOTIF_ICONS[k]}"/></svg><b>${v.label}</b>`);
-
   tiles('#optPhotoTarget', Object.entries(PHOTO_TARGETS),
     k => { cfg.photoTarget = k; rebuild(); },
     (k, v) => `<b>${v.label}</b><span>${v.hint}</span>`);
@@ -785,7 +765,129 @@ function applyOccasion(key) {
     const el = $('#' + id);
     if (el) { el.value = cfg[prop] ?? ''; countField(id); }
   }
+  if (eachOn()) pickRow(pick, false);          // the list keeps its own titles and names
   rebuild();
+}
+
+/* ───────────────────────── a different name or title on each trophy ─────────────────────────
+   The owner, 7 Nov: an order of 50 is not 50 "Juan Dela Cruz", and not all of
+   them "1st Runner-Up". Switched on, the wording step lists one row per trophy
+   -- its title and name; the organisation and date stay shared -- quantity
+   follows the rows, the 3D shows the row picked, and the order carries the list
+   (design.names) to the Admin Deck, which prints a wording sticker for each. */
+const EACH_MAX = 200;
+let pick = 0;                                   // the row the 3D shows
+const eachOn = () => Array.isArray(cfg.names);
+
+function showEach() {
+  const on = eachOn();
+  $('#fEach').checked = on;
+  $('#each').hidden = !on;
+  for (const id of ['fTitle', 'fName']) { const f = $('#' + id)?.closest('.eng__f'); if (f) f.hidden = on; }
+  for (const id of ['qtyDown', 'qtyUp', 'fQty']) { const el = $('#' + id); if (el) el.disabled = on; }
+  if (!on) return;
+  const rows = cfg.names.map((r, i) => {
+    const li = document.createElement('li');
+    li.className = 'each__row' + (i === pick ? ' is-on' : '');
+    li.dataset.i = i;
+    const n = document.createElement('span'); n.className = 'each__i'; n.textContent = i + 1;
+    const t = Object.assign(document.createElement('input'), { className: 'each__t', maxLength: 26, value: r.title, placeholder: 'Award title' });
+    const p = Object.assign(document.createElement('input'), { className: 'each__p', maxLength: 30, value: r.name, placeholder: 'Name' });
+    t.setAttribute('aria-label', `Award title, trophy ${i + 1}`);
+    p.setAttribute('aria-label', `Name, trophy ${i + 1}`);
+    const x = Object.assign(document.createElement('button'), { type: 'button', className: 'each__x', textContent: '×', disabled: cfg.names.length < 2 });
+    x.setAttribute('aria-label', `Remove trophy ${i + 1}`);
+    li.append(n, t, p, x);
+    return li;
+  });
+  $('#eachRows').replaceChildren(...rows);
+}
+// quantity follows the list
+function listQty() {
+  cfg.qty = cfg.names.length;
+  const el = $('#fQty');
+  if (el) el.value = cfg.qty;
+  sync();
+}
+// show row i on the 3D
+function pickRow(i, paint = true) {
+  pick = Math.max(0, Math.min(cfg.names.length - 1, i));
+  cfg.title = cfg.names[pick].title;
+  cfg.name = cfg.names[pick].name;
+  $$('#eachRows .each__row').forEach((li, k) => li.classList.toggle('is-on', k === pick));
+  if (paint) { repaintSticker(); sync(); }
+}
+function setEach(on) {
+  if (on === eachOn()) return;
+  if (on) {
+    const n = Math.max(1, Math.min(EACH_MAX, cfg.qty));
+    cfg.names = Array.from({ length: n }, (_, i) => ({ title: cfg.title || '', name: i ? '' : cfg.name || '' }));
+    pick = 0;
+  } else {
+    const r = cfg.names[pick];
+    cfg.names = null;
+    cfg.title = r.title; cfg.name = r.name;
+    for (const [id, prop] of [['fTitle', 'title'], ['fName', 'name']]) { const el = $('#' + id); if (el) { el.value = cfg[prop]; countField(id); } }
+  }
+  custom();
+  showEach();
+  if (on) { pickRow(0); listQty(); } else { repaintSticker(); sync(); }
+}
+/* "Paste a list": a line per trophy -- title, then a tab (two columns from a
+   spreadsheet), " - " or a comma, then the name; a line with no title keeps the
+   one before. -> [{ title, name }] */
+function parseList(text) {
+  let last = cfg.title || '';
+  const out = [];
+  for (const raw of String(text).split(/\r?\n/)) {
+    const line = raw.trim().replace(/^\d{1,3}[.)]\s+/, '');   // a numbered list: "1. Champion, ..."
+    if (!line) continue;
+    const parts = line.includes('\t') ? line.split('\t').filter((c, k, all) => !(k === 0 && all.length > 2 && /^\d+\.?$/.test(c.trim())))
+      : / [-–—] /.test(line) ? line.split(/ [-–—] /)
+      : line.includes(',') ? [line.slice(0, line.indexOf(',')), line.slice(line.indexOf(',') + 1)] : [line];
+    const [title, name] = parts.length > 1 ? [parts[0].trim() || last, parts.slice(1).join(' ').trim()] : [last, parts[0].trim()];
+    last = title;
+    out.push({ title: title.slice(0, 26), name: name.slice(0, 30) });
+    if (out.length >= EACH_MAX) break;
+  }
+  return out;
+}
+function wireEach() {
+  $('#fEach')?.addEventListener('change', e => setEach(e.target.checked));
+  const rows = $('#eachRows');
+  if (!rows) return;
+  rows.addEventListener('focusin', e => { const li = e.target.closest('.each__row'); if (li && +li.dataset.i !== pick) pickRow(+li.dataset.i); });
+  rows.addEventListener('input', e => {
+    const li = e.target.closest('.each__row');
+    if (!li) return;
+    const r = cfg.names[+li.dataset.i];
+    if (e.target.classList.contains('each__t')) r.title = e.target.value; else r.name = e.target.value;
+    clearTimeout(textTimer);
+    textTimer = setTimeout(() => pickRow(+li.dataset.i), 140);
+  });
+  rows.addEventListener('click', e => {
+    const x = e.target.closest('.each__x');
+    if (!x || cfg.names.length < 2) return;
+    cfg.names.splice(+x.closest('.each__row').dataset.i, 1);
+    pick = Math.min(pick, cfg.names.length - 1);
+    showEach(); pickRow(pick); listQty();
+  });
+  $('#eachAdd')?.addEventListener('click', () => {
+    if (cfg.names.length >= EACH_MAX) { $('#eachNote').textContent = `Up to ${EACH_MAX} on one order: send the rest in another order, or message us.`; return; }
+    cfg.names.push({ title: cfg.names.at(-1)?.title || '', name: '' });
+    pick = cfg.names.length - 1;
+    showEach(); pickRow(pick); listQty();
+    $('#eachRows .each__row:last-child .each__p')?.focus();
+  });
+  $('#eachPasteBtn')?.addEventListener('click', () => { $('#eachPaste').hidden = false; $('#eachText').focus(); });
+  $('#eachCancel')?.addEventListener('click', () => { $('#eachPaste').hidden = true; });
+  $('#eachUse')?.addEventListener('click', () => {
+    const list = parseList($('#eachText').value);
+    if (!list.length) { $('#eachText').focus(); return; }
+    cfg.names = list; pick = 0;
+    $('#eachPaste').hidden = true; $('#eachText').value = '';
+    showEach(); pickRow(0); listQty();
+  });
 }
 
 /* ───────────────────────── dropped photo ───────────────────────── */
@@ -970,8 +1072,8 @@ function sync() {
   if (!onBase && cfg.photoTarget === 'figure') cfg.photoTarget = 'sticker';
 
   const lines = ['org', 'title', 'name', 'date'].filter(k => (cfg[k] || '').trim()).length;
-  set('vWording', lines ? `${lines} line${lines > 1 ? 's' : ''}` : 'Blank');
-  set('vQty', `${cfg.qty} piece${cfg.qty > 1 ? 's' : ''}`);
+  set('vWording', eachOn() ? `Each its own · ${cfg.names.length}` : lines ? `${lines} line${lines > 1 ? 's' : ''}` : 'Blank');
+  set('vQty', `${cfg.qty} piece${cfg.qty > 1 ? 's' : ''}${eachOn() ? ' · one per name' : ''}`);
   set('vDelivery', `${q.speed.label} · ${q.zone.label}`);
 
   set('dzBadge', `${mat.short} · ${shape.label} · ${size.label}`);
@@ -1025,6 +1127,17 @@ function checkNeedBy(q) {
 
 /* ───────────────────────── actions ───────────────────────── */
 
+/* The list in the order's message, as far as it fits: the message holds 6,000
+   characters and the price comes after it. The whole list goes in design.names. */
+function eachLines(r) {
+  const n = cfg.names.length, shown = Math.min(n, 60);
+  return [
+    r('  Lines 2 + 3', `a different title and name on each of the ${n} trophies:`),
+    ...cfg.names.slice(0, shown).map((x, i) => r(`  ${i + 1}.`, `${x.title || '(no title)'} — ${x.name || '(no name)'}`)),
+    n > shown ? r('  …', `and ${n - shown} more: the whole list is with the design`) : null,
+  ].filter(Boolean);
+}
+
 function specText() {
   const shape = SHAPES[cfg.shape], mat = MATERIALS[cfg.material], size = SIZES[cfg.size];
   const q = quote(cfg);
@@ -1050,7 +1163,6 @@ function specText() {
     r('  Colours', SCHEMES[cfg.scheme].label),
     r('  Font', FONTS[cfg.font].label),
     r('  Laminate', LAMINATES[cfg.laminate].label),
-    r('  Motif', MOTIFS[cfg.motif]?.label ?? 'None'),
     cfg.shape === 'custom' && cfg.cutArt ? r('  Your art', `Cut from the customer's picture (`
       + `${{ alpha: 'transparent PNG', plain: 'plain background removed', photo: 'photo background removed' }[(cfg.cutMode || '').replace('+hand', '')] || 'background removed'}`
       + `${(cfg.cutMode || '').includes('+hand') ? ', then edited by hand' : ''}), `
@@ -1066,8 +1178,7 @@ function specText() {
     '',
     'WORDING',
     r('  Line 1', cfg.org || '(blank)'),
-    r('  Line 2', cfg.title || '(blank)'),
-    r('  Line 3', cfg.name || '(blank)'),
+    ...(eachOn() ? eachLines(r) : [r('  Line 2', cfg.title || '(blank)'), r('  Line 3', cfg.name || '(blank)')]),
     r('  Line 4', cfg.date || '(blank)'),
     '',
     'ORDER',
@@ -1119,7 +1230,42 @@ function designSpec() {
     if (cfg.cutBox) design.cutBox = cfg.cutBox;
   }
   if (cfg.photoImg) design.photo = true;
+  if (eachOn()) {
+    // the whole list, and the first trophy as the design's own wording (the 3D, the sticker)
+    design.names = cfg.names.map(r => ({ title: r.title.trim(), name: r.name.trim() }));
+    design.title = design.names[0].title;
+    design.name = design.names[0].name;
+    design.qty = design.names.length;
+  }
   return design;
+}
+
+/* The request's design column holds 20 kB as Postgres stores it (setup.sql),
+   and an order over that does not go through. A long list of names beside
+   "Your art"'s outline can pass it: the outline is then simplified until the
+   two fit -- at most about a millimetre off on the trophy -- or else left out,
+   and the Admin Deck asks the customer for the file. Each row of the list
+   takes some 12 bytes more there than in JSON (jsonb's entries), and the cart
+   adds a few fields: hence 19,000. 200 rows at full length come to 18,700. */
+const DESIGN_MAX = 19000;
+const sizeOf = d => new TextEncoder().encode(JSON.stringify(d)).length + 12 * (d.names?.length || 0);
+async function fitDesign(design) {
+  if (!design.outline || sizeOf(design) <= DESIGN_MAX) return design;
+  if (/^[MLZ\d\s.-]+$/.test(design.outline)) {
+    const { simplify } = await cutLib();
+    const rings = design.outline.split('M').slice(1).map(sp => {
+      const n = (sp.match(/-?\d*\.?\d+/g) || []).map(Number), r = [];
+      for (let i = 0; i + 1 < n.length; i += 2) r.push([n[i], n[i + 1]]);
+      return r;
+    });
+    for (const tol of [0.3, 0.6, 1, 1.5]) {
+      const outline = rings.map(r => simplify([...r, r[0]], tol).slice(0, -1)).filter(r => r.length > 2)
+        .map(r => r.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' ') + ' Z').join(' ');
+      if (sizeOf({ ...design, outline }) <= DESIGN_MAX) return { ...design, outline };
+    }
+  }
+  const { outline, cutBox, ...rest } = design;
+  return rest;
 }
 
 /* The customer's own pictures, sent with the order: the owner wants the design
@@ -1219,7 +1365,7 @@ function stagePicture(src) {
 }
 
 async function sendToStudio() {
-  const design = designSpec(), text = specText(), summary = orderSummary();
+  const design = await fitDesign(designSpec()), text = specText(), summary = orderSummary();
   let files = null;
   try { files = await orderFiles(); } catch (err) { console.warn('[tala] pictures not packed:', err); }
   for (const spec of [{ text, qty: cfg.qty, item: 'Trophy', design, summary, files }, { text, qty: cfg.qty, item: 'Trophy', design, summary }]) {
@@ -1330,6 +1476,9 @@ if (ADMIN_MODE) {
       for (const [id, prop] of Object.entries(TEXT_FIELDS)) { const el = $('#' + id); if (el) el.value = cfg[prop] ?? ''; }
     }
   } catch { /* a bad link just opens the default design */ }
+  // the customer gives each trophy its name when ordering: a shop trophy has one sample wording
+  const each = $('#fEach')?.closest('label');
+  if (each) each.hidden = true;
   const bar = $('.stage__bar');
   const use = document.createElement('button');
   use.type = 'button'; use.className = 'btn btn--solid btn--sm'; use.id = 'dzAdmin';
@@ -1338,7 +1487,7 @@ if (ADMIN_MODE) {
   use.addEventListener('click', () => {
     if (cfg.shape === 'custom') { use.textContent = 'Pick a cut shape first — a picture cut cannot go in the shop'; return; }
     const design = designSpec();
-    for (const k of ['qty', 'speed', 'zone', 'payment', 'needBy', 'logo', 'extraSticker', 'cutPrint', 'cutMode', 'cutAspect', 'photoFit', 'photoTarget']) delete design[k];
+    for (const k of ['qty', 'speed', 'zone', 'payment', 'needBy', 'logo', 'extraSticker', 'cutPrint', 'cutMode', 'cutAspect', 'photoFit', 'photoTarget', 'names']) delete design[k];
     try { localStorage.setItem('tala.admin.design', JSON.stringify(design)); }
     catch { use.textContent = 'This browser blocked the hand-off'; return; }
     use.textContent = 'Sent ✓ — back to the Admin Deck';
@@ -1359,7 +1508,7 @@ function restoreSpec() {
   const ownCut = d.shape === 'custom';
   if (ownCut && !(typeof d.outline === 'string' && d.outline.length <= 20000 && /^[MLHVCQZmlhvcqz\d\s.,eE+-]+$/.test(d.outline))) return;
   const TABLES = { material: MATERIALS, size: SIZES, baseKind: BASES, baseFinish: BASE_FINISHES, decal: DECALS, scheme: SCHEMES,
-    font: FONTS, laminate: LAMINATES, motif: MOTIFS, photoFit: PHOTO_FITS, photoTarget: PHOTO_TARGETS, speed: SPEEDS, zone: ZONES, payment: PAYMENTS };
+    font: FONTS, laminate: LAMINATES, photoFit: PHOTO_FITS, photoTarget: PHOTO_TARGETS, speed: SPEEDS, zone: ZONES, payment: PAYMENTS };
   for (const [k, v] of Object.entries(d)) {
     if (!(k in cfg) || k.startsWith('_') || (v !== null && typeof v === 'object')) continue;
     if (TABLES[k] && !TABLES[k][v]) continue;               // a choice the site no longer has: keep the default
@@ -1379,6 +1528,14 @@ function restoreSpec() {
   if ($('#fExtraSticker')) $('#fExtraSticker').checked = !!cfg.extraSticker;
   if ($('#fLogo')) $('#fLogo').checked = !!cfg.logo;
   if ($('#cutPrint')) $('#cutPrint').checked = !!cfg.cutPrint;
+  // a list of names and titles comes back as a list
+  if (Array.isArray(d.names) && d.names.length) {
+    cfg.names = d.names.slice(0, EACH_MAX).map(r => ({ title: String(r?.title ?? '').slice(0, 26), name: String(r?.name ?? '').slice(0, 30) }));
+    pick = 0;
+    showEach(); pickRow(0, false);
+    cfg.qty = cfg.names.length;
+    if ($('#fQty')) $('#fQty').value = cfg.qty;
+  }
 
   // the pictures come back as they were sent: "Your art" already cut out, the photo whole
   const files = spec.files || {};
@@ -1421,6 +1578,7 @@ buildTiles();
 poseTiles();
 buildTiers();
 wirePhoto();
+wireEach();
 for (const [id, key] of Object.entries(TEXT_FIELDS)) bindText(id, key);
 
 $('#fExtraSticker')?.addEventListener('change', e => { cfg.extraSticker = e.target.checked; sync(); });

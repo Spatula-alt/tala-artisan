@@ -19,8 +19,8 @@
    design sticker where the 3D trophy wears it. So one design sticker serves
    every trophy of that design; only the wording changes from order to order.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611070107';
-import { CUTS } from './sticker-cuts.js?v=202611070107';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611072231';
+import { CUTS } from './sticker-cuts.js?v=202611072231';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
@@ -203,7 +203,8 @@ export async function stickerArt(cfg) {
   return art;
 }
 
-async function stickerOf(cfg) {
+// the trophy measured for its sticker (its size and place come from the 3D model), and the fonts loaded
+async function measure(cfg) {
   const model = buildTrophy(cfg);
   const dims = model.userData.dims;
   disposeGroup(model);
@@ -213,8 +214,31 @@ async function stickerOf(cfg) {
     await Promise.all([`${f.titleW || 400} 40px ${f.title}`, `${f.nameStyle || 'normal'} 40px ${f.name}`, `40px ${f.small}`]
       .map(s => document.fonts.load(s)));
   } catch { /* draw with what has loaded */ }
-  // drawn larger than it prints for a small sticker, so the lettering stays sharp
-  const words = wordingSticker(cfg, dims, stickerCanvas(cfg, dims.dw / dims.dh, Math.max(1024, dims.dw * PXCM)));
+  return dims;
+}
+// drawn larger than it prints for a small sticker, so the lettering stays sharp
+const wordsOf = (cfg, dims) => wordingSticker(cfg, dims, stickerCanvas(cfg, dims.dw / dims.dh, Math.max(1024, dims.dw * PXCM)));
+
+/* The wording sticker of each trophy in a list (design.names: a different title
+   and name on each, owner 7 Nov): the same size and place on all of them, so the
+   trophy is measured once. Each is handed to `each(art, i)` and then let go, so
+   fifty of them never sit in memory together at 300 dpi. -> how many were made */
+export async function eachWording(cfg, rows, each) {
+  if (cfg.photo && !cfg.photoImg && cfg.photoTarget !== 'figure') cfg = { ...cfg, photoImg: photoStandIn(cfg.photoFit) };
+  const dims = await measure(cfg);
+  if (!dims) return 0;
+  for (let i = 0; i < rows.length; i++) {
+    const art = wordsOf({ ...cfg, title: rows[i].title, name: rows[i].name }, dims);
+    await each(art, i);
+    art.canvas.width = art.canvas.height = 0;
+  }
+  return rows.length;
+}
+
+async function stickerOf(cfg) {
+  const dims = await measure(cfg);
+  if (!dims) return null;
+  const words = wordsOf(cfg, dims);
   const D = DESIGNS[cfg.shape];
   const plan = D && dims.frame ? planOf(D, cfg.shape, cfg) : null;
   if (!plan) return words;

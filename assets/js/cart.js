@@ -14,8 +14,8 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady, shopDesignOk,
-} from './trophy.js?v=202611070107';
-import { createViewer, webglAvailable } from './viewer.js?v=202611070107';
+} from './trophy.js?v=202611072231';
+import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -309,7 +309,7 @@ function renderProduct() {
             <p><b>Free reprint if the mistake is ours.</b> A wrong spelling, colour or size from our side, we make it again at no cost.</p></details></dd>
           ${choices}
           <dt>Bulk price</dt><dd class="pd__tiers">${tiers}</dd>
-          <dt>Quantity</dt><dd class="pd__qty"><span class="qty" data-q="in"><button type="button" data-d="-1" aria-label="One less">−</button><input type="number" min="1" max="2000" value="${it.qty}" aria-label="Quantity"><button type="button" data-d="1" aria-label="One more">+</button></span>
+          <dt>Quantity</dt><dd class="pd__qty">${perName(it) ? fixedQty(it) : `<span class="qty" data-q="in"><button type="button" data-d="-1" aria-label="One less">−</button><input type="number" min="1" max="2000" value="${it.qty}" aria-label="Quantity"><button type="button" data-d="1" aria-label="One more">+</button></span>`}
             <span class="pd__stock">Made to order</span></dd>
         </dl>
         <div class="pd__btns">
@@ -365,7 +365,7 @@ function renderProduct() {
     ${same.length ? `<div class="pd__card pd__sec"><div class="pd__rowhead"><h3>From the same shop</h3><a href="./#shop">See all ›</a></div><div class="mini-row">${same.join('')}</div></div>` : ''}
     ${alsoLike.length ? `<div class="pd__card pd__sec"><h3>You may also like</h3><div class="mini-grid">${alsoLike.join('')}</div></div>` : ''}`;
 
-  wireQty($('[data-q="in"]', box), n => { incoming.qty = n; renderProduct(); });
+  if ($('[data-q="in"]', box)) wireQty($('[data-q="in"]', box), n => { incoming.qty = n; renderProduct(); });
   $$('[data-ph]', box).forEach(b => b.addEventListener('click', () => { it.pick = gallery[+b.dataset.ph]; renderProduct(); }));
   $$('[data-field]', box).forEach(b => b.addEventListener('click', () => {
     if (d[b.dataset.field] === b.dataset.key) return;
@@ -487,7 +487,7 @@ const loadShopItems = () => (shopItemsJob ||= !LIVE ? Promise.resolve([])
 const catalogDesign = k => {
   const sh = SHAPES[k];
   return { shape: k, variant: 0, material: MATERIALS[sh.sheet] ? sh.sheet : 'white', size: 'm', baseKind: 'goldbar', baseFinish: 'black',
-    decal: 'rect', scheme: sh.ink || 'black', laminate: 'gloss', font: 'classic', motif: 'star',
+    decal: 'rect', scheme: sh.ink || 'black', laminate: 'gloss', font: 'classic',
     org: 'Gloria Awards Night', title: 'Champion', name: 'Juan Dela Cruz', date: '2026' };
 };
 const catalogUnit = k => quote({ ...catalogDesign(k), qty: 1, zone: 'pickup', speed: 'standard', payment: 'cash' }).unit;
@@ -556,6 +556,11 @@ function addIncoming(on) {
   countBadge();
 }
 
+/* A design with a different title and name on each trophy (design.names): one
+   trophy per name, so its quantity is the list's, not a stepper's. */
+const perName = it => Array.isArray(it?.design?.names) && it.design.names.length > 0;
+const fixedQty = (it, label) => `<span class="qty-fixed"${label ? ` data-l="${label}"` : ''}><b>${it.qty}</b> one per name</span>`;
+
 function wireQty(box, done) {
   const input = $('input', box);
   $$('button', box).forEach(b => b.addEventListener('click', () => done(clampQty(+input.value + +b.dataset.d))));
@@ -584,7 +589,7 @@ function renderCart() {
           <span><b>${esc(it.summary?.title || SHAPES[it.design.shape].label)}</b><small>${esc(variation(it.design))}</small>
             ${autos.filter(a => covers(a, it)).map(a => `<em class="tag">${esc(promoLine(a))}</em>`).join(' ')}</span></label>
         <span class="ct__unit" data-l="Unit price">${peso(q.unit)}</span>
-        <span class="qty" data-l="Quantity"><button type="button" data-d="-1" aria-label="One less">−</button><input type="number" min="1" max="2000" value="${it.qty}" aria-label="Quantity"><button type="button" data-d="1" aria-label="One more">+</button></span>
+        ${perName(it) ? fixedQty(it, 'Quantity') : `<span class="qty" data-l="Quantity"><button type="button" data-d="-1" aria-label="One less">−</button><input type="number" min="1" max="2000" value="${it.qty}" aria-label="Quantity"><button type="button" data-d="1" aria-label="One more">+</button></span>`}
         <span class="ct__tot" data-l="Total price">${peso(q.make + q.setup)}</span>
         <button class="ct__del" type="button">Delete</button>
       </li>`;
@@ -598,7 +603,7 @@ function renderCart() {
   $$('.ct__row', box).forEach(row => {
     const it = cart[+row.dataset.i];
     $('input[type=checkbox]', row).addEventListener('change', e => { it.on = e.target.checked; keepCart(); renderCart(); });
-    wireQty($('.qty', row), n => { it.qty = n; keepCart(); renderCart(); });
+    if ($('.qty', row)) wireQty($('.qty', row), n => { it.qty = n; keepCart(); renderCart(); });
     $('.ct__del', row).addEventListener('click', () => { cart.splice(+row.dataset.i, 1); keepCart(); countBadge(); renderCart(); });
   });
   $$('[data-all]', box).forEach(c => c.addEventListener('change', e => { cart.forEach(i => { i.on = e.target.checked; }); keepCart(); renderCart(); }));
@@ -1063,7 +1068,7 @@ async function fromShop() {
   else try {
     const spec = JSON.parse(sessionStorage.getItem('tala.spec') || 'null');
     if (spec && spec.design && SHAPES[spec.design.shape]) {
-      incoming = { source: 'designer', design: spec.design, text: String(spec.text || ''), files: spec.files || null, qty: clampQty(spec.qty || spec.design.qty),
+      incoming = { source: 'designer', design: spec.design, text: String(spec.text || ''), files: spec.files || null, qty: clampQty(Array.isArray(spec.design.names) && spec.design.names.length ? spec.design.names.length : spec.qty || spec.design.qty),
         summary: { title: spec.summary?.title, preview: picOk(spec.summary?.preview) ? spec.summary.preview : null } };
       order.zone = spec.design.zone && ZONES[spec.design.zone] ? spec.design.zone : null;
       order.speed = SPEEDS[spec.design.speed] ? spec.design.speed : 'standard';

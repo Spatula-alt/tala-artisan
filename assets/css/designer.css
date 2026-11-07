@@ -154,6 +154,23 @@
 .eng__f input{padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);font-size:.9rem}
 .eng__f input:focus{outline:none;border-color:var(--ink)}
 
+/* a different name or title on each trophy: one row per trophy */
+.each{display:grid;gap:10px;margin-top:10px}
+.each__rows{display:grid;gap:6px;max-height:340px;overflow:auto;margin:0;padding:2px;list-style:none}
+.each__row{display:grid;grid-template-columns:2.2em minmax(0,1fr) minmax(0,1.25fr) 30px;align-items:center;gap:6px;
+  padding:4px;border:1px solid transparent;border-radius:var(--r)}
+.each__row.is-on{border-color:var(--ink);background:var(--paper)}
+.each__i{font-size:.74rem;font-variant-numeric:tabular-nums;color:var(--mute);text-align:right}
+.each__row input{min-width:0;padding:8px 10px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);font-size:.86rem}
+.each__row input:focus{outline:none;border-color:var(--ink)}
+.each__x{width:30px;height:30px;border:1px solid var(--line);border-radius:var(--r);background:none;color:var(--mute);font-size:1rem;line-height:1;cursor:pointer}
+.each__x:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
+.each__x:disabled{opacity:.35;cursor:default}
+.each__btns{display:flex;flex-wrap:wrap;gap:8px}
+.each__paste{display:grid;gap:8px}
+.each__paste textarea{width:100%;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);font:inherit;font-size:.86rem;resize:vertical}
+.each__paste textarea:focus{outline:none;border-color:var(--ink)}
+
 .check{display:flex;align-items:flex-start;gap:10px;padding:12px 0 0;font-size:.86rem;cursor:pointer}
 .check input{width:16px;height:16px;margin:2px 0 0;accent-color:var(--ink);flex:none}
 .check span{color:var(--ink-2)}

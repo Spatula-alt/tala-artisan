@@ -21,6 +21,9 @@
 .qty input{width:54px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center;
   font:inherit;background:none;-moz-appearance:textfield}
 .qty input::-webkit-inner-spin-button,.qty input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* a design with its own name on each trophy: the list sets the quantity */
+.qty-fixed{display:inline-flex;align-items:baseline;gap:6px;font-size:.84rem;color:var(--mute)}
+.qty-fixed b{font-size:1rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 /* Add to cart: a faded white with a black edge; Place order is the black .btn--solid */
 .btn--cart{background:#FBFAF6;border:1px solid var(--ink);color:var(--ink);gap:8px}
 .btn--cart:hover{background:var(--surface)}

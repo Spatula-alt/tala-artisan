@@ -136,6 +136,11 @@
 .stk__size{margin:8px 0 0;font-size:.8rem;color:var(--mute);line-height:1.45}
 .stk__btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .stk__piece{margin-top:20px}
+.stk__names{margin:8px 0 0;padding:6px 0 6px 2.6em;max-height:220px;overflow:auto;border:1px solid var(--line-soft);border-radius:10px;
+  font-size:.82rem;line-height:1.5;font-variant-numeric:tabular-nums;list-style:decimal}
+.stk__names li{padding:1px 10px 1px 2px}
+.stk__names li::marker{color:var(--mute)}
+.stk__names b{font-weight:600;margin-right:.5em}
 
 /* "Left – right" under a picture trophy's 3D: slides the piece along its base */
 .slide{display:flex;align-items:center;gap:10px;margin-top:10px}
