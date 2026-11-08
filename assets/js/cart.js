@@ -13,10 +13,10 @@
    ══════════════════════════════════════════════════════════════ */
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
-  buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup,
-} from './trophy.js?v=202611081632';
-import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
-import { hasBadWord } from './wordguard.js?v=202611081632';
+  buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup, OUTFITS, hasOutfit, outfitOk, outfitLabel,
+} from './trophy.js?v=202611081754';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081754';
+import { hasBadWord } from './wordguard.js?v=202611081754';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -246,11 +246,14 @@ function renderProduct() {
   const hex = n => '#' + Number(n).toString(16).padStart(6, '0');
   const swatch = m => (m.kind === 'glass' ? 'linear-gradient(135deg,#F4F8FA,#B9CFDB)'
     : m.kind === 'mirror' ? `linear-gradient(135deg,#FFFFFF,${hex(m.color)} 60%)` : hex(m.color));
-  const chip = (field, key, label, sw) => `<button type="button" class="opt-chip${d[field] === key ? ' is-on' : ''}" data-field="${field}" data-key="${esc(key)}" aria-pressed="${d[field] === key}">${sw ? `<i style="background:${sw}"></i>` : ''}${esc(label)}</button>`;
+  const chip = (field, key, label, sw) => `<button type="button" class="opt-chip${(d[field] ?? '') === key ? ' is-on' : ''}" data-field="${field}" data-key="${esc(key)}" aria-pressed="${(d[field] ?? '') === key}">${sw ? `<i style="background:${sw}"></i>` : ''}${esc(label)}</button>`;
   const choices = shopItem ? `
           <dt>Sheet colour</dt><dd class="pd__chips">${Object.entries(MATERIALS).map(([k, m]) => chip('material', k, m.short || m.label, swatch(m))).join('')}</dd>
           <dt>Size</dt><dd class="pd__chips">${Object.entries(SIZES).map(([k, z]) => chip('size', k, `${z.label} · ${z.total} cm`)).join('')}</dd>
-          <dt>Base</dt><dd class="pd__chips">${Object.entries(BASES).map(([k, b]) => chip('baseKind', k, b.label)).join('')}</dd>` : '';
+          <dt>Base</dt><dd class="pd__chips">${Object.entries(BASES).map(([k, b]) => chip('baseKind', k, b.label)).join('')}</dd>${
+          hasOutfit(d) ? `
+          <dt>Outfit colour</dt><dd class="pd__chips">${chip('outfit', '', 'As drawn', 'conic-gradient(#c4262e 0 25%,#2456c4 0 50%,#1b1b1d 0 75%,#c9a23a 0)')}${
+            OUTFITS.map(o => chip('outfit', o.hex, o.label, o.hex)).join('')}</dd>` : ''}` : '';
 
   // the shop, and more of its trophies
   const shopRatings = sum(Object.values(stats).map(x => x.ratings || 0));
@@ -346,7 +349,8 @@ function renderProduct() {
         <dt>Stock</dt><dd>Made to order</dd>
         <dt>Sheet</dt><dd>${esc(MATERIALS[d.material]?.label || '')}</dd>
         <dt>Size</dt><dd>${esc(SIZES[d.size] ? `${SIZES[d.size].label}, ${SIZES[d.size].total} cm tall with its base` : '')}</dd>
-        <dt>Base</dt><dd>${esc(`${BASES[d.baseKind]?.label || ''}${BASE_FINISHES[d.baseFinish] ? ', ' + BASE_FINISHES[d.baseFinish].label : ''}`)}</dd>
+        <dt>Base</dt><dd>${esc(`${BASES[d.baseKind]?.label || ''}${BASE_FINISHES[d.baseFinish] ? ', ' + BASE_FINISHES[d.baseFinish].label : ''}`)}</dd>${
+        hasOutfit(d) && outfitOk(d.outfit) ? `<dt>Outfit</dt><dd>${esc(outfitLabel(d.outfit))}</dd>` : ''}
         <dt>Wording</dt><dd>${shopItem ? 'Yours. The picture shows a sample; we agree your wording in the proof.' : esc(wording || 'To agree in the proof')}</dd>
         <dt>Ships from</dt><dd>Gloria, Oriental Mindoro</dd>
       </dl>
@@ -843,6 +847,7 @@ function sheetFor(l, p) {
     r16('Sheet', MATERIALS[d.material]?.label || d.material),
     r16('Size', SIZES[d.size] ? `${SIZES[d.size].label} — ${SIZES[d.size].total} cm` : d.size),
     r16('Base', `${BASES[d.baseKind]?.label || d.baseKind}, ${BASE_FINISHES[d.baseFinish]?.label || d.baseFinish}`),
+    ...(hasOutfit(d) && outfitOk(d.outfit) ? [r16('Outfit', outfitLabel(d.outfit))] : []),
     r16('Wording', 'SAMPLE on the shop picture only: get the customer’s own (message or proof)')].join('\n');
   const zone = ZONES[order.zone] || ZONES.pickup;
   return [head, '', 'ORDER',

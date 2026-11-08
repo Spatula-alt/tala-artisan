@@ -5,15 +5,16 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081754';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk, SHOP_GROUPS, shopGroup,
-} from './trophy.js?v=202611081632';
-import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611081632';
-import { simplify } from './cutout.js?v=202611081632';
-import { mountCutEditor } from './cut-editor.js?v=202611081632';
+  figureArt, recolour, loadArtImage, outfitOk, outfitLabel,
+} from './trophy.js?v=202611081754';
+import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611081754';
+import { simplify } from './cutout.js?v=202611081754';
+import { mountCutEditor } from './cut-editor.js?v=202611081754';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -392,6 +393,17 @@ async function mountSticker(box, design, name, opts = {}) {
     try { pa = pieceArt(piece === 'picture' && got.pictureBox ? { ...d, cutBox: got.pictureBox } : d, got[piece]); }
     catch { /* left to add again */ }
   }
+  // a printed figure (owner, 8 Nov): the shop's own print at real size, in the outfit's colour, its clear border round it
+  const fart = piece ? null : figureArt(d.shape, d.variant);
+  let fp = null;
+  if (fart?.hi) {
+    try {
+      let img = await loadArtImage(fart.hi);
+      if (fart.wear && outfitOk(d.outfit)) img = recolour(img, await loadArtImage(fart.wear), d.outfit.toLowerCase());
+      fp = pieceArt(d, img, fart.box);
+    } catch { /* the print is not shown */ }
+    if (box.dataset.n !== n) return;
+  }
 
   const label = SHAPES[d.shape]?.label || 'trophy';
   // opts.own: the shop's own trophy made from a picture -- its picture is changed with "Change the picture"
@@ -423,6 +435,11 @@ async function mountSticker(box, design, name, opts = {}) {
           piece === 'picture' ? 'cropped where they cropped it and ' : ''}cut along ${along}, at real size.</p>
         <div class="stk__btns">${btn(piece, `Add their ${piece}`)}</div>`
       : `<p class="stk__size">Their outline did not come with this request, so their picture cannot be lined up here. Ask them for the file.</p>`}</div>`}
+    ${!fp ? '' : `<div class="stk__piece"><p class="sec-t">Figure print</p>
+      <div class="stk__pic"><img src="${stickerThumb(fp.canvas)}" alt="The figure's own print"></div>
+      <p class="stk__size">${fp.w.toFixed(1)} × ${fp.h.toFixed(1)} cm${outfitOk(d.outfit) ? `, the outfit in ${esc(outfitLabel(d.outfit))}` : ''}.
+        The dashed line is the acrylic's cut: a clear border round the print.</p>
+      <div class="stk__btns">${btn('fsave', 'Save figure print')}${btn('fprint', 'Print at real size')}</div></div>`}
     ${!names.length ? '' : `<div class="stk__piece"><p class="sec-t">Wording on each trophy · ${names.length}</p>
       <p class="stk__size">A different title and name on each one: a ${words ? 'clear wording' : 'base'} sticker for every trophy, all the same size. The one above is trophy 1.</p>
       <ol class="stk__names">${names.map(r => `<li><b>${esc(r.title || '—')}</b>${esc(r.name || '—')}</li>`).join('')}</ol>
@@ -445,6 +462,10 @@ async function mountSticker(box, design, name, opts = {}) {
       opts.onDesign?.(withFiles(design, got));
       mountSticker(box, design, name, opts);
     });
+  }
+  if (fp) {
+    $('[data-stk="fsave"]', box).addEventListener('click', () => saveSticker(fp, `${base}-figure-${fp.w.toFixed(1)}x${fp.h.toFixed(1)}cm`));
+    $('[data-stk="fprint"]', box).addEventListener('click', () => printSticker(fp, `${name || label} · figure`));
   }
   if (pa) {
     $('[data-stk="psave"]', box).addEventListener('click', () => saveSticker(pa, `${base}-${piece}-${pa.w.toFixed(1)}x${pa.h.toFixed(1)}cm`));

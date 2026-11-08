@@ -19,8 +19,8 @@
    design sticker where the 3D trophy wears it. So one design sticker serves
    every trophy of that design; only the wording changes from order to order.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611081632';
-import { CUTS } from './sticker-cuts.js?v=202611081632';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611081754';
+import { CUTS } from './sticker-cuts.js?v=202611081754';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm
@@ -251,9 +251,9 @@ async function stickerOf(cfg) {
    they send, cropped where the designer cropped it (`cutBox`) -- or their
    photo printed over a whole figure. `img` is that file, as an <img>.
    -> as stickerArt, or null when the piece's outline is not known. */
-export function pieceArt(cfg, img) {
+export function pieceArt(cfg, img, box = null) {
   const d = cutOutline(cfg);
-  if (!d || !img?.naturalWidth) return null;
+  if (!d || !(img?.naturalWidth || img?.width)) return null;
   const model = buildTrophy(cfg);
   const dims = model.userData.dims;
   const geo = model.getObjectByName('blade')?.geometry;
@@ -273,8 +273,13 @@ export function pieceArt(cfg, img) {
   g.setTransform(toPx);
   const cut = new Path2D(d);
   g.clip(cut, 'evenodd');
-  const iw = img.naturalWidth, ih = img.naturalHeight;
-  if (cfg.shape === 'custom' && Array.isArray(cfg.cutBox) && cfg.cutAspect > 0) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  if (box) {
+    // a figure's own print (owner, 8 Nov): where polish-figure.py laid it, its box in the cut's units,
+    // inside a clear border -- the dashed line is the acrylic's cut, round it
+    const [x0, y0, x1, y1] = box;
+    g.drawImage(img, x0, y0, x1 - x0, y1 - y0);
+  } else if (cfg.shape === 'custom' && Array.isArray(cfg.cutBox) && cfg.cutAspect > 0) {
     // cutout.js scales its crop to 300 units tall, from the crop's top left corner
     const [bx, by, bw, bh] = cfg.cutBox;
     g.drawImage(img, bx * iw, by * ih, bw * iw, bh * ih, 0, 0, 300 / cfg.cutAspect, 300);
@@ -286,7 +291,7 @@ export function pieceArt(cfg, img) {
   }
   const path = new Path2D();
   path.addPath(cut, toPx);
-  return { canvas, path, w: (u1 - u0) * k, h: (v1 - v0) * k, clear: false };
+  return { canvas, path, w: (u1 - u0) * k, h: (v1 - v0) * k, clear: !!box };
 }
 
 let CRC_TABLE = null;

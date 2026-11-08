@@ -4,16 +4,16 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
-import { hasBadWord } from './wordguard.js?v=202611081632';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081754';
+import { hasBadWord } from './wordguard.js?v=202611081754';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, DECALS, SCHEMES, LAMINATES, FONTS,
   BASES, BASE_FINISHES, PHOTO_FITS,
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
-  standingHeight, printNote,
-} from './trophy.js?v=202611081632';
+  standingHeight, printNote, OUTFITS, hasOutfit, outfitOk,
+} from './trophy.js?v=202611081754';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -27,6 +27,7 @@ const cfg = {
   org: 'Mutya ng Gloria', title: '1st Runner-Up',
   name: 'Maria C. Lualhati', date: '2026',
   photoImg: null, photoFit: 'badge', photoTarget: 'sticker',
+  outfit: null,           // a printed figure's dress, suit or kit in this colour (#rrggbb), or as drawn
   place: null,            // the customer's own sticker placement, or null for the design's box
   cutArt: null, cutPrint: true, cutMode: null, cutAspect: null, cutBox: null,   // "Your art" cut from a picture
   extraSticker: false, logo: false, qty: 6,
@@ -322,7 +323,7 @@ const cut = {
 // "Your art"'s picture (with its art on the trophy) and the photo
 const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611081632'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611081754'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -597,6 +598,7 @@ const GROUPS = [
   ['#optFont',       () => cfg.font],
   ['#optLaminate',   () => cfg.laminate],
   ['#optPhotoTarget',() => cfg.photoTarget],
+  ['#optOutfit',     () => cfg.outfit || ''],
   ['#optPhotoFit',   () => cfg.photoFit],
   ['#optSpeed',      () => cfg.speed],
   ['#optZone',       () => cfg.zone],
@@ -605,7 +607,15 @@ const GROUPS = [
 function markTiles() {
   for (const [sel, get] of GROUPS) {
     const now = get();
-    for (const b of $$(`${sel} .opt`)) b.setAttribute('aria-pressed', String(b.dataset.key === now));
+    for (const b of $$(`${sel} button.opt`)) b.setAttribute('aria-pressed', String(b.dataset.key === now));
+  }
+  // "Your colour": on when the outfit is a colour not in the swatches
+  const pick = $('#optOutfit .opt--pick');
+  if (pick) {
+    const own = outfitOk(cfg.outfit) && !OUTFITS.some(o => o.hex === cfg.outfit);
+    pick.classList.toggle('is-on', own);
+    if (own) { $('.sw', pick).style.background = cfg.outfit; $('input', pick).value = cfg.outfit; }
+    else $('.sw', pick).style.background = '';
   }
 }
 
@@ -614,7 +624,32 @@ const custom = () => { cfg._occasion = null; };
 /* Some cut shapes are offered in more than one pose. The row only appears when
    the chosen shape has any, and each tile draws ITS OWN pose rather than the
    one currently selected — hence the third argument to outlinePath. */
+/* The outfit's colour (owner, 8 Nov: the customer picks the colour of the
+   dress or suit): a printed figure's clothes in any colour -- `cfg.outfit`
+   #rrggbb, or null for the colours it was drawn in. Shown for the figures
+   whose print knows where its clothes are (print-figures.py). */
+function outfitTiles() {
+  const row = $('#outfitRow');
+  if (!row) return;
+  row.hidden = !hasOutfit(cfg);
+  if (row.hidden || $('#optOutfit .opt')) { markTiles(); return; }
+  tiles('#optOutfit', [['', { label: 'As drawn' }], ...OUTFITS.map(o => [o.hex, o])],
+    k => { cfg.outfit = k || null; custom(); rebuild(); },
+    (k, v) => `<span class="sw${k ? '' : ' sw--asis'}"${k ? ` style="background:${k}"` : ''}></span><b>${v.label}</b>`);
+  const pick = document.createElement('label');
+  pick.className = 'opt opt--pick';
+  pick.innerHTML = '<input type="color" value="#2456c4" aria-label="Pick your own outfit colour"><span class="sw sw--pick"></span><b>Your colour</b>';
+  $('#optOutfit').append(pick);
+  let t = 0;
+  $('input', pick).addEventListener('input', e => {
+    clearTimeout(t);
+    t = setTimeout(() => { cfg.outfit = e.target.value.toLowerCase(); custom(); rebuild(); markTiles(); sync(); }, 120);
+  });
+  markTiles();
+}
+
 function poseTiles() {
+  outfitTiles();
   const row = $('#poseRow');
   const names = variantsOf(cfg.shape);
   if (!row) return;
@@ -1502,6 +1537,7 @@ if (ADMIN_MODE) {
     const from = JSON.parse(adminQ.get('from') || 'null');
     if (from && typeof from === 'object' && SHAPES[from.shape] && from.shape !== 'custom') {
       for (const [k, v] of Object.entries(from)) if (k in cfg && (v === null || typeof v !== 'object')) cfg[k] = v;
+      if (!outfitOk(cfg.outfit)) cfg.outfit = null;
       cfg._occasion = null;
       cfg.variant = cfg.variant || 0;
       setVariant(cfg.shape, cfg.variant);
@@ -1548,6 +1584,7 @@ function restoreSpec() {
   }
   cfg._occasion = null;
   cfg.variant = cfg.variant || 0;
+  if (!outfitOk(cfg.outfit)) cfg.outfit = null;
   setVariant(cfg.shape, cfg.variant);
   if (ownCut) {
     setCustomOutline(d.outline);
