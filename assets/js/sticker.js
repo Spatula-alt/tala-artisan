@@ -19,8 +19,8 @@
    design sticker where the 3D trophy wears it. So one design sticker serves
    every trophy of that design; only the wording changes from order to order.
    ══════════════════════════════════════════════════════════════ */
-import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611081754';
-import { CUTS } from './sticker-cuts.js?v=202611081754';
+import { buildTrophy, disposeGroup, cutOutline, DESIGNS, MATERIALS, SCHEMES, DECALS, FONTS, stickerCanvas } from './trophy.js?v=202611082005';
+import { CUTS } from './sticker-cuts.js?v=202611082005';
 
 export const STICKER_DPI = 300;
 const PXCM = STICKER_DPI / 2.54;          // pixels per cm

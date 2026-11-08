@@ -963,7 +963,7 @@ const RUN_M_RUN_TRACE = `M68.8 299.9 L52.1 299.9 L50.2 298.0 L45.5 295.5 L44.1 2
   L77.7 212.3 L77.7 216.0 L76.8 223.3 L74.2 235.1 L70.9 246.3 L67.4 259.9 L67.3 262.3 L67.7 268.3
   L68.8 274.4 L68.4 277.9 L68.4 281.8 L69.9 290.4 Z`;
 
-const RUN_M_RUN_ART = {"src": "img/figures/run-m-run.3d3a2d2b.webp", "box": [-9.44, -1.35, 109.25, 301.04], "clear": true, "wear": "img/figures/run-m-run-wear.30fc24da.png", "hi": "img/figures/run-m-run-hi.f5523a2e.webp"};
+const RUN_M_RUN_ART = {"src": "img/figures/run-m-run.8112431c.webp", "box": [-9.44, -1.35, 109.25, 301.04], "clear": true, "wear": "img/figures/run-m-run-wear.da057de0.png", "hi": "img/figures/run-m-run-hi.fd2a3f33.webp"};
 
 const RUN_W_SPRINT_TRACE = `M75.5 299.9 L55.8 299.9 L54.6 296.7 L50.8 291.9 L49.4 289.3 L48.7 286.3 L48.0 275.9 L46.9 272.7
   L44.4 267.5 L43.9 265.3 L44.0 262.9 L45.0 260.5 L45.9 259.1 L49.5 255.7 L50.0 254.9 L50.6 253.6
@@ -991,7 +991,7 @@ const RUN_W_SPRINT_TRACE = `M75.5 299.9 L55.8 299.9 L54.6 296.7 L50.8 291.9 L49.
   L71.4 259.7 L72.3 261.6 L75.0 265.2 L75.9 267.0 L76.5 269.4 L75.6 277.6 L74.4 281.9 L74.6 284.2
   L75.9 288.0 L76.3 290.7 Z`;
 
-const RUN_W_SPRINT_ART = {"src": "img/figures/run-w-sprint.9124cce9.webp", "box": [-2.88, -1.08, 102.85, 301.16], "clear": true, "wear": "img/figures/run-w-sprint-wear.21f5999d.png", "hi": "img/figures/run-w-sprint-hi.ebf58612.webp"};
+const RUN_W_SPRINT_ART = {"src": "img/figures/run-w-sprint.e6f33a4d.webp", "box": [-2.88, -1.08, 102.85, 301.16], "clear": true, "wear": "img/figures/run-w-sprint-wear.9da8ba1b.png", "hi": "img/figures/run-w-sprint-hi.b59b40d7.webp"};
 
 const BOX_M_VICTORY_TRACE = `M96.3 299.9 L73.4 299.9 L72.7 296.5 L71.5 293.1 L71.4 290.1 L71.8 287.5 L71.8 282.9 L73.3 273.7
   L73.5 267.9 L73.8 265.1 L73.8 262.4 L72.2 253.9 L72.2 251.0 L73.7 246.4 L73.8 243.6 L72.8 238.9
@@ -1020,7 +1020,7 @@ const BOX_M_VICTORY_TRACE = `M96.3 299.9 L73.4 299.9 L72.7 296.5 L71.5 293.1 L71
   L95.0 219.3 L95.5 223.6 L95.8 232.4 L96.4 238.3 L96.0 243.0 L96.0 256.7 L96.2 263.0 L97.2 267.8
   L97.2 273.1 L98.9 281.2 L99.8 288.2 L99.8 290.8 L99.4 292.7 L97.1 297.2 Z`;
 
-const BOX_M_VICTORY_ART = {"src": "img/figures/box-m-victory.eac32255.webp", "box": [-1.75, -1.21, 101.58, 298.87], "clear": true, "wear": "img/figures/box-m-victory-wear.7001305f.png", "hi": "img/figures/box-m-victory-hi.46ee318f.webp"};
+const BOX_M_VICTORY_ART = {"src": "img/figures/box-m-victory.9a27a7c2.webp", "box": [-1.75, -1.21, 101.58, 298.87], "clear": true, "wear": "img/figures/box-m-victory-wear.dbf71e91.png", "hi": "img/figures/box-m-victory-hi.e4bcc66b.webp"};
 
 const BOX_M_CHAMPION_TRACE = `M25.6 299.9 L5.7 299.9 L5.2 295.9 L4.0 291.4 L4.1 288.8 L5.2 284.6 L6.2 282.5 L9.4 277.4
   L11.1 274.2 L12.1 271.6 L13.1 267.7 L13.9 262.5 L13.9 258.5 L13.6 254.0 L13.7 250.5 L14.2 248.7
@@ -1051,7 +1051,7 @@ const BOX_M_CHAMPION_TRACE = `M25.6 299.9 L5.7 299.9 L5.2 295.9 L4.0 291.4 L4.1 
   L37.8 252.5 L37.5 254.5 L36.3 259.1 L35.3 264.2 L35.1 277.9 L34.0 284.5 L33.5 286.1 L31.5 289.6
   L29.5 293.8 L26.8 297.5 Z`;
 
-const BOX_M_CHAMPION_ART = {"src": "img/figures/box-m-champion.5d7319d4.webp", "box": [-8.99, -1.15, 108.95, 298.29], "clear": true, "wear": "img/figures/box-m-champion-wear.5552c3b7.png", "hi": "img/figures/box-m-champion-hi.2ecb710a.webp"};
+const BOX_M_CHAMPION_ART = {"src": "img/figures/box-m-champion.a3c01735.webp", "box": [-8.99, -1.15, 108.95, 298.29], "clear": true, "wear": "img/figures/box-m-champion-wear.088a9dbe.png", "hi": "img/figures/box-m-champion-hi.c50104e0.webp"};
 
 const BOX_W_GUARD_TRACE = `M-3.1 299.9 L-25.5 299.9 L-26.2 297.8 L-28.1 293.8 L-28.3 291.4 L-27.8 289.2 L-26.8 287.2 L-24.3 284.1
   L-21.4 282.0 L-16.0 279.4 L-13.7 278.1 L-9.6 274.3 L-8.2 272.0 L-6.9 267.2 L-5.5 260.6 L-5.1 256.1
@@ -1080,7 +1080,7 @@ const BOX_W_GUARD_TRACE = `M-3.1 299.9 L-25.5 299.9 L-26.2 297.8 L-28.1 293.8 L-
   L20.0 263.0 L19.2 269.0 L18.4 272.9 L18.3 274.6 L19.0 281.5 L18.5 285.8 L17.9 288.5 L17.1 289.8
   L16.1 291.0 L13.5 292.5 L7.2 294.1 L2.3 294.6 L0.0 295.5 L-2.0 297.3 Z`;
 
-const BOX_W_GUARD_ART = {"src": "img/figures/box-w-guard.81644689.webp", "box": [-29.39, -1.2, 129.46, 301.2], "clear": true, "wear": "img/figures/box-w-guard-wear.1f8f8bc5.png", "hi": "img/figures/box-w-guard-hi.7f8a5fc6.webp"};
+const BOX_W_GUARD_ART = {"src": "img/figures/box-w-guard.f8452fd1.webp", "box": [-29.39, -1.2, 129.46, 301.2], "clear": true, "wear": "img/figures/box-w-guard-wear.631699a9.png", "hi": "img/figures/box-w-guard-hi.4f6709ee.webp"};
 
 const BOX_W_READY_TRACE = `M111.0 299.9 L-10.5 299.9 L-10.8 299.8 L-11.0 295.6 L-11.8 291.2 L-11.6 289.5 L-11.1 287.5 L-10.0 285.2
   L-8.9 283.6 L-2.4 277.6 L-1.1 275.5 L-0.6 273.7 L-0.6 272.0 L-1.1 269.5 L-0.8 266.8 L0.4 264.4
@@ -1107,7 +1107,7 @@ const BOX_W_READY_TRACE = `M111.0 299.9 L-10.5 299.9 L-10.8 299.8 L-11.0 295.6 L
   L40.3 203.0 L36.5 213.8 L35.2 225.2 L34.4 228.6 L31.2 237.7 L28.5 249.9 L28.0 255.0 L27.9 260.5
   L26.6 268.0 L25.1 273.5 L25.3 279.3 L25.1 285.0 L26.0 287.5 L27.2 289.0 L29.2 290.2 L31.2 290.7 Z`;
 
-const BOX_W_READY_ART = {"src": "img/figures/box-w-ready.b6480ba1.webp", "box": [-12.77, -1.08, 112.96, 301.1], "clear": true, "wear": "img/figures/box-w-ready-wear.8d6c5a54.png", "hi": "img/figures/box-w-ready-hi.3b5665dc.webp"};
+const BOX_W_READY_ART = {"src": "img/figures/box-w-ready.da5dd02a.webp", "box": [-12.77, -1.08, 112.96, 301.1], "clear": true, "wear": "img/figures/box-w-ready-wear.71e3f136.png", "hi": "img/figures/box-w-ready-hi.95d57159.webp"};
 
 const RUN_W_READY_TRACE = `M13.8 299.9 L-9.6 299.9 L-9.9 298.8 L-10.1 290.7 L-9.2 287.3 L-8.1 285.3 L-4.0 280.4 L-3.2 278.4
   L-2.4 274.2 L-1.8 272.4 L-0.8 270.7 L2.9 266.7 L4.0 264.8 L4.6 263.2 L5.0 260.4 L5.0 251.3
@@ -1133,23 +1133,23 @@ const RUN_W_READY_TRACE = `M13.8 299.9 L-9.6 299.9 L-9.9 298.8 L-10.1 290.7 L-9.
   L25.6 255.5 L23.4 265.7 L23.3 268.5 L23.9 272.7 L24.0 277.6 L25.3 283.8 L24.9 286.8 L24.1 288.7
   L22.3 290.8 L20.9 291.7 L17.3 293.3 L15.7 294.6 L14.6 296.5 Z`;
 
-const RUN_W_READY_ART = {"src": "img/figures/run-w-ready.6429d907.webp", "box": [-11.08, -1.08, 111.11, 301.07], "clear": true, "wear": "img/figures/run-w-ready-wear.82997ebf.png", "hi": "img/figures/run-w-ready-hi.b6ae1ad1.webp"};
+const RUN_W_READY_ART = {"src": "img/figures/run-w-ready.ee09680b.webp", "box": [-11.08, -1.08, 111.11, 301.07], "clear": true, "wear": "img/figures/run-w-ready-wear.5a804f2b.png", "hi": "img/figures/run-w-ready-hi.64bf7427.webp"};
 
-const GENT_ART = {"src": "img/figures/gent.d40f8315.webp", "box": [-3.7, -1.11, 103.85, 300.96], "clear": true, "wear": "img/figures/gent-wear.97b91dcd.png", "hi": "img/figures/gent-hi.ee0a1970.webp"};
+const GENT_ART = {"src": "img/figures/gent.418f1c14.webp", "box": [-3.7, -1.11, 103.85, 300.96], "clear": true, "wear": "img/figures/gent-wear.64c5a09d.png", "hi": "img/figures/gent-hi.85ed147f.webp"};
 
-const LADY_ART = {"src": "img/figures/lady.5129dc70.webp", "box": [2.49, -1.17, 97.56, 301.04], "clear": true, "wear": "img/figures/lady-wear.89c6322a.png", "hi": "img/figures/lady-hi.4a724daf.webp"};
+const LADY_ART = {"src": "img/figures/lady.6c6004c6.webp", "box": [2.49, -1.17, 97.56, 301.04], "clear": true, "wear": "img/figures/lady-wear.9d03cdf0.png", "hi": "img/figures/lady-hi.3f35c4c1.webp"};
 
-const SUIT_ART = {"src": "img/figures/suit.c1343f34.webp", "box": [2.11, -1.15, 98.0, 301.16], "clear": true, "wear": "img/figures/suit-wear.a04af872.png", "hi": "img/figures/suit-hi.3deb67f3.webp"};
+const SUIT_ART = {"src": "img/figures/suit.6453ec54.webp", "box": [2.11, -1.15, 98.0, 301.16], "clear": true, "wear": "img/figures/suit-wear.bc8d0319.png", "hi": "img/figures/suit-hi.aebaa446.webp"};
 
-const GOWN_BALL_ART = {"src": "img/figures/gown-ball.8e06887c.webp", "box": [-50.09, -1.3, 149.87, 301.24], "clear": true, "wear": "img/figures/gown-ball-wear.497429ad.png", "hi": "img/figures/gown-ball-hi.8573afb8.webp"};
+const GOWN_BALL_ART = {"src": "img/figures/gown-ball.ab8aab7d.webp", "box": [-50.09, -1.3, 149.87, 301.24], "clear": true, "wear": "img/figures/gown-ball-wear.936bb776.png", "hi": "img/figures/gown-ball-hi.3996381b.webp"};
 
-const GOWN_TRAIN_ART = {"src": "img/figures/gown-train.4ee0b5d3.webp", "box": [-30.57, -1.33, 130.67, 296.62], "clear": true, "wear": "img/figures/gown-train-wear.09894b71.png", "hi": "img/figures/gown-train-hi.fd31cce1.webp"};
+const GOWN_TRAIN_ART = {"src": "img/figures/gown-train.a29becbc.webp", "box": [-30.57, -1.33, 130.67, 296.62], "clear": true, "wear": "img/figures/gown-train-wear.42f205cc.png", "hi": "img/figures/gown-train-hi.a49b7aea.webp"};
 
-const GOWN_EVENING_ART = {"src": "img/figures/gown-evening.9f22c2f0.webp", "box": [-10.16, -1.28, 110.22, 301.16], "clear": true, "wear": "img/figures/gown-evening-wear.3e00cfc9.png", "hi": "img/figures/gown-evening-hi.dd0df014.webp"};
+const GOWN_EVENING_ART = {"src": "img/figures/gown-evening.bcb7da27.webp", "box": [-10.16, -1.28, 110.22, 301.16], "clear": true, "wear": "img/figures/gown-evening-wear.acb49bea.png", "hi": "img/figures/gown-evening-hi.83d6c589.webp"};
 
-const GOWN_SWEEP_ART = {"src": "img/figures/gown-sweep.b761524f.webp", "box": [-26.26, -1.09, 126.37, 298.32], "clear": true, "wear": "img/figures/gown-sweep-wear.a5c5d9cf.png", "hi": "img/figures/gown-sweep-hi.0d393da0.webp"};
+const GOWN_SWEEP_ART = {"src": "img/figures/gown-sweep.e605fd16.webp", "box": [-26.26, -1.09, 126.37, 298.32], "clear": true, "wear": "img/figures/gown-sweep-wear.3e44d901.png", "hi": "img/figures/gown-sweep-hi.69596040.webp"};
 
-const GRAD_ART = {"src": "img/figures/grad.fcd2271a.webp", "box": [-6.45, -1.1, 106.58, 301.21], "clear": true, "wear": "img/figures/grad-wear.3907ca0f.png", "hi": "img/figures/grad-hi.f253f23a.webp"};
+const GRAD_ART = {"src": "img/figures/grad.3dc22f54.webp", "box": [-6.45, -1.1, 106.58, 301.21], "clear": true, "wear": "img/figures/grad-wear.e93759e0.png", "hi": "img/figures/grad-hi.c487bfd6.webp"};
 
 const GRAD_W_TRACE = `M65.6 299.9 L41.2 299.9 L40.3 297.3 L38.0 293.1 L37.4 289.9 L37.1 273.3 L36.4 269.5 L36.3 263.2
   L29.2 234.4 L27.9 225.6 L27.9 217.1 L27.7 215.8 L26.3 213.2 L24.7 211.8 L22.5 211.0 L17.1 210.2
@@ -1169,7 +1169,7 @@ const GRAD_W_TRACE = `M65.6 299.9 L41.2 299.9 L40.3 297.3 L38.0 293.1 L37.4 289.
   L73.0 231.2 L71.7 241.0 L69.0 256.0 L67.9 263.6 L67.7 273.3 L68.1 276.8 L67.9 285.1 L68.2 290.4
   L67.8 292.6 L66.1 297.1 Z`;
 
-const GRAD_W_ART = {"src": "img/figures/grad-w.e3f80171.webp", "box": [0.72, -1.08, 99.28, 300.96], "clear": true, "wear": "img/figures/grad-w-wear.87cfae0c.png", "hi": "img/figures/grad-w-hi.43e902e5.webp"};
+const GRAD_W_ART = {"src": "img/figures/grad-w.0f441384.webp", "box": [0.72, -1.08, 99.28, 300.96], "clear": true, "wear": "img/figures/grad-w-wear.9101e3ca.png", "hi": "img/figures/grad-w-hi.a97b0773.webp"};
 
 const BALL_W_READY_TRACE = `M109.9 299.9 L89.1 299.9 L88.0 297.3 L84.6 293.2 L81.1 287.1 L79.6 285.8 L76.0 283.6 L73.8 281.9
   L72.1 280.2 L70.8 278.1 L70.1 276.0 L70.2 273.1 L74.3 261.9 L75.6 255.9 L75.8 251.6 L73.5 236.6
@@ -1196,7 +1196,7 @@ const BALL_W_READY_TRACE = `M109.9 299.9 L89.1 299.9 L88.0 297.3 L84.6 293.2 L81
   L97.1 235.6 L96.4 245.3 L96.4 253.5 L96.8 258.5 L97.5 261.3 L100.6 266.9 L102.9 274.2 L103.8 276.5
   L105.3 279.3 L109.2 284.7 L110.6 287.9 L111.1 290.5 L111.1 292.0 L110.4 295.6 Z`;
 
-const BALL_W_READY_ART = {"src": "img/figures/ball-w-ready.770365da.webp", "box": [-12.31, -1.03, 112.4, 301.08], "clear": true, "wear": "img/figures/ball-w-ready-wear.b9b0021e.png", "hi": "img/figures/ball-w-ready-hi.68e9e2dd.webp"};
+const BALL_W_READY_ART = {"src": "img/figures/ball-w-ready.0cddb985.webp", "box": [-12.31, -1.03, 112.4, 301.08], "clear": true, "wear": "img/figures/ball-w-ready-wear.ea54f718.png", "hi": "img/figures/ball-w-ready-hi.fc46f504.webp"};
 
 const VOLLEY_W_READY_TRACE = `M97.5 299.9 L1.4 299.9 L-3.9 296.9 L-5.5 295.0 L-6.5 292.4 L-6.6 288.4 L-6.2 284.6 L-4.3 278.6
   L-2.4 274.0 L-0.8 265.4 L-0.7 257.1 L0.2 250.2 L0.4 242.2 L1.1 233.4 L2.0 227.2 L3.0 223.0
@@ -1222,7 +1222,7 @@ const VOLLEY_W_READY_TRACE = `M97.5 299.9 L1.4 299.9 L-3.9 296.9 L-5.5 295.0 L-6
   L27.4 238.0 L23.2 249.6 L20.8 258.6 L19.8 263.3 L19.5 267.3 L20.0 270.1 L20.0 272.7 L19.5 277.6
   L18.3 282.3 L18.3 285.1 L19.2 287.5 L20.4 289.0 L22.4 290.2 L24.4 290.7 Z`;
 
-const VOLLEY_W_READY_ART = {"src": "img/figures/volley-w-ready.be3efb63.webp", "box": [-14.5, -1.35, 114.5, 301.23], "clear": true, "wear": "img/figures/volley-w-ready-wear.ef3c19a1.png", "hi": "img/figures/volley-w-ready-hi.f1d6495a.webp"};
+const VOLLEY_W_READY_ART = {"src": "img/figures/volley-w-ready.8070c3ed.webp", "box": [-14.5, -1.35, 114.5, 301.23], "clear": true, "wear": "img/figures/volley-w-ready-wear.dff7db49.png", "hi": "img/figures/volley-w-ready-hi.89def79a.webp"};
 
 const VOLLEY_M_READY_TRACE = `M15.6 299.9 L-7.9 299.9 L-8.2 299.8 L-8.8 292.1 L-8.7 289.5 L-8.3 287.6 L-6.8 284.4 L-1.8 278.7
   L-1.1 277.2 L0.0 273.2 L1.9 269.6 L2.4 267.6 L2.9 262.7 L4.1 257.0 L4.4 250.8 L5.2 244.5
@@ -1250,7 +1250,7 @@ const VOLLEY_M_READY_TRACE = `M15.6 299.9 L-7.9 299.9 L-8.2 299.8 L-8.8 292.1 L-
   L35.4 234.5 L34.4 235.8 L33.7 237.3 L31.9 244.0 L28.4 251.3 L27.7 253.3 L25.3 263.8 L24.5 272.1
   L24.6 277.5 L25.2 281.8 L25.2 284.7 L24.7 286.8 L22.9 289.7 L19.7 292.3 L18.1 294.1 L16.5 296.8 Z`;
 
-const VOLLEY_M_READY_ART = {"src": "img/figures/volley-m-ready.2365ae4b.webp", "box": [-14.24, -1.21, 114.22, 301.11], "clear": true, "wear": "img/figures/volley-m-ready-wear.87510755.png", "hi": "img/figures/volley-m-ready-hi.65c49fd5.webp"};
+const VOLLEY_M_READY_ART = {"src": "img/figures/volley-m-ready.2259ed2c.webp", "box": [-14.24, -1.21, 114.22, 301.11], "clear": true, "wear": "img/figures/volley-m-ready-wear.4ca6104c.png", "hi": "img/figures/volley-m-ready-hi.e5eaa8bf.webp"};
 
 const FOOT_M_BALL_TRACE = `M97.6 299.9 L76.5 299.9 L75.2 296.6 L71.8 292.4 L70.0 288.2 L69.2 284.8 L69.9 278.4 L69.9 273.7
   L71.8 267.0 L71.8 264.1 L71.4 261.8 L70.1 255.9 L68.9 248.8 L68.0 245.6 L67.0 243.8 L65.9 242.5
@@ -1277,7 +1277,7 @@ const FOOT_M_BALL_TRACE = `M97.6 299.9 L76.5 299.9 L75.2 296.6 L71.8 292.4 L70.0
   L90.4 265.5 L91.2 268.4 L94.8 275.3 L95.1 277.3 L95.2 279.3 L95.7 281.6 L96.6 283.4 L98.5 286.1
   L99.6 288.8 L99.6 291.3 L98.1 296.5 Z`;
 
-const FOOT_M_BALL_ART = {"src": "img/figures/foot-m-ball.028d78fa.webp", "box": [-12.96, -1.02, 113.16, 301.01], "clear": true, "wear": "img/figures/foot-m-ball-wear.32cfb511.png", "hi": "img/figures/foot-m-ball-hi.7f284640.webp"};
+const FOOT_M_BALL_ART = {"src": "img/figures/foot-m-ball.7efcc576.webp", "box": [-12.96, -1.02, 113.16, 301.01], "clear": true, "wear": "img/figures/foot-m-ball-wear.78209c85.png", "hi": "img/figures/foot-m-ball-hi.fc2a8495.webp"};
 
 const FOOT_W_BALL_TRACE = `M88.4 299.9 L69.3 299.9 L68.8 296.6 L67.4 293.7 L65.3 291.7 L62.8 290.9 L61.3 290.9 L59.3 291.5
   L54.1 295.2 L51.2 296.6 L47.4 297.7 L42.9 298.4 L39.4 298.1 L34.3 297.0 L32.2 296.3 L28.2 294.0
@@ -1305,7 +1305,7 @@ const FOOT_W_BALL_TRACE = `M88.4 299.9 L69.3 299.9 L68.8 296.6 L67.4 293.7 L65.3
   L37.2 247.6 L37.8 249.0 L38.8 250.2 L40.0 251.2 L42.2 252.0 L48.0 252.8 L51.3 253.9 L56.4 256.8
   L60.0 260.4 L62.2 262.1 L64.7 263.0 Z`;
 
-const FOOT_W_BALL_ART = {"src": "img/figures/foot-w-ball.5d62f2ed.webp", "box": [-11.27, -1.26, 111.41, 301.25], "clear": true, "wear": "img/figures/foot-w-ball-wear.213e7113.png", "hi": "img/figures/foot-w-ball-hi.280a51fb.webp"};
+const FOOT_W_BALL_ART = {"src": "img/figures/foot-w-ball.86fa9a9c.webp", "box": [-11.27, -1.26, 111.41, 301.25], "clear": true, "wear": "img/figures/foot-w-ball-wear.fee65c57.png", "hi": "img/figures/foot-w-ball-hi.a47b9136.webp"};
 
 const BALL_M_READY_TRACE = `M32.6 299.9 L6.7 299.9 L6.4 298.8 L6.2 292.2 L6.8 288.4 L8.2 284.5 L10.3 280.3 L11.1 277.8
   L12.0 274.3 L12.1 270.7 L12.5 268.9 L15.1 264.9 L15.9 263.2 L16.1 261.7 L15.9 253.7 L16.3 250.9
@@ -1332,7 +1332,7 @@ const BALL_M_READY_TRACE = `M32.6 299.9 L6.7 299.9 L6.4 298.8 L6.2 292.2 L6.8 28
   L44.1 211.1 L42.8 217.6 L42.4 226.0 L41.8 231.2 L40.8 234.9 L38.9 239.8 L36.6 250.0 L35.0 264.5
   L35.5 268.4 L35.6 272.3 L36.4 277.5 L36.7 288.2 L36.1 290.5 L33.4 295.3 Z`;
 
-const BALL_M_READY_ART = {"src": "img/figures/ball-m-ready.eb3fba91.webp", "box": [5.1, -1.16, 94.91, 300.57], "clear": true, "wear": "img/figures/ball-m-ready-wear.b35167eb.png", "hi": "img/figures/ball-m-ready-hi.de58eb4f.webp"};
+const BALL_M_READY_ART = {"src": "img/figures/ball-m-ready.b42220aa.webp", "box": [5.1, -1.16, 94.91, 300.57], "clear": true, "wear": "img/figures/ball-m-ready-wear.29bf794c.png", "hi": "img/figures/ball-m-ready-hi.2494265b.webp"};
 
 const FIGURES = {
   /* Each figure: its cut (`path`, or `paths` one per pose), the colour print
@@ -1719,16 +1719,16 @@ function designEntries() {
 
 export const SHAPES = {
   ...designEntries(),
-  lady:     { group: 'Figures', label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration, no face: a lady in a red dress and heels.' },
-  gown:     { group: 'Figures', label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with no face. Mutya, Mr & Ms and coronation nights.' },
-  gent:     { group: 'Figures', label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration, no face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
-  suit:     { group: 'Figures', label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face: a man in a charcoal suit and tie. The partner to the Lady.' },
-  grad:     { group: 'Figures', label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, in gown and cap. For recognition day.' },
-  ball:     { group: 'Figures', label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The liga favourite.' },
-  volley:   { group: 'Figures', label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball in hand. The school and liga favourite.' },
-  box:      { group: 'Figures', label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. For boxing and arnis tournaments.' },
-  foot:     { group: 'Figures', label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women, the ball at their feet. Also used for futsal.' },
-  run:      { group: 'Figures', label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration, no face, men and women. Covers track, fun runs and Palaro.' },
+  lady:     { group: 'Figures', label: 'Lady',      build: ladyShape,     base: 1.30, decal: { onBase: true },              note: 'Full-colour illustration with a face: a lady in a red dress and heels.' },
+  gown:     { group: 'Figures', label: 'Gown',      build: gownShape,     base: 1.24, decal: { onBase: true },              note: 'Four gowns, a full-colour illustration with a face. Mutya, Mr & Ms and coronation nights.' },
+  gent:     { group: 'Figures', label: 'Gentleman', build: gentShape,     base: 1.22, decal: { onBase: true },              note: 'Full-colour illustration with a face: a gentleman in a black tuxedo. The pageant partner to the Lady.' },
+  suit:     { group: 'Figures', label: 'Suit',       build: suitShape,    base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration with a face: a man in a charcoal suit and tie. The partner to the Lady.' },
+  grad:     { group: 'Figures', label: 'Graduate',  build: gradShape,     base: 1.42, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women, in gown and cap. For recognition day.' },
+  ball:     { group: 'Figures', label: 'Basketball',build: ballShape,     base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women, the ball in hand. The liga favourite.' },
+  volley:   { group: 'Figures', label: 'Volleyball',build: volleyShape,  base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women, the ball in hand. The school and liga favourite.' },
+  box:      { group: 'Figures', label: 'Boxing',    build: boxShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women. For boxing and arnis tournaments.' },
+  foot:     { group: 'Figures', label: 'Football',  build: footShape,     base: 1.28, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women, with the ball. Also used for futsal.' },
+  run:      { group: 'Figures', label: 'Athletics', build: runShape,      base: 1.26, decal: { onBase: true },              note: 'Full-colour illustration with a face, men and women. Covers track, fun runs and Palaro.' },
   custom:   { label: 'Your art',  build: customShape,   base: 1.30, decal: { onBase: true },              note: 'Cut to your own outline — drop an SVG in the sticker step.' },
 };
 
