@@ -10,7 +10,7 @@
    base. Here the mask is trimmed at the base line, painted by hand, and cut
    again (finishCut) after every change; the cut goes back through onCut.
    ══════════════════════════════════════════════════════════════ */
-import { readImage, autoMask, maskPlain, finishCut, findBase, fillHoles } from './cutout.js?v=202611072231';
+import { readImage, autoMask, maskPlain, finishCut, findBase, fillHoles } from './cutout.js?v=202611081632';
 
 const TYPES = /^image\/(png|jpeg|webp)$/;
 const MAX_MB = 10;

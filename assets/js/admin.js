@@ -5,15 +5,15 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
-  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk,
-} from './trophy.js?v=202611072231';
-import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611072231';
-import { simplify } from './cutout.js?v=202611072231';
-import { mountCutEditor } from './cut-editor.js?v=202611072231';
+  SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk, SHOP_GROUPS, shopGroup,
+} from './trophy.js?v=202611081632';
+import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611081632';
+import { simplify } from './cutout.js?v=202611081632';
+import { mountCutEditor } from './cut-editor.js?v=202611081632';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -1613,6 +1613,8 @@ function openItem(orig) {
           <label class="fld">Price (₱)<input name="price" type="number" min="0" step="5" inputmode="numeric" value="${it.price ?? ''}"><small id="autoP"></small></label>
           <label class="fld">Order<input name="sort" type="number" step="1" value="${it.sort ?? 100}"><small>Smaller comes first.</small></label>
         </div>
+        <label class="fld">Group<select name="group">${SHOP_GROUPS.map(g => `<option${g === shopGroup(it.design) ? ' selected' : ''}>${g}</option>`).join('')}</select>
+          <small>Where it is sorted under "See all" on the website.</small></label>
         <label class="switch"><input type="checkbox" name="published"${it.published ? ' checked' : ''}> Show on the website</label>
         <div><p class="sec-t">Photos</p>
           <div class="photos" id="photos"></div>
@@ -1648,8 +1650,12 @@ function openItem(orig) {
   const f = $('form', dlg);
   let dispose = () => {};
   let saved = false;
+  // the group follows the design until the owner picks one
+  let groupPicked = false;
+  f.group.addEventListener('change', () => { groupPicked = true; });
 
   const showDesign = () => {
+    if (!groupPicked) f.group.value = shopGroup(it.design);
     dispose();
     dispose = mount3D($('#v3d', dlg), it.design);
     // a picture-made trophy's print is its own cut-out picture
@@ -1779,6 +1785,11 @@ function openItem(orig) {
       published: f.published.checked, design: it.design ? design : null, images: it.images,
     };
     if (row.published && !row.images.length && !row.design) { toast('Add a photo or a 3D design before showing it on the website.', true); return; }
+    // the group goes with the design, kept only when it is not the shape's own
+    if (row.design) {
+      const { group: _g, ...rest } = row.design;
+      row.design = f.group.value !== shopGroup(rest) && SHOP_GROUPS.includes(f.group.value) ? { ...rest, group: f.group.value } : rest;
+    }
     const btn = $('#save', dlg); btn.disabled = true;
     try {
       if (it.design?.cutArt) {

@@ -13,9 +13,10 @@
    ══════════════════════════════════════════════════════════════ */
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
-  buildTrophy, disposeGroup, artReady, shopDesignOk,
-} from './trophy.js?v=202611072231';
-import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
+  buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup,
+} from './trophy.js?v=202611081632';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
+import { hasBadWord } from './wordguard.js?v=202611081632';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -274,9 +275,11 @@ function renderProduct() {
   same.push(...fill.map(catCard));
   const alsoLike = photographed.filter(k => !fill.includes(k)).slice(0, 12).map(catCard);
   const wording = [d.org, d.title, d.name, d.date].filter(Boolean).join(' / ');
+  // a shop trophy sits under the group the owner gave it, as in "See all"; More is no group
+  const grp = shopItem ? (g => (g === 'More' ? '' : g))(shopGroup(d)) : sh.group || 'Your art';
 
   box.innerHTML = `
-    ${shopItem ? `<p class="pd__crumbs"><a href="./">Tala Artisan</a> › <a href="./#shop">Trophies</a> › ${esc(sh.group || 'Your art')} › <span>${esc(it.summary?.title || sh.label)}</span></p>` : ''}
+    ${shopItem ? `<p class="pd__crumbs"><a href="./">Tala Artisan</a> › <a href="./#shop">Trophies</a> › ${grp ? `${esc(grp)} › ` : ''}<span>${esc(it.summary?.title || sh.label)}</span></p>` : ''}
     <div class="pd__top">
       <div class="pd__media">
         <div class="pd__pic${main ? '' : ' is-wait'}">${main ? `<img id="pdMain" src="${esc(main)}" alt="${esc(it.summary?.title || sh.label || 'The trophy')}">` : '<span>Drawing your trophy…</span>'}</div>
@@ -339,7 +342,7 @@ function renderProduct() {
     <div class="pd__card pd__sec">
       <h3>Product specifications</h3>
       <dl class="pd__spec">
-        <dt>Category</dt><dd><a href="./#shop">Tala Artisan</a> › Trophies › ${esc(sh.group || 'Your art')}</dd>
+        <dt>Category</dt><dd><a href="./#shop">Tala Artisan</a> › Trophies${grp ? ` › ${esc(grp)}` : ''}</dd>
         <dt>Stock</dt><dd>Made to order</dd>
         <dt>Sheet</dt><dd>${esc(MATERIALS[d.material]?.label || '')}</dd>
         <dt>Size</dt><dd>${esc(SIZES[d.size] ? `${SIZES[d.size].label}, ${SIZES[d.size].total} cm tall with its base` : '')}</dd>
@@ -522,7 +525,7 @@ const stars = r => `<span class="stars" aria-label="${r.toFixed(1)} out of 5">${
 const reviewsOf = {};
 async function showReviews(shape) {
   const list = await (reviewsOf[shape] ||= rpc('trophy_reviews', { p_shape: shape })
-    .then(a => (Array.isArray(a) ? a.filter(r => r && r.rating >= 1 && r.rating <= 5) : [])).catch(() => []));
+    .then(a => (Array.isArray(a) ? a.filter(r => r && r.rating >= 1 && r.rating <= 5 && !hasBadWord(r.comment, r.name)) : [])).catch(() => []));
   const box = $('#rtList'), filters = $('#rtFilters');
   if (!box || !filters || !list.length || incoming?.design.shape !== shape) return;
   for (const n of [1, 2, 3, 4, 5]) $(`[data-rc="${n}"]`, filters).textContent = list.filter(r => r.rating === n).length;
@@ -641,6 +644,7 @@ function renderOrders(rateRef) {
       e.preventDefault();
       const note = $('.co__note', f);
       if (!rating) { note.textContent = 'Tap the stars first.'; return; }
+      if (hasBadWord(f.comment.value)) { note.textContent = 'Please leave out offensive words.'; return; }
       note.textContent = 'Sending…';
       try {
         const ok = await rpc('review_submit', { p_ref: li.dataset.ref, p_rating: rating, p_comment: f.comment.value.trim() || null });
@@ -868,6 +872,11 @@ async function placeOrder() {
   const items = cart.filter(i => i.on);
   if (!items.length) return;
   if (!LIVE) { msg.textContent = 'Online orders are not switched on yet. Please message the shop.'; msg.className = 'form__msg err'; return; }
+  // a word that cannot go on a trophy (wordguard.js): the designer stops it, and so does the order
+  const lines = d => [d?.org, d?.title, d?.name, d?.date, ...(Array.isArray(d?.names) ? d.names.flatMap(r => [r?.title, r?.name]) : [])];
+  if (items.some(i => i.text && hasBadWord(...lines(i.design)))) {
+    msg.textContent = 'A trophy\'s wording has a word we can\'t print. Change its design first.'; msg.className = 'form__msg err'; return;
+  }
   const btn = $('#placeOrder');
   btn.disabled = true; msg.textContent = 'Placing your order…'; msg.className = 'form__msg';
   try {

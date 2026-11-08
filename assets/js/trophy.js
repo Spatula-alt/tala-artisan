@@ -1833,6 +1833,11 @@ export function shopArtOk(url) {
   return !!base && typeof url === 'string' && url.startsWith(dir) && /^[\w.-]+$/.test(url.slice(dir.length));
 }
 // a shop item's design the site can show: a designer trophy, or one made from a picture with its outline and cut-out
+/* The headings the shop's "See all" sorts its trophies under. A shop trophy
+   sits under its shape's, unless the owner picked another in the Admin Deck
+   (design.group, owner 8 Nov); a picture-made one has no shape group: More. */
+export const SHOP_GROUPS = ['Classic', 'Rounds', 'Stars', 'Curves', 'Figures', 'More'];
+export const shopGroup = d => (SHOP_GROUPS.includes(d?.group) ? d.group : SHAPES[d?.shape]?.group || 'More');
 export const shopDesignOk = d => !!(d && typeof d === 'object' && SHAPES[d.shape]
   && (d.shape !== 'custom' || (typeof d.outline === 'string' && shopArtOk(d.cutUrl))));
 function shopArt(cfg) {

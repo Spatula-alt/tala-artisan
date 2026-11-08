@@ -153,6 +153,8 @@
 .eng__f small.over{color:var(--bad)}
 .eng__f input{padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);font-size:.9rem}
 .eng__f input:focus{outline:none;border-color:var(--ink)}
+.eng__f input.is-bad,.each__row input.is-bad{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.eng__bad{color:var(--bad);margin-top:8px}
 
 /* a different name or title on each trophy: one row per trophy */
 .each{display:grid;gap:10px;margin-top:10px}

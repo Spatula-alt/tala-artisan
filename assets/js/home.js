@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
-import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611072231';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
+import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, shopGroup, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611081632';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -188,7 +188,7 @@ async function loadShop() {
   const shapeOf = c => { try { return JSON.parse(c.dataset.cfg).shape; } catch { return null; } };
   const inShop = new Set([...items.map(r => designOf(r)?.shape), ...$$('.card[data-cfg]', grid).map(shapeOf)].filter(Boolean));
   const cat = Object.keys(SHAPES).filter(k => k !== 'custom' && !inShop.has(k));
-  const groupOf = r => SHAPES[designOf(r)?.shape]?.group || 'More';
+  const groupOf = r => shopGroup(designOf(r));
   grid.insertAdjacentHTML('beforeend', [...new Set([...GROUP_ORDER, ...rest.map(groupOf)])].map(g => {
     const gs = rest.filter(r => groupOf(r) === g), cs = cat.filter(k => (SHAPES[k].group || 'Figures') === g);
     return gs.length || cs.length ? `<h3 class="grid__g is-more">${escH(g)}</h3>${gs.map(r => card(r, true)).join('')}${cs.map(catCard).join('')}` : '';

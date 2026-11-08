@@ -4,7 +4,8 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611072231';
+import { createViewer, webglAvailable } from './viewer.js?v=202611081632';
+import { hasBadWord } from './wordguard.js?v=202611081632';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -12,7 +13,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote,
-} from './trophy.js?v=202611072231';
+} from './trophy.js?v=202611081632';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -321,7 +322,7 @@ const cut = {
 // "Your art"'s picture (with its art on the trophy) and the photo
 const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611072231'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611081632'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -779,6 +780,26 @@ const EACH_MAX = 200;
 let pick = 0;                                   // the row the 3D shows
 const eachOn = () => Array.isArray(cfg.names);
 
+/* Words that cannot go on a trophy (wordguard.js, owner 8 Nov): every line is
+   checked as it is typed, a line with one is marked, and the design cannot be
+   sent to the studio until it is changed. Not when the shop designs its own
+   trophies here (?admin=1). -> the first marked line, or null */
+const CHECK_WORDS = new URLSearchParams(location.search).get('admin') !== '1';
+function wordCheck() {
+  if (!CHECK_WORDS) return null;
+  const lines = [...['fOrg', ...(eachOn() ? [] : ['fTitle', 'fName']), 'fDate'].map(id => $('#' + id)), ...$$('#eachRows input')];
+  let first = null;
+  for (const el of $$('.eng input, #eachRows input')) {
+    const bad = lines.includes(el) && hasBadWord(el.value);
+    el.classList.toggle('is-bad', bad);
+    if (bad) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid');
+    if (bad && !first) first = el;
+  }
+  const note = $('#wordBad');
+  if (note) note.hidden = !first;
+  return first;
+}
+
 function showEach() {
   const on = eachOn();
   $('#fEach').checked = on;
@@ -832,6 +853,7 @@ function setEach(on) {
   custom();
   showEach();
   if (on) { pickRow(0); listQty(); } else { repaintSticker(); sync(); }
+  wordCheck();
 }
 /* "Paste a list": a line per trophy -- title, then a tab (two columns from a
    spreadsheet), " - " or a comma, then the name; a line with no title keeps the
@@ -862,6 +884,7 @@ function wireEach() {
     if (!li) return;
     const r = cfg.names[+li.dataset.i];
     if (e.target.classList.contains('each__t')) r.title = e.target.value; else r.name = e.target.value;
+    wordCheck();
     clearTimeout(textTimer);
     textTimer = setTimeout(() => pickRow(+li.dataset.i), 140);
   });
@@ -870,7 +893,7 @@ function wireEach() {
     if (!x || cfg.names.length < 2) return;
     cfg.names.splice(+x.closest('.each__row').dataset.i, 1);
     pick = Math.min(pick, cfg.names.length - 1);
-    showEach(); pickRow(pick); listQty();
+    showEach(); pickRow(pick); listQty(); wordCheck();
   });
   $('#eachAdd')?.addEventListener('click', () => {
     if (cfg.names.length >= EACH_MAX) { $('#eachNote').textContent = `Up to ${EACH_MAX} on one order: send the rest in another order, or message us.`; return; }
@@ -886,7 +909,7 @@ function wireEach() {
     if (!list.length) { $('#eachText').focus(); return; }
     cfg.names = list; pick = 0;
     $('#eachPaste').hidden = true; $('#eachText').value = '';
-    showEach(); pickRow(0); listQty();
+    showEach(); pickRow(0); listQty(); wordCheck();
   });
 }
 
@@ -1007,6 +1030,7 @@ function bindText(id, key) {
     cfg[key] = el.value;
     custom();
     countField(id);
+    wordCheck();
     clearTimeout(textTimer);
     textTimer = setTimeout(() => { repaintSticker(); markTiles(); sync(); }, 140);
   });
@@ -1365,6 +1389,14 @@ function stagePicture(src) {
 }
 
 async function sendToStudio() {
+  const bad = wordCheck();
+  if (bad) {
+    const step = bad.closest('details');
+    if (step) step.open = true;
+    bad.scrollIntoView({ block: 'center' });
+    bad.focus({ preventScroll: true });
+    return;
+  }
   const design = await fitDesign(designSpec()), text = specText(), summary = orderSummary();
   let files = null;
   try { files = await orderFiles(); } catch (err) { console.warn('[tala] pictures not packed:', err); }
