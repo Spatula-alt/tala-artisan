@@ -14,9 +14,9 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup, OUTFITS, hasOutfit, outfitOk, outfitLabel,
-} from './trophy.js?v=202611082218';
-import { createViewer, webglAvailable } from './viewer.js?v=202611082218';
-import { hasBadWord } from './wordguard.js?v=202611082218';
+} from './trophy.js?v=202611091333';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091333';
+import { hasBadWord } from './wordguard.js?v=202611091333';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');

@@ -5,16 +5,16 @@
    this browser. Requests come from the quote form; shop trophies are
    what the home page's shop grid shows.
    ══════════════════════════════════════════════════════════════ */
-import { createViewer, webglAvailable } from './viewer.js?v=202611082218';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091333';
 import {
   buildTrophy, disposeGroup, price, peso,
   SHAPES, MATERIALS, SIZES, BASES, BASE_FINISHES, SCHEMES, DECALS, LAMINATES,
   SPEEDS, ZONES, PAYMENTS, variantsOf, standingHeight, printNote, artReady, shopArtOk, SHOP_GROUPS, shopGroup,
   figureArt, recolour, loadArtImage, outfitOk, outfitLabel,
-} from './trophy.js?v=202611082218';
-import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611082218';
-import { simplify } from './cutout.js?v=202611082218';
-import { mountCutEditor } from './cut-editor.js?v=202611082218';
+} from './trophy.js?v=202611091333';
+import { stickerArt, eachWording, pieceArt, pngAtDpi, STICKER_DPI } from './sticker.js?v=202611091333';
+import { simplify } from './cutout.js?v=202611091333';
+import { mountCutEditor } from './cut-editor.js?v=202611091333';
 
 const C = window.TALA_CONFIG || {};
 const URL_ = String(C.supabaseUrl || '').replace(/\/+$/, '');
