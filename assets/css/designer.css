@@ -283,6 +283,12 @@
 /* sticker placement */
 .place{display:grid;gap:10px;margin-top:6px}
 .place__row{display:grid;grid-template-columns:64px 1fr 48px;align-items:center;gap:12px;font-size:.92rem}
+/* a cut from the customer's picture slides along its base, as in the Admin Deck (owner, 9 Nov) */
+.cut__slide{display:grid;grid-template-columns:auto 1fr 5.6em auto;align-items:center;gap:10px;margin-top:14px;font-size:.92rem;color:var(--ink-2)}
+.cut__slide[hidden]{display:none}
+.cut__slide input{width:100%;min-width:0;accent-color:var(--ink)}
+.cut__slide output{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+@media (max-width:420px){.cut__slide{grid-template-columns:auto 1fr 5.6em}.cut__slide button{grid-column:1/-1;justify-self:start}}
 .place__row input{width:100%;accent-color:var(--ink)}
 .place__row output{font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
 .place__btns{display:flex;gap:8px}
@@ -304,6 +310,22 @@
   background:repeating-conic-gradient(#e7e4dc 0 25%,#fbfaf7 0 50%) 50%/20px 20px}
 .cut__check{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:.95rem}
 @media (max-width:720px){.opts--3{grid-template-columns:1fr}}
+#optBrush{grid-template-columns:repeat(3,1fr)}   /* Move / Erase / Keep stay side by side, as in the Admin Deck */
 
 .cut__tools{margin-top:10px}
 #cutPrev.is-painting{cursor:crosshair;touch-action:none}
+/* zoomed in, the picture is looked round by dragging (owner, 9 Nov) */
+#cutPrev.is-zoomed{touch-action:none}
+#cutPrev.is-zoomed:not(.is-painting){cursor:grab}
+#cutPrev.is-panning{cursor:grabbing}
+.cut__drop{position:relative}
+.cut__x{position:absolute;top:8px;right:8px;z-index:2;display:grid;place-items:center;width:32px;height:32px;padding:0;
+  border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);font-size:1.2rem;line-height:1;cursor:pointer;
+  box-shadow:0 1px 4px rgba(21,20,15,.1)}
+.cut__x:hover,.cut__x:focus-visible{border-color:var(--ink)}
+.cut__x[hidden]{display:none}
+.cut__zoom{display:grid;grid-template-columns:auto auto 1fr auto 3.4em auto;align-items:center;gap:8px;margin-top:12px;font-size:.92rem;color:var(--ink-2)}
+.cut__zoom input{width:100%;min-width:0;accent-color:var(--ink)}
+.cut__zoom output{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cut__zb{min-width:34px;padding-inline:0}
+@media (max-width:420px){.cut__zoom{grid-template-columns:auto 1fr auto 3.4em auto}.cut__zoom>span{grid-column:1/-1}}   /* a phone: a longer zoom bar */

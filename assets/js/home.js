@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611091458';
-import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, shopGroup, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611091458';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091615';
+import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, shopGroup, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611091615';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -237,6 +237,11 @@ async function bakeThumbnails() {
     capture: true, fixed: { w: W, h: H }, loop: false,
     interactive: false, maxDpr: 1,
   });
+  const base = viewer.getHome();
+  /* A figure, or a picture, is printed on its front: its card shows it facing forward (owner,
+     9 Nov, of the Pageant Lady turned to one side: "facing forward", "like this position"). A
+     panel keeps the three-quarter view that shows its layers. */
+  const faceOn = cfg => !!SHAPES[cfg.shape]?.decal?.onBase;
 
   for (const card of cards) {
     const viz = card.querySelector('.viz');
@@ -250,6 +255,7 @@ async function bakeThumbnails() {
       await Promise.race([artReady(cfg), new Promise(r => setTimeout(r, 4000))]);
       const model = buildTrophy(cfg);
       viewer.scene.add(model);
+      viewer.setView({ az: faceOn(cfg) ? 0 : base.az, pol: base.pol });   // framing keeps the view it finds
       viewer.frameObject(model);
       viewer.renderNow();
 

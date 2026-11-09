@@ -14,9 +14,9 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup, OUTFITS, hasOutfit, outfitOk, outfitLabel,
-} from './trophy.js?v=202611091458';
-import { createViewer, webglAvailable } from './viewer.js?v=202611091458';
-import { hasBadWord } from './wordguard.js?v=202611091458';
+} from './trophy.js?v=202611091615';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091615';
+import { hasBadWord } from './wordguard.js?v=202611091615';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -461,7 +461,10 @@ function renderProduct() {
    product's own picture first. Kept for the visit (sessionStorage), so a
    trophy opened from "From the same shop" shows its picture at once. */
 const WEBGL = webglAvailable();
-const STILLS = 'tala.stills';
+const STILLS = 'tala.stills.2';                       // .2: figures drawn facing forward (9 Nov)
+/* A figure, or a picture, is printed on its front: it is shown facing forward (owner, 9 Nov:
+   "facing forward", "like this position"). A panel keeps the three-quarter view of its layers. */
+const faceOn = d => !!SHAPES[d?.shape]?.decal?.onBase;
 const stillDone = new Map((() => {
   try { const a = JSON.parse(sessionStorage.getItem(STILLS)); return Array.isArray(a) ? a : []; } catch { return []; }
 })().filter(e => Array.isArray(e) && typeof e[0] === 'string' && picOk(e[1]) && e[1].startsWith('data:')));
@@ -485,15 +488,19 @@ function mount3D(pic, design, key) {
     const canvas = Object.assign(document.createElement('canvas'), { className: 'pd__canvas', tabIndex: 0 });
     canvas.setAttribute('role', 'img');
     canvas.setAttribute('aria-label', 'The trophy in 3D. Drag to turn it, scroll to zoom; the arrow keys turn it too.');
-    pd3d = { canvas, viewer: null, model: null, key: null };
+    pd3d = { canvas, viewer: null, model: null, key: null, base: null };
   }
   pic.prepend(pd3d.canvas);
-  if (!pd3d.viewer) pd3d.viewer = createViewer(pd3d.canvas, { autoRotate: true, maxDpr: 2 });
+  if (!pd3d.viewer) {
+    pd3d.viewer = createViewer(pd3d.canvas, { autoRotate: true, maxDpr: 2 });
+    pd3d.base = pd3d.viewer.getHome();
+  }
   pd3d.viewer.resize();
   if (pd3d.key !== key) {
     if (pd3d.model) { pd3d.viewer.scene.remove(pd3d.model); disposeGroup(pd3d.model); }
     pd3d.model = buildTrophy(design);
     pd3d.viewer.scene.add(pd3d.model);
+    pd3d.viewer.setView({ az: faceOn(design) ? 0 : pd3d.base.az, pol: pd3d.base.pol });   // its sway turns round this
     pd3d.viewer.frameObject(pd3d.model);
     pd3d.key = key;
   }
@@ -590,9 +597,9 @@ async function drawStill(design, angle = null) {
   const model = buildTrophy(design);
   try {
     stillViewer.scene.add(model);
-    stillViewer.setView({ az: stillHome.az, pol: stillHome.pol });   // framing keeps the view it finds
+    // framing keeps the view it finds: a side's own, else forward for a figure, else the three-quarter view
+    stillViewer.setView({ az: angle ? angle.az : faceOn(design) ? 0 : stillHome.az, pol: angle?.pol ?? stillHome.pol });
     stillViewer.frameObject(model);
-    if (angle) stillViewer.setView({ az: angle.az, pol: angle.pol ?? stillHome.pol });
     stillViewer.renderNow();
     const out = Object.assign(document.createElement('canvas'), { width: W, height: H });
     const g = out.getContext('2d');

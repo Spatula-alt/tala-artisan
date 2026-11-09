@@ -4,8 +4,8 @@
    dropped photo only repaint the sticker, so the preview keeps up.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611091458';
-import { hasBadWord } from './wordguard.js?v=202611091458';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091615';
+import { hasBadWord } from './wordguard.js?v=202611091615';
 import {
   buildTrophy, disposeGroup, setSticker,
   SHAPES, MATERIALS, SIZES, DECALS, SCHEMES, LAMINATES, FONTS,
@@ -13,7 +13,7 @@ import {
   OCCASIONS, SPEEDS, ZONES, PAYMENTS, QTY_TIERS,
   quote, peso, fmtDate, setCustomOutline, customOutline, outlinePath, goldPath, tileArt, setVariant, variantsOf, groupsOf, groupOf, isStyled,
   standingHeight, printNote, OUTFITS, hasOutfit, outfitOk,
-} from './trophy.js?v=202611091458';
+} from './trophy.js?v=202611091615';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -30,6 +30,7 @@ const cfg = {
   outfit: null,           // a printed figure's dress, suit or kit in this colour (#rrggbb), or as drawn
   place: null,            // the customer's own sticker placement, or null for the design's box
   cutArt: null, cutPrint: true, cutMode: null, cutAspect: null, cutBox: null,   // "Your art" cut from a picture
+  shift: null,            // that cut slid along its base: -1 (left) .. 1 (right); null = its feet in the middle
   extraSticker: false, logo: false, qty: 6,
   names: null,            // a different title and name on each trophy: [{ title, name }], one per piece (see "each")
   speed: 'standard', zone: 'province', payment: 'cash',
@@ -318,12 +319,14 @@ const cut = {
   img: null, url: null, c: null, m: null, auto: null, mode: null,
   detail: 0, result: null, busy: false,     // 0 = smoothest edge; the owner found more detail only roughened it
   hand: false, brush: 'erase', size: 18, history: [], future: [],
+  z: 1, px: 0, py: 0,                       // the preview zoomed z times, moved px/py (preview pixels)
+  before: null,                             // the shape the trophy had before the picture became its cut
 };
 // the pictures as they came back from the cart (restoreSpec), sent again as they are while they are still in use:
 // "Your art"'s picture (with its art on the trophy) and the photo
 const restored = { picture: null, art: null, photo: null, photoImg: null };
 let cutMod = null;
-const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611091458'));
+const cutLib = async () => cutMod || (cutMod = await import('./cutout.js?v=202611091615'));
 
 function cutNote(text, bad = false) {
   const el = $('#cutMsg');
@@ -345,8 +348,40 @@ function heightCm() {
 function cutView() {
   const S = $('#cutPrev').width, c = cut.c;
   const k = Math.min((S - 16) / c.width, (S - 16) / c.height);
-  return { S, k, ox: (S - c.width * k) / 2, oy: (S - c.height * k) / 2 };
+  const z = cut.z || 1;
+  return { S, k: k * z, ox: (S - c.width * k) / 2 * z + cut.px, oy: (S - c.height * k) / 2 * z + cut.py };
 }
+
+/* Zoom, as the Admin Deck's cutter has it (owner, 9 Nov: "zoom the cut out ... and they can rover the
+   zoom too"): up to 8x, about a point of the preview; zoomed in, the picture is looked round by
+   scrolling, by dragging (Move, or Automatic where there is nothing to paint, or the right button,
+   or Space held), and with two fingers. Drawn again from the picture itself, so it stays sharp. */
+const ZOOM_MAX = 8;
+function clampPan() {
+  const S = $('#cutPrev').width, z = cut.z;
+  cut.px = Math.min(0, Math.max(S - S * z, cut.px));
+  cut.py = Math.min(0, Math.max(S - S * z, cut.py));
+}
+function showZoom() {
+  const bar = $('#cutZoomBar');
+  if (bar) { bar.value = cut.z; $('#cutZoomPct').textContent = `${Math.round(cut.z * 100)}%`; }
+  $('#cutPrev')?.classList.toggle('is-zoomed', cut.z > 1.001);
+}
+let viewQueued = false;
+function redrawSoon() {
+  if (!viewQueued) { viewQueued = true; requestAnimationFrame(() => { viewQueued = false; drawCutPreview(); }); }
+}
+function zoomTo(z, cx, cy) {
+  if (!cut.c) return;
+  const S = $('#cutPrev').width;
+  if (cx == null) { cx = S / 2; cy = S / 2; }
+  z = Math.max(1, Math.min(ZOOM_MAX, z));
+  cut.px = cx - (cx - cut.px) * (z / cut.z);
+  cut.py = cy - (cy - cut.py) * (z / cut.z);
+  cut.z = z;
+  clampPan(); showZoom(); redrawSoon();
+}
+function fitView() { cut.z = 1; cut.px = 0; cut.py = 0; showZoom(); }
 
 /* the preview: Automatic shows the cut piece; Edit by hand shows the whole
    picture, with what will be cut away faded, so there is something to paint */
@@ -398,7 +433,8 @@ function drawCutPreview() {
   }
   cv.hidden = false;
   $('#cutHint').hidden = true;
-  cv.classList.toggle('is-painting', cut.hand);
+  $('#cutRemove').hidden = false;
+  cv.classList.toggle('is-painting', cut.hand && cut.brush !== 'move');
 }
 
 /* mask -> cut -> trophy */
@@ -451,6 +487,7 @@ async function chooseCutFile(file) {
   if (file.type === 'image/svg+xml' && await readOutline(file)) {     // an outline already
     cut.result = null; cfg.cutArt = null; cfg.cutAspect = null; cfg.cutBox = null;
     outlineReady = true; useCustomShape();
+    $('#cutRemove').hidden = false;
     return cutNote('Outline read from your SVG — it is now the cut shape.');
   }
   if (cut.url) URL.revokeObjectURL(cut.url);
@@ -458,15 +495,38 @@ async function chooseCutFile(file) {
     const { readImage } = await cutLib();
     const { img, url } = await readImage(file);
     cut.img = img; cut.url = url;
+    cfg.shift = null; showShift();
+    fitView();
     setCutMode('auto');
     await runAuto();
   } catch (err) { cutNote(err.message, true); }
 }
 
 function useCustomShape() {
+  if (cfg.shape !== 'custom') cut.before = cfg.shape;
   cfg.shape = 'custom'; cfg.variant = 0; cfg.place = null;
-  setVariant('custom', 0); poseTiles(); buildTiles(); markTiles(); custom(); rebuild(); sync();
+  setVariant('custom', 0); poseTiles(); buildTiles(); markTiles(); custom(); rebuild(); sync(); showShift();
 }
+
+/* "Left – right": the customer's own cut slides along its base, as the Admin Deck's does (owner,
+   9 Nov: "add these in the design yours section ... where they can adjust the trophy cut"); sent
+   with the order as `shift`. The bar shows only while their cut is the shape. */
+function showShift() {
+  const box = $('#cutSlide');
+  if (!box) return;
+  box.hidden = cfg.shape !== 'custom';
+  const v = +cfg.shift || 0;
+  $('#cutShift').value = v;
+  $('#cutShiftOut').textContent = Math.abs(v) < 0.01 ? 'centred' : `${Math.round(Math.abs(v) * 100)}% ${v < 0 ? 'left' : 'right'}`;
+}
+let shiftFrame = 0;
+function setShift(v) {
+  cfg.shift = cfg.shape === 'custom' && Math.abs(v) >= 0.01 ? +Math.max(-1, Math.min(1, v)).toFixed(2) : null;
+  showShift();
+  if (!shiftFrame) shiftFrame = requestAnimationFrame(() => { shiftFrame = 0; rebuild(); });   // once a frame while dragged
+}
+$('#cutShift')?.addEventListener('input', e => setShift(+e.target.value));
+$('#cutCenter')?.addEventListener('click', () => setShift(0));
 
 /* A finished cut goes onto the trophy at once. */
 function applyCut(r) {
@@ -497,8 +557,37 @@ function paintAt(e) {
     if ((x - px) ** 2 + (y - py) ** 2 <= r * r) cut.m[y * W + x] = val;
 }
 let painting = false, paintQueued = false;
+let pan = null, pinch = null, spaceDown = false, overCut = false;
+const fingers = new Map();                  // pointers down on the preview, for two-finger zoom
+const atCanvas = e => {
+  const cv = $('#cutPrev'), r = cv.getBoundingClientRect();
+  return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height];
+};
+$('#cutPrev')?.addEventListener('pointerenter', () => { overCut = true; });
+$('#cutPrev')?.addEventListener('pointerleave', () => { overCut = false; });
+addEventListener('keydown', e => { if (e.code === 'Space' && overCut && cut.c && !e.repeat) { spaceDown = true; e.preventDefault(); } });
+addEventListener('keyup', e => { if (e.code === 'Space') spaceDown = false; });
+$('#cutPrev')?.addEventListener('contextmenu', e => { if (cut.c && cut.z > 1.001) e.preventDefault(); });
 $('#cutPrev')?.addEventListener('pointerdown', e => {
-  if (!cut.hand || !cut.m) return;
+  if (!cut.c) return;
+  fingers.set(e.pointerId, atCanvas(e));
+  if (fingers.size === 2) {                 // a second finger: zoom, and drop the stroke it interrupted
+    if (painting) { painting = false; if (cut.history.length) { cut.m = cut.history.pop(); undoState(); } }
+    pan = null;
+    const [a, b] = [...fingers.values()];
+    pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, c: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], z: cut.z, px: cut.px, py: cut.py };
+    $('#cutPrev').setPointerCapture(e.pointerId);
+    return;
+  }
+  if (e.button === 2 || spaceDown || !cut.hand || cut.brush === 'move') {
+    if (cut.z <= 1.001) return;             // all of it is in view: nothing to look round
+    e.preventDefault();
+    pan = { x: e.clientX, y: e.clientY };
+    $('#cutPrev').setPointerCapture(e.pointerId);
+    $('#cutPrev').classList.add('is-panning');
+    return;
+  }
+  if (!cut.m) return;
   e.preventDefault();
   painting = true;
   remember();
@@ -506,22 +595,89 @@ $('#cutPrev')?.addEventListener('pointerdown', e => {
   paintAt(e); drawCutPreview();
 });
 $('#cutPrev')?.addEventListener('pointermove', e => {
+  if (fingers.has(e.pointerId)) fingers.set(e.pointerId, atCanvas(e));
+  if (pinch && fingers.size === 2) {
+    const [a, b] = [...fingers.values()];
+    const z = Math.max(1, Math.min(ZOOM_MAX, pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d));
+    const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    // the point that was under the fingers stays under them
+    cut.px = m[0] - (pinch.c[0] - pinch.px) / pinch.z * z;
+    cut.py = m[1] - (pinch.c[1] - pinch.py) / pinch.z * z;
+    cut.z = z;
+    clampPan(); showZoom(); redrawSoon();
+    return;
+  }
+  if (pan) {
+    const cv = $('#cutPrev'), s = cv.width / cv.getBoundingClientRect().width;
+    cut.px += (e.clientX - pan.x) * s; cut.py += (e.clientY - pan.y) * s;
+    pan = { x: e.clientX, y: e.clientY };
+    clampPan(); redrawSoon();
+    return;
+  }
   if (!painting) return;
   paintAt(e);
   if (!paintQueued) { paintQueued = true; requestAnimationFrame(() => { paintQueued = false; drawCutPreview(); }); }
 });
 let justPainted = false;
-const endPaint = () => {
+const endPaint = e => {
+  fingers.delete(e?.pointerId);
+  if (fingers.size < 2) pinch = null;
+  if (pan) {
+    pan = null; $('#cutPrev').classList.remove('is-panning');
+    justPainted = true; setTimeout(() => { justPainted = false; }, 0);
+    return;
+  }
   if (!painting) return;
   painting = false; justPainted = true; setTimeout(() => { justPainted = false; }, 0);
   finishAndApply();
 };
 $('#cutPrev')?.addEventListener('pointerup', endPaint);
 $('#cutPrev')?.addEventListener('pointercancel', endPaint);
+$('#cutPrev')?.addEventListener('wheel', e => {
+  if (!cut.c) return;
+  if (e.ctrlKey) { e.preventDefault(); const [cx, cy] = atCanvas(e); zoomTo(cut.z * Math.exp(-e.deltaY * 0.0025), cx, cy); return; }
+  if (cut.z <= 1.001) return;               // not zoomed: the page scrolls as usual
+  e.preventDefault();
+  const cv = $('#cutPrev'), s = cv.width / cv.getBoundingClientRect().width;
+  cut.px -= e.deltaX * s; cut.py -= e.deltaY * s;
+  clampPan(); redrawSoon();
+}, { passive: false });
+$('#cutZoomBar')?.addEventListener('input', e => zoomTo(+e.target.value));
+$('#cutZoomMinus')?.addEventListener('click', () => zoomTo(cut.z / 1.25));
+$('#cutZoomPlus')?.addEventListener('click', () => zoomTo(cut.z * 1.25));
+$('#cutFit')?.addEventListener('click', () => { fitView(); drawCutPreview(); });
+
+/* × in the corner: the picture comes off, and the trophy goes back to the shape it had
+   before it (owner, 9 Nov: "add x in the side if your want to remove it"). */
+function removeCut() {
+  if (cut.url) URL.revokeObjectURL(cut.url);
+  Object.assign(cut, { img: null, url: null, c: null, m: null, auto: null, mode: null, result: null, history: [], future: [] });
+  undoState(); fitView();
+  const cv = $('#cutPrev');
+  if (cv) { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); cv.hidden = true; cv.classList.remove('is-painting'); }
+  $('#cutHint').hidden = false;
+  $('#cutOpts').hidden = true;
+  $('#cutRemove').hidden = true;
+  $('#cutInput').value = '';
+  cfg.cutArt = null; cfg.cutAspect = null; cfg.cutBox = null; cfg.cutMode = null; cfg.shift = null;
+  restored.art = null; restored.picture = null;
+  outlineReady = false;
+  if (cfg.shape === 'custom') {
+    const k = SHAPES[cut.before] && cut.before !== 'custom' ? cut.before : 'lady';
+    cfg.shape = k; cfg.variant = 0; cfg.place = null; setVariant(k, 0);
+    if (MATERIALS[SHAPES[k].sheet]) cfg.material = SHAPES[k].sheet;
+    if (SHAPES[k].ink) cfg.scheme = SHAPES[k].ink;
+    poseTiles(); buildTiles(); markTiles(); custom(); rebuild(); sync();
+  }
+  showShift();
+  cutNote('Picture removed. Drop another one, or pick a shape above.');
+}
+$('#cutRemove')?.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); removeCut(); });
 
 $$('#optBrush .opt').forEach(b => b.addEventListener('click', () => {
   cut.brush = b.dataset.key;
   $$('#optBrush .opt').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  $('#cutPrev')?.classList.toggle('is-painting', cut.hand && cut.brush !== 'move');
 }));
 $('#cutBrush')?.addEventListener('input', e => { cut.size = +e.target.value; $('#cutBrushOut').textContent = e.target.value; });
 /* undo / redo: a new edit clears what could be redone */
@@ -550,13 +706,16 @@ $('#cutRestart')?.addEventListener('click', () => {
 $('#cutInput')?.addEventListener('change', e => chooseCutFile(e.target.files[0]));
 $('#cutDrop')?.addEventListener('dragover', e => { e.preventDefault(); });
 $('#cutDrop')?.addEventListener('drop', e => { e.preventDefault(); chooseCutFile(e.dataTransfer.files[0]); });
-$('#cutDrop')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#cutInput').click(); } });
+$('#cutDrop')?.addEventListener('keydown', e => {
+  if (e.target !== $('#cutDrop') || cut.c) return;
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#cutInput').click(); }
+});
 /* The box is a plain element, not a <label> for the file input: as a label,
    the end of every brush stroke counted as a click on it, opened the file
    chooser and threw the page to the top. It opens the chooser itself, and
    never while painting. */
 $('#cutDrop')?.addEventListener('click', e => {
-  if (justPainted || (cut.hand && e.target.id === 'cutPrev')) return;
+  if (cut.c || justPainted || (cut.hand && e.target.id === 'cutPrev')) return;
   if (e.target.id === 'cutInput') return;
   $('#cutInput').click();
 });
@@ -706,6 +865,7 @@ function buildTiles() {
         return;
       }
       cfg.shape = k; cfg.variant = 0; cfg.place = null; setVariant(k, 0);
+      cfg.shift = null; showShift();                           // only the customer's own cut slides
       if (MATERIALS[SHAPES[k].sheet]) cfg.material = SHAPES[k].sheet;
       if (SHAPES[k].ink) cfg.scheme = SHAPES[k].ink;          // a design's wording is printed on it
       poseTiles(); custom(); rebuild();
@@ -1585,6 +1745,8 @@ function restoreSpec() {
   cfg._occasion = null;
   cfg.variant = cfg.variant || 0;
   if (!outfitOk(cfg.outfit)) cfg.outfit = null;
+  cfg.shift = ownCut && Number.isFinite(+cfg.shift) && Math.abs(+cfg.shift) >= 0.01 ? Math.max(-1, Math.min(1, +cfg.shift)) : null;
+  showShift();
   setVariant(cfg.shape, cfg.variant);
   if (ownCut) {
     setCustomOutline(d.outline);
