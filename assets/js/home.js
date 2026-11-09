@@ -4,8 +4,8 @@
    a single shared context and baked to images.
    ══════════════════════════════════════════════════════════════ */
 import * as THREE from 'three';
-import { createViewer, webglAvailable } from './viewer.js?v=202611091333';
-import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, shopGroup, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611091333';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091412';
+import { buildTrophy, disposeGroup, price, peso, artReady, shopDesignOk, shopGroup, SHAPES, DESIGNS, MATERIALS, BASES, SIZES } from './trophy.js?v=202611091412';
 
 const $  = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -424,8 +424,10 @@ async function boot() {
     try { await document.fonts.ready; } catch { /* draw with fallbacks */ }
   }
 
+  // the plain gold silhouette Lady in the mirror gold of 2 Nov, not the printed pageant one
+  // (owner, 9 Nov: "in the landing page only", "this is good from before use that instead")
   liveViewer('#heroViz', '#heroCanvas', {
-    shape: 'lady', material: 'gold', size: 'l', baseKind: 'goldbar', baseFinish: 'black',
+    shape: 'lady', variant: 1, classicMirror: true, material: 'gold', size: 'l', baseKind: 'goldbar', baseFinish: 'black',
     decal: 'rect', scheme: 'black', font: 'script', laminate: 'gloss',
     org: 'Mutya ng Gloria', title: '1st Runner-Up', name: 'Maria C. Lualhati', date: '2026',
   });

@@ -794,6 +794,39 @@ const GENT_TRACE = `M102.3 299.9 L83.1 299.9 L81.6 298.2 L77.1 295.4 L74.0 292.9
   L87.1 185.4 L87.1 198.1 L90.8 222.4 L92.0 243.7 L93.0 253.4 L93.1 259.5 L92.8 264.6 L92.4 267.4
   L91.1 273.4 L91.1 275.7 L91.4 277.1 L92.8 279.4 L98.1 285.9 L101.7 291.3 L102.4 294.5 Z`;
 
+const LADY_SIL_TRACE = `M83.5 299.9 L3.5 299.9 L3.3 299.7 L3.3 295.4 L3.9 294.8 L4.2 293.6 L3.3 291.4 L3.2 289.8
+  L3.6 288.3 L4.8 285.6 L4.8 283.8 L3.8 283.1 L1.0 284.3 L-0.4 284.3 L-2.2 283.1 L-2.8 281.9
+  L-2.8 281.0 L-2.3 279.6 L-0.5 277.0 L0.5 274.8 L2.9 271.9 L4.4 268.7 L5.6 266.7 L7.3 265.1
+  L8.7 264.3 L12.3 263.4 L13.7 262.7 L15.1 261.7 L16.2 260.5 L16.9 258.1 L19.0 254.3 L19.6 252.5
+  L21.7 249.3 L22.8 245.0 L25.4 237.7 L26.0 234.7 L27.2 232.3 L27.9 230.1 L30.0 225.2 L31.4 223.2
+  L33.0 219.9 L33.9 218.6 L41.0 211.4 L41.6 210.2 L41.5 209.3 L40.7 208.6 L34.2 207.3 L28.8 204.9
+  L24.7 202.0 L22.1 199.5 L20.0 195.9 L19.4 192.3 L18.6 190.8 L12.5 185.4 L9.6 181.2 L7.8 176.1
+  L7.5 174.2 L7.8 172.7 L8.6 171.5 L10.4 169.9 L20.0 166.3 L25.0 163.6 L28.7 160.9 L34.4 156.3
+  L37.9 152.8 L43.3 145.7 L51.2 132.3 L52.7 130.3 L56.2 126.3 L66.4 116.3 L67.9 113.8 L68.8 111.6
+  L69.6 107.5 L69.6 104.6 L69.1 100.6 L67.4 94.8 L66.6 92.6 L65.2 89.8 L64.3 88.7 L63.5 88.3
+  L62.9 88.5 L61.8 89.4 L56.9 95.5 L45.9 113.5 L41.2 118.8 L25.4 134.2 L22.4 137.8 L17.9 144.1
+  L15.4 146.5 L10.8 149.0 L6.8 152.0 L4.9 152.7 L3.4 152.5 L2.1 151.8 L1.3 150.6 L0.9 149.2
+  L0.3 148.6 L-1.0 149.0 L-4.8 152.3 L-6.4 152.8 L-8.0 152.7 L-9.9 151.8 L-11.1 150.7 L-11.7 149.0
+  L-11.2 146.2 L-11.3 142.8 L-10.9 141.9 L-8.7 140.0 L-0.1 136.1 L3.9 135.7 L5.9 135.9 L6.7 135.8
+  L8.6 134.3 L11.6 132.6 L13.7 130.4 L20.7 120.2 L23.3 115.1 L28.6 106.8 L40.7 91.8 L42.8 87.6
+  L44.4 85.3 L45.3 83.5 L51.2 69.7 L56.0 60.8 L58.5 57.9 L60.3 56.2 L65.6 53.8 L67.2 52.7
+  L68.9 50.8 L70.3 48.3 L71.0 46.2 L71.0 45.3 L70.4 44.3 L69.7 43.8 L65.1 42.1 L61.4 40.1
+  L60.2 39.1 L56.8 35.2 L53.2 33.5 L51.0 31.7 L49.5 30.0 L48.0 25.8 L47.8 24.0 L48.2 18.0
+  L49.5 14.6 L50.6 13.0 L52.2 11.7 L54.9 10.6 L58.0 10.3 L58.9 9.7 L64.3 4.5 L66.3 3.3
+  L71.3 1.4 L76.4 0.8 L79.4 -0.1 L86.9 1.4 L88.1 1.8 L89.2 2.5 L90.1 3.7 L91.7 6.9
+  L94.7 11.6 L97.2 17.9 L98.7 19.2 L100.8 20.2 L101.5 21.2 L101.5 24.8 L103.1 33.1 L103.0 34.9
+  L102.5 36.0 L101.5 37.0 L96.1 39.3 L95.0 40.2 L93.8 41.6 L92.9 43.4 L92.3 45.3 L92.0 53.0
+  L92.5 54.8 L93.4 56.6 L97.9 62.8 L109.8 75.9 L110.6 77.5 L111.6 81.2 L111.4 83.7 L110.4 87.6
+  L106.9 94.1 L106.4 95.9 L104.6 108.2 L99.7 126.4 L96.6 148.7 L95.2 174.3 L95.8 179.1 L95.8 186.1
+  L96.7 190.4 L96.8 193.2 L97.7 196.9 L98.1 200.4 L101.0 209.5 L101.0 212.1 L100.1 213.7 L98.1 215.0
+  L90.1 217.1 L85.5 221.0 L84.1 221.1 L79.8 220.1 L78.0 220.1 L76.9 220.5 L75.8 221.8 L75.3 223.1
+  L74.3 228.5 L74.3 233.1 L73.8 235.4 L73.4 240.6 L73.8 244.1 L73.6 246.2 L73.8 253.1 L73.4 257.5
+  L73.9 265.5 L75.9 277.0 L78.0 283.8 L79.2 290.4 L79.6 291.4 L81.1 293.6 L82.3 294.8 L83.5 295.3 Z
+  M55.9 295.1 L57.2 294.4 L57.7 292.8 L57.7 288.8 L56.7 285.1 L56.3 280.5 L56.7 279.1 L59.7 272.7
+  L60.0 270.8 L60.0 268.8 L59.6 267.0 L59.8 264.0 L57.8 256.3 L53.7 244.2 L53.5 240.6 L52.7 235.2
+  L52.1 233.1 L51.4 232.8 L50.3 233.6 L47.1 239.3 L45.0 242.3 L43.5 245.7 L39.3 250.5 L33.5 259.4
+  L27.1 272.4 L26.3 275.4 L24.4 279.7 L21.3 284.7 L19.2 286.9 L17.1 290.3 L16.6 293.4 L17.0 294.5
+  L18.2 295.2 Z`;
 const LADY_TRACE = `M59.3 299.9 L42.2 299.9 L40.8 299.1 L39.2 298.6 L35.2 298.4 L33.8 298.0 L31.6 296.6 L30.3 294.4
   L29.9 292.6 L30.2 288.5 L34.0 277.5 L35.1 273.0 L35.1 270.4 L34.3 263.5 L33.6 260.1 L30.2 250.1
   L24.6 228.4 L23.9 223.9 L23.8 217.3 L23.2 214.5 L22.4 212.8 L21.2 211.5 L16.9 208.9 L15.9 207.9
@@ -1349,7 +1382,10 @@ const FIGURES = {
              and Off-shoulder 0.49, all three at the floor. */
           bases: [1.49, 1.26, 1.26, 1.26] },
   gent: { path: GENT_TRACE, art: GENT_ART },
-  lady: { path: LADY_TRACE, art: LADY_ART },
+  /* The Lady's second outline is the plain gold silhouette the site had until 2 Nov, exactly as it
+     was (figure-src/legacy/LADY_SILHOUETTE.txt): no print and no pose name, so the designer never
+     offers it; only the landing page asks for it (owner, 9 Nov: "just use the one from before"). */
+  lady: { paths: [LADY_TRACE, LADY_SIL_TRACE], arts: [LADY_ART, null], names: ['Lady'] },
   suit: { path: SUIT_TRACE, art: SUIT_ART },
   /* One Volleyball shape: the men's pose 0, the women's 1. `groups` drives the
      Men / Women toggle; the pose row shows one group at a time. */
@@ -2304,6 +2340,14 @@ function edgeMaterial(spec) {
   });
 }
 
+/* The plain mirror the site had until 3 Nov: fully metallic, no glow, so it shows the studio it
+   reflects -- a deep bronze-to-gold sheen. Only the landing page's silhouette Lady asks for it
+   (cfg.classicMirror; owner, 9 Nov: "this is good from before use that instead"); every other
+   gold piece keeps its glow. */
+function classicMirror(spec) {
+  return new THREE.MeshStandardMaterial({ color: spec.color, metalness: 1, roughness: 0.14, envMapIntensity: 1.0 });
+}
+
 function sheetMaterial(spec) {
   if (spec.kind === 'glass') {
     return new THREE.MeshPhysicalMaterial({
@@ -2671,7 +2715,8 @@ function buildTrophyNow(cfg) {
   const faceZ = geo.boundingBox.max.z;
 
   // a design's cut edge is polished (group 1: the sides and bevel); a figure's carries its print
-  const blade = new THREE.Mesh(geo, isDesign ? [sheetMaterial(mat), edgeMaterial(mat)] : sheetMaterial(mat));
+  const blade = new THREE.Mesh(geo, isDesign ? [sheetMaterial(mat), edgeMaterial(mat)]
+    : cfg.classicMirror && mat.kind === 'mirror' ? classicMirror(mat) : sheetMaterial(mat));
   blade.castShadow = true;
   blade.receiveShadow = true;
   /* Seated into the base: a figure's mounting tab is exactly h * 0.015 deep
