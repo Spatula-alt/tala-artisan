@@ -14,9 +14,9 @@
 import {
   quote, peso, fmtDate, SHAPES, SIZES, MATERIALS, BASES, BASE_FINISHES, ZONES, SPEEDS, PAYMENTS, QTY_TIERS, DESIGNS,
   buildTrophy, disposeGroup, artReady, shopDesignOk, shopGroup, OUTFITS, hasOutfit, outfitOk, outfitLabel,
-} from './trophy.js?v=202611091412';
-import { createViewer, webglAvailable } from './viewer.js?v=202611091412';
-import { hasBadWord } from './wordguard.js?v=202611091412';
+} from './trophy.js?v=202611091458';
+import { createViewer, webglAvailable } from './viewer.js?v=202611091458';
+import { hasBadWord } from './wordguard.js?v=202611091458';
 
 const C = window.TALA_CONFIG || {};
 const BASE = String(C.supabaseUrl || '').replace(/\/+$/, '');
@@ -239,8 +239,33 @@ function renderProduct() {
   }
   const photos = (it.summary?.photos || []).filter(picOk);
   const gallery = shopItem ? [...photos, ...(it.still ? [it.still] : [])] : [it.summary?.preview].filter(picOk);
-  const main = (gallery.includes(it.pick) && it.pick) || (it.changed && it.still) || gallery[0]
+  /* A shop trophy is shown as Shopee shows a product, a big picture over a row of small ones: the
+     trophy in 3D to turn, the owner's photos, the trophy from four sides, and a video of it turning
+     (owner, 9 Nov: "make the products 3d and below are photos of different angles or yet video"). */
+  const in3d = shopItem && WEBGL && !it.stillFailed;
+  const media = in3d ? [
+    { key: '3d', thumb: it.still, label: 'In 3D' },
+    ...photos.map((u, i) => ({ key: `p${i}`, thumb: u, src: u, label: `Photo ${i + 1}` })),
+    ...ANGLES.map(a => ({ key: a.key, thumb: stillDone.get(`${dk}|${a.key}`), src: stillDone.get(`${dk}|${a.key}`), label: a.label })),
+    { key: 'video', thumb: it.still, label: 'Video' },
+  ] : [];
+  const pick = in3d ? media.find(m => m.key === it.pick) || media[0] : null;
+  const main = in3d ? null : (gallery.includes(it.pick) && it.pick) || (it.changed && it.still) || gallery[0]
     || (!shopItem || it.stillFailed || !WEBGL ? productPhoto(d.shape) : null);
+  const title = it.summary?.title || sh.label || 'The trophy';
+  const film = filmDone.get(dk);
+  const big = !in3d
+    ? `<div class="pd__pic${main ? '' : ' is-wait'}">${main ? `<img id="pdMain" src="${esc(main)}" alt="${esc(title)}">` : '<span>Drawing your trophy…</span>'}</div>
+        ${gallery.length > 1 ? `<div class="pd__thumbs">${gallery.map((u, i) =>
+          `<button type="button" data-ph="${i}" aria-label="Picture ${i + 1}"${u === main ? ' aria-current="true"' : ''}><img src="${esc(u)}" alt=""></button>`).join('')}</div>` : ''}`
+    : `<div class="pd__pic${pick.key === '3d' ? ' pd__pic--live' : ''}${pick.key !== '3d' && !(pick.key === 'video' ? film : pick.src) ? ' is-wait' : ''}">${
+        pick.key === '3d' ? '<span class="pd__hint">Drag to turn</span>'
+        : pick.key === 'video' ? (film ? `<video class="pd__video" src="${esc(film)}" autoplay loop muted playsinline controls aria-label="${esc(title)} turning"></video>`
+          : `<span>${filmFailed.has(dk) ? 'This browser cannot make the video. Try the 3D.' : 'Filming it as it turns…'}</span>`)
+        : pick.src ? `<img id="pdMain" src="${esc(pick.src)}" alt="${esc(`${title}: ${pick.label}`)}">` : '<span>Drawing it…</span>'}</div>
+        <div class="pd__thumbs">${media.map(m => `<button type="button" data-media="${m.key}" aria-label="${esc(m.label)}"${m === pick ? ' aria-current="true"' : ''}>${
+          m.thumb ? `<img src="${esc(m.thumb)}" alt="">` : '<i class="pd__twait"></i>'}${
+          m.key === '3d' ? '<b class="pd__badge">3D</b>' : m.key === 'video' ? '<b class="pd__play" aria-hidden="true"></b>' : ''}</button>`).join('')}</div>`;
 
   // the choices a shop trophy offers, each priced by the same model
   const hex = n => '#' + Number(n).toString(16).padStart(6, '0');
@@ -285,9 +310,7 @@ function renderProduct() {
     ${shopItem ? `<p class="pd__crumbs"><a href="./">Tala Artisan</a> › <a href="./#shop">Trophies</a> › ${grp ? `${esc(grp)} › ` : ''}<span>${esc(it.summary?.title || sh.label)}</span></p>` : ''}
     <div class="pd__top">
       <div class="pd__media">
-        <div class="pd__pic${main ? '' : ' is-wait'}">${main ? `<img id="pdMain" src="${esc(main)}" alt="${esc(it.summary?.title || sh.label || 'The trophy')}">` : '<span>Drawing your trophy…</span>'}</div>
-        ${gallery.length > 1 ? `<div class="pd__thumbs">${gallery.map((u, i) =>
-          `<button type="button" data-ph="${i}" aria-label="Picture ${i + 1}"${u === main ? ' aria-current="true"' : ''}><img src="${esc(u)}" alt=""></button>`).join('')}</div>` : ''}
+        ${big}
         <div class="pd__share"><span>Share:</span>
           <a data-net="fb" target="_blank" rel="noopener">Facebook</a>
           <a data-net="x" target="_blank" rel="noopener">X</a>
@@ -299,7 +322,7 @@ function renderProduct() {
         <p class="pd__var">${esc(variation(d))}</p>
         <p class="pd__stats">${st?.ratings ? `<a class="pd__rate" href="#ratings"><b>${(+st.rating).toFixed(1)}</b> ${stars(+st.rating)}</a><a href="#ratings"><b>${st.ratings}</b> ${st.ratings === 1 ? 'Rating' : 'Ratings'}</a>` : '<span>No ratings yet</span>'}
           <span><b>${st?.sold || 0}</b> Sold</span></p>
-        <div class="pd__price">${off ? `<s>${peso(q.unit)}</s> ` : ''}${peso(each)} <small>each</small>${off ? `<span class="tag tag--solid">−${off}%</span>` : ''}
+        <div class="pd__price${off ? ' is-sale' : ''}"><b>${peso(each)}</b>${off ? ` <s>${peso(q.unit)}</s> <span class="pd__off">−${off}%</span>` : ''} <small>each</small>
           ${after != null ? `<span class="pd__after">${peso(after)} each after voucher</span>` : ''}</div>
         <dl class="pd__rows">
           ${vouchers.length ? `<dt>Shop vouchers</dt><dd class="pd__vouch">${vouchers.map(v => `<button type="button" class="vch${claimed.includes(v.code) ? ' is-claimed' : ''}" data-claim="${esc(v.code)}"
@@ -327,7 +350,7 @@ function renderProduct() {
     </div>
 
     <div class="pd__card pd__shopcard">
-      <a class="pd__logo" href="${FB_PAGE}" target="_blank" rel="noopener" aria-label="Tala Artisan on Facebook"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 19.06 11.79 28.37 11.98 20.95 17.61 23.64 26.52 16 21.2 8.36 26.52 11.05 17.61 3.63 11.98 12.94 11.79Z"/></svg></a>
+      <a class="pd__logo" href="${FB_PAGE}" target="_blank" rel="noopener" aria-label="Tala Artisan on Facebook"><img src="assets/img/shop-logo.webp" alt="" width="72" height="72"></a>
       <div class="pd__shopname"><b>Tala Artisan</b><small>Acrylic trophies · Gloria, Oriental Mindoro</small>
         <span class="pd__shopbtns"><a class="btn btn--cart btn--sm" href="${FB}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 3.2 8 7.3s-3.6 7.2-8 7.2c-1 0-2-.2-2.9-.5L5 19.6l1.2-3.5C4.8 14.8 4 13.1 4 11.3 4 7.2 7.6 4 12 4Z"/></svg>Chat now</a>
           <a class="btn btn--line btn--sm" href="./#shop">View shop</a>
@@ -374,6 +397,26 @@ function renderProduct() {
 
   if ($('[data-q="in"]', box)) wireQty($('[data-q="in"]', box), n => { incoming.qty = n; renderProduct(); });
   $$('[data-ph]', box).forEach(b => b.addEventListener('click', () => { it.pick = gallery[+b.dataset.ph]; renderProduct(); }));
+  $$('[data-media]', box).forEach(b => b.addEventListener('click', () => { it.pick = b.dataset.media; renderProduct(); }));
+  if (in3d) {
+    if (pick.key === '3d') mount3D($('.pd__pic', box), d, dk);
+    // the four sides, each into its own small picture as it is drawn (and the big one, if it is the one shown)
+    for (const a of ANGLES) {
+      if (stillDone.has(`${dk}|${a.key}`)) continue;
+      stillFor(d, false, a).then(url => {
+        if (incoming !== it || it.stillKey !== dk || !url) return;
+        if (pick.key === a.key) { renderProduct(); return; }
+        const b = $(`[data-media="${a.key}"]`, box);
+        if (b) b.innerHTML = `<img src="${esc(url)}" alt="">`;
+      });
+    }
+    if (pick.key === 'video' && !film && !filmFailed.has(dk)) {
+      filmTurn(d).then(url => {
+        if (!url) filmFailed.add(dk);
+        if (incoming === it && it.stillKey === dk && it.pick === 'video') renderProduct();
+      });
+    }
+  }
   $$('[data-field]', box).forEach(b => b.addEventListener('click', () => {
     if (d[b.dataset.field] === b.dataset.key) return;
     incoming.design = { ...incoming.design, [b.dataset.field]: b.dataset.key };
@@ -424,12 +467,96 @@ const stillDone = new Map((() => {
 })().filter(e => Array.isArray(e) && typeof e[0] === 'string' && picOk(e[1]) && e[1].startsWith('data:')));
 const stillJobs = new Map();                          // design -> its picture, being drawn
 const stillLine = [];                                 // the designs waiting to be drawn
-let stillViewer = null, stillCanvas = null, drawing = false;
-function stillFor(design, first = false) {
+let stillViewer = null, stillCanvas = null, stillHome = null, drawing = false;
+/* The four sides a product is pictured from, under its 3D: the camera's turn from the front. */
+const ANGLES = [
+  { key: 'front', label: 'From the front', az: 0 },
+  { key: 'left', label: 'From the left', az: -0.8 },
+  { key: 'right', label: 'From the right', az: 0.8 },
+  { key: 'side', label: 'From the side', az: -1.45 },
+];
+
+/* The product's live 3D: one viewer for the visit, its canvas moved into each new render of the
+   page (the page is drawn again on every choice), the trophy built again only when it changes. */
+let pd3d = null;
+function mount3D(pic, design, key) {
+  if (!pic) return;
+  if (!pd3d) {
+    const canvas = Object.assign(document.createElement('canvas'), { className: 'pd__canvas', tabIndex: 0 });
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'The trophy in 3D. Drag to turn it, scroll to zoom; the arrow keys turn it too.');
+    pd3d = { canvas, viewer: null, model: null, key: null };
+  }
+  pic.prepend(pd3d.canvas);
+  if (!pd3d.viewer) pd3d.viewer = createViewer(pd3d.canvas, { autoRotate: true, maxDpr: 2 });
+  pd3d.viewer.resize();
+  if (pd3d.key !== key) {
+    if (pd3d.model) { pd3d.viewer.scene.remove(pd3d.model); disposeGroup(pd3d.model); }
+    pd3d.model = buildTrophy(design);
+    pd3d.viewer.scene.add(pd3d.model);
+    pd3d.viewer.frameObject(pd3d.model);
+    pd3d.key = key;
+  }
+  pd3d.viewer.invalidate();
+}
+
+/* The video: the trophy turned once round on the cards' light ground, filmed off the page as the
+   browser draws it (MediaRecorder), when the customer first asks for it. A browser that cannot
+   film says so and keeps the 3D. */
+const filmDone = new Map(), filmFailed = new Set();
+const filmJobs = new Map();
+function filmTurn(design) {
   const k = JSON.stringify(design);
+  if (filmDone.has(k)) return Promise.resolve(filmDone.get(k));
+  if (!filmJobs.has(k)) filmJobs.set(k, shootTurn(design).catch(() => null).then(url => {
+    filmJobs.delete(k);
+    if (url) filmDone.set(k, url);
+    return url;
+  }));
+  return filmJobs.get(k);
+}
+async function shootTurn(design) {
+  if (!WEBGL || typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) return null;
+  const type = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
+    .find(t => MediaRecorder.isTypeSupported(t));
+  if (!type) return null;
+  const W = 480, H = 600, SECONDS = 6;
+  const canvas = Object.assign(document.createElement('canvas'), { width: W, height: H });
+  const viewer = createViewer(canvas, { capture: true, fixed: { w: W, h: H }, loop: false, interactive: false, maxDpr: 1 });
+  viewer.renderer.setClearColor(0xF3F1EB, 1);           // --surface: a video has no see-through ground
+  await Promise.race([artReady(design), new Promise(r => setTimeout(r, 4000))]);
+  const model = buildTrophy(design);
+  viewer.scene.add(model);
+  viewer.frameObject(model);
+  const home = viewer.getHome();
+  viewer.renderNow();
+  const parts = [];
+  const rec = new MediaRecorder(canvas.captureStream(30), { mimeType: type, videoBitsPerSecond: 3000000 });
+  rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
+  const stopped = new Promise(r => { rec.onstop = r; });
+  rec.start(250);
+  const t0 = performance.now();
+  await new Promise(done => {
+    const step = now => {
+      const f = Math.min(1, (now - t0) / (SECONDS * 1000));
+      viewer.setView({ az: home.az + f * Math.PI * 2 });
+      viewer.renderNow();
+      if (f < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  });
+  rec.stop();
+  await stopped;
+  viewer.scene.remove(model);
+  disposeGroup(model);
+  viewer.dispose();
+  return parts.length ? URL.createObjectURL(new Blob(parts, { type: type.split(';')[0] })) : null;
+}
+function stillFor(design, first = false, angle = null) {
+  const k = JSON.stringify(design) + (angle ? `|${angle.key}` : '');
   if (stillDone.has(k)) return Promise.resolve(stillDone.get(k));
   if (!stillJobs.has(k)) stillJobs.set(k, new Promise(resolve => {
-    stillLine[first ? 'unshift' : 'push']({ design, k, resolve });
+    stillLine[first ? 'unshift' : 'push']({ design, k, resolve, angle });
     if (!drawing) drawStills();
   }));
   return stillJobs.get(k);
@@ -437,9 +564,9 @@ function stillFor(design, first = false) {
 async function drawStills() {
   drawing = true;
   while (stillLine.length) {
-    const { design, k, resolve } = stillLine.shift();
+    const { design, k, resolve, angle } = stillLine.shift();
     let url = null;
-    try { url = await drawStill(design); } catch { /* left undrawn */ }
+    try { url = await drawStill(design, angle); } catch { /* left undrawn */ }
     stillJobs.delete(k);
     if (url) keepStill(k, url);
     resolve(url);
@@ -448,21 +575,24 @@ async function drawStills() {
 }
 function keepStill(k, url) {
   stillDone.set(k, url);
-  while (stillDone.size > 16) stillDone.delete(stillDone.keys().next().value);
+  while (stillDone.size > 48) stillDone.delete(stillDone.keys().next().value);   // five pictures a trophy
   try { sessionStorage.setItem(STILLS, JSON.stringify([...stillDone])); } catch { /* full: kept for this page only */ }
 }
-async function drawStill(design) {
+async function drawStill(design, angle = null) {
   if (!WEBGL) return null;
   const W = 480, H = 600;
   if (!stillViewer) {
     stillCanvas = Object.assign(document.createElement('canvas'), { width: W, height: H });
     stillViewer = createViewer(stillCanvas, { capture: true, fixed: { w: W, h: H }, loop: false, interactive: false, maxDpr: 1 });
+    stillHome = stillViewer.getHome();
   }
   await Promise.race([artReady(design), new Promise(r => setTimeout(r, 4000))]);
   const model = buildTrophy(design);
   try {
     stillViewer.scene.add(model);
+    stillViewer.setView({ az: stillHome.az, pol: stillHome.pol });   // framing keeps the view it finds
     stillViewer.frameObject(model);
+    if (angle) stillViewer.setView({ az: angle.az, pol: angle.pol ?? stillHome.pol });
     stillViewer.renderNow();
     const out = Object.assign(document.createElement('canvas'), { width: W, height: H });
     const g = out.getContext('2d');

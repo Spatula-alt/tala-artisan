@@ -37,13 +37,26 @@
 .pd__top,.pd__card{padding:22px;background:var(--paper);border:1px solid var(--line-soft);border-radius:8px}
 .pd__top{display:grid;grid-template-columns:minmax(240px,400px) minmax(0,1fr);gap:30px}
 .pd__media{display:grid;gap:12px;align-content:start}
-.pd__pic{display:grid;place-items:center;background:var(--surface);border-radius:6px;aspect-ratio:4/5;overflow:hidden}
+.pd__pic{position:relative;display:grid;place-items:center;background:var(--surface);border-radius:6px;aspect-ratio:4/5;overflow:hidden}
+/* the product in 3D, from its sides, on video (owner, 9 Nov) */
+.pd__canvas{position:absolute;inset:0;display:block;width:100%;height:100%;cursor:grab;touch-action:none;outline:none}
+.pd__canvas.is-grabbing{cursor:grabbing}
+.pd__canvas:focus-visible{box-shadow:inset 0 0 0 2px var(--ink)}
+.pd__hint{position:absolute;left:12px;top:12px;z-index:1;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.86);color:var(--mute);font-size:.8rem;pointer-events:none}
+.pd__video{display:block;width:100%;height:100%;object-fit:contain;background:var(--surface)}
+.pd__thumbs button{position:relative}
+.pd__badge{position:absolute;left:4px;bottom:4px;padding:1px 5px;border-radius:3px;background:var(--ink);color:#fff;font-size:.66rem;font-weight:700;letter-spacing:.04em}
+.pd__play{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:rgba(21,20,15,.72)}
+.pd__play::after{content:"";position:absolute;left:10px;top:7px;border-style:solid;border-width:6px 0 6px 9px;border-color:transparent transparent transparent #fff}
+.pd__twait{display:block;width:100%;height:100%;background:linear-gradient(90deg,var(--surface),#fff,var(--surface));background-size:200% 100%;animation:pd-twait 1.2s linear infinite}
+@keyframes pd-twait{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.pd__twait{animation:none}}
 .pd__pic img{display:block;width:100%;height:100%;object-fit:contain}
 .pd__pic.is-wait span{color:var(--mute);font-size:.9rem;animation:pd-wait 1.2s ease-in-out infinite alternate}
 @keyframes pd-wait{from{opacity:.35}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.pd__pic.is-wait span{animation:none}}
 .pd__thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
-.pd__thumbs button{flex:none;width:64px;aspect-ratio:4/5;padding:0;border:2px solid transparent;border-radius:4px;background:var(--surface);cursor:pointer;overflow:hidden}
+.pd__thumbs button{flex:0 0 calc((100% - 40px) / 6);min-width:44px;aspect-ratio:4/5;padding:0;border:2px solid transparent;border-radius:4px;background:var(--surface);cursor:pointer;overflow:hidden}
 .pd__thumbs button[aria-current="true"]{border-color:var(--ink)}
 .pd__thumbs img{display:block;width:100%;height:100%;object-fit:cover}
 .pd__share{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:.86rem;color:var(--mute)}
@@ -153,7 +166,11 @@ dd.co__total{font-size:1.6rem;font-weight:600}
 .stars i{width:14px;height:14px;background:var(--line);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
 .stars i.on{background:var(--brass-lt)}
 .stars i.half{background:linear-gradient(90deg,var(--brass-lt) 50%,var(--line) 50%)}
-.pd__price s{color:var(--mute);font-size:1.1rem;font-weight:400;margin-right:6px}
+.pd__price s{color:var(--mute);font-size:1.1rem;font-weight:400;margin:0 4px}
+/* a sale, as Shopee shows one: the price now in red-orange, the old one struck through, the percent off */
+.pd__price b{font-weight:600}
+.pd__price.is-sale b{color:#D73211}
+.pd__off{display:inline-block;padding:2px 6px;border-radius:2px;background:#FDECEA;color:#D73211;font-size:.8rem;font-weight:700;vertical-align:middle}
 .tag--solid{background:var(--ink);border-color:var(--ink);color:var(--paper);margin-left:8px;vertical-align:4px}
 .pd__after{display:block;margin-top:4px;font-size:.92rem;font-weight:500;color:var(--brass)}
 .pd__vouch{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
@@ -179,8 +196,8 @@ dd.co__total{font-size:1.6rem;font-weight:600}
 .pd__stock{color:var(--mute);font-size:.88rem}
 /* the shop, as its Facebook page: name, Chat now and View shop, and what is real about it */
 .pd__shopcard{display:grid;grid-template-columns:auto minmax(230px,1fr) minmax(0,2fr);gap:18px 26px;align-items:center}
-.pd__logo{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;background:var(--ink)}
-.pd__logo svg{width:34px;height:34px;fill:var(--brass-lt)}
+.pd__logo{display:block;width:72px;height:72px;border-radius:50%;overflow:hidden;background:#F6F1E6;box-shadow:0 0 0 1px rgba(21,20,15,.08)}
+.pd__logo img{display:block;width:100%;height:100%;object-fit:cover}   /* the Facebook page's own picture */
 .pd__shopname b{display:block;font-size:1.05rem}
 .pd__shopname small{display:block;margin-top:2px;color:var(--mute);font-size:.86rem}
 .pd__shopbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
